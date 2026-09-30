@@ -109,7 +109,6 @@ img {
 .btn-save,
 .btn-cancel,
 .btn-delete,
-.export-btn,
 .date-btn {
   display: inline-flex;
   align-items: center;
@@ -130,16 +129,14 @@ img {
 }
 
 .btn-primary,
-.btn-save,
-.export-btn {
+.btn-save {
   background: var(--ds-blue);
   color: #fff;
   box-shadow: 0 6px 16px rgba(21, 101, 192, 0.22);
 }
 
 .btn-primary:hover,
-.btn-save:hover,
-.export-btn:hover {
+.btn-save:hover {
   background: var(--ds-blue-dark);
   color: #fff;
   transform: translateY(-1px);
@@ -617,13 +614,6 @@ img {
   font-size: 0.9rem;
 }
 
-.title-line {
-  width: 44px;
-  height: 4px;
-  margin-top: 10px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--ds-gold), var(--ds-gold-light));
-}
 
 .header-actions,
 .form-header-right {
@@ -642,179 +632,8 @@ img {
 }
 
 /* =====================================================================
-   TABLEAU DE BORD
+   ÉTAT VIDE (listes et tableau de bord)
 ===================================================================== */
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  overflow: hidden;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius);
-  background: var(--ds-surface);
-  box-shadow: var(--ds-shadow-sm);
-  transition: box-shadow 0.25s, transform 0.25s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--ds-shadow);
-}
-
-.stat-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.stat-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  font-size: 1.15rem;
-}
-
-.stat-icon.blue {
-  background: var(--ds-blue-soft);
-  color: var(--ds-blue);
-}
-
-.stat-icon.gold {
-  background: var(--ds-gold-soft);
-  color: var(--ds-gold);
-}
-
-.stat-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--ds-surface-muted);
-  color: var(--ds-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.stat-badge.success {
-  background: var(--ds-success-soft);
-  color: var(--ds-success);
-}
-
-.stat-label {
-  display: block;
-  color: var(--ds-muted);
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.stat-content h2 {
-  margin: 2px 0 0;
-  color: var(--ds-navy);
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.stat-content p {
-  margin: 4px 0 0;
-  color: var(--ds-muted);
-  font-size: 0.8rem;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  gap: 20px;
-}
-
-.analytics-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-lg);
-  background: var(--ds-surface);
-  box-shadow: var(--ds-shadow-sm);
-}
-
-.analytics-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--ds-border);
-}
-
-.analytics-header h2 {
-  margin: 0;
-  color: var(--ds-navy);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-.analytics-header a {
-  color: var(--ds-blue);
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.analytics-body {
-  padding: 20px 24px 24px;
-}
-
-.bar-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bar-list-label {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
-  font-size: 0.875rem;
-}
-
-.bar-list-label span {
-  color: var(--ds-text);
-  font-weight: 500;
-}
-
-.bar-list-label strong {
-  color: var(--ds-navy);
-}
-
-.bar-track {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--ds-surface-muted);
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--ds-blue), #3b8beb);
-}
 
 .empty-state {
   display: flex;
@@ -841,42 +660,6 @@ img {
 
 .empty-state strong {
   color: var(--ds-navy);
-}
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.quick-action {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius);
-  color: var(--ds-text);
-  font-weight: 500;
-  text-decoration: none;
-  transition: border-color 0.2s, background-color 0.2s;
-}
-
-.quick-action:hover {
-  border-color: var(--ds-blue);
-  background: var(--ds-blue-soft);
-  color: var(--ds-navy);
-}
-
-.quick-action i {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: var(--ds-blue-soft);
-  color: var(--ds-blue);
 }
 
 /* =====================================================================
@@ -1387,13 +1170,6 @@ img {
    RESPONSIVE
 ===================================================================== */
 
-/* Dernières réservations sur toute la largeur tant que la colonne serait trop étroite pour le tableau */
-@media (max-width: 1399.98px) {
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 /* Menu en tiroir */
 @media (max-width: 991.98px) {
   .main-content,
@@ -1633,35 +1409,6 @@ img {
   .table-counter {
     width: 100%;
     justify-content: center;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .stat-card {
-    padding: 16px;
-    gap: 12px;
-  }
-
-  .stat-card:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
-
-  .stat-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
-
-  .stat-content h2 {
-    font-size: 1.4rem;
-  }
-
-  .analytics-header,
-  .analytics-body {
-    padding-inline: 16px;
   }
 
   .form-actions > * {
@@ -2414,13 +2161,6 @@ a.nav-icon {
   }
 }
 
-/* Dernières réservations du tableau de bord : cellules resserrées pour tenir dans la colonne */
-@media (min-width: 768px) {
-  .dashboard-grid .custom-table th,
-  .dashboard-grid .custom-table td {
-    padding-inline: 14px;
-  }
-}
 
 /* ---------- Carte du compte en bas du menu latéral ---------- */
 
