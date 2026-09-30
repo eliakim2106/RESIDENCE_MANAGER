@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\ActiveStatus;
 use App\Enums\BillingCycle;
 use App\Enums\CancellationPolicy;
+use App\Enums\PayoutMethod;
 use App\Models\City;
 use App\Models\Equipment;
 use App\Models\Payment;
@@ -44,7 +45,7 @@ class DemoSeeder extends Seeder
         ]);
 
         $owners = collect([
-            User::factory()->owner()->create(['name' => 'Propriétaire Démo', 'email' => 'owner@dsholding.ci']),
+            User::factory()->owner()->create(['name' => 'Propriétaire Démo', 'email' => 'owner@dsholding.ci', 'payout_method' => PayoutMethod::MobileMoney, 'payout_account' => '07 00 00 00 00', 'payout_holder' => 'Propriétaire Démo']),
         ])->merge(User::factory()->owner()->count(3)->create());
 
         $clients = collect([

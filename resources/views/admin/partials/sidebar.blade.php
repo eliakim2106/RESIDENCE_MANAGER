@@ -30,6 +30,8 @@
         'Activité' => [
             [$user->hasRole(...$management) ? 'Réservations' : 'Mes réservations', 'fa-solid fa-calendar-check', 'admin.reservations.index', 'admin.reservations.', $everyone, $pendingReservations],
             ['Paiements', 'fa-solid fa-wallet', 'admin.paiements.index', 'admin.paiements.', $management],
+            ['Reversements', 'fa-solid fa-hand-holding-dollar', 'admin.reversements.index', 'admin.reversements.', $backOffice],
+            ['Mes reversements', 'fa-solid fa-hand-holding-dollar', 'admin.mes-reversements.index', 'admin.mes-reversements.', [UserRole::Owner]],
             ['Mon abonnement', 'fa-solid fa-id-card', 'admin.abonnement.show', 'admin.abonnement.', [UserRole::Owner]],
         ],
         'Hébergements' => [

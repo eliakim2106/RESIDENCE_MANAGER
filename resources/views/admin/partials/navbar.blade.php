@@ -7,6 +7,8 @@
     $sections = [
         'admin.reservations.' => [$user->isAdmin() || $user->isOwner() ? 'Réservations' : 'Mes réservations', 'admin.reservations.index'],
         'admin.paiements.' => ['Paiements', 'admin.paiements.index'],
+        'admin.reversements.' => [$user->isAdmin() ? 'Reversements' : 'Mes reversements', $user->isAdmin() ? 'admin.reversements.index' : 'admin.mes-reversements.index'],
+        'admin.mes-reversements.' => ['Mes reversements', 'admin.mes-reversements.index'],
         'admin.validations.' => ['Validations', 'admin.validations.index'],
         'admin.utilisateurs.' => ['Utilisateurs', 'admin.utilisateurs.index'],
         'admin.abonnements.' => ['Abonnements', 'admin.abonnements.index'],

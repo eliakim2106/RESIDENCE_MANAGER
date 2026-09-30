@@ -12,6 +12,15 @@
   white-space: nowrap;
 }
 
+/* Téléphone : deux cartes par ligne, le montant passe à la ligne plutôt que d'être coupé */
+@media (max-width: 575.98px) {
+  .resa-today-text strong.is-amount {
+    font-size: 1.02rem;
+    line-height: 1.25;
+    white-space: normal;
+  }
+}
+
 /* ---------- Graphiques ---------- */
 
 .pay-charts {

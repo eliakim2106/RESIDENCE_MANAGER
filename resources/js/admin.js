@@ -298,6 +298,26 @@ function initCycleToggle() {
 }
 
 /* =====================================
+   COORDONNÉES DE REVERSEMENT
+   Le libellé du champ « compte » suit le moyen choisi (numéro Mobile Money, RIB…).
+===================================== */
+
+function initPayoutAccount() {
+  const form = document.querySelector("[data-payout-account]");
+
+  if (!form) {
+    return;
+  }
+
+  const select = form.querySelector("[data-payout-method]");
+  const label = form.querySelector("label[data-account-label]");
+
+  select.addEventListener("change", () => {
+    label.textContent = select.selectedOptions[0].dataset.accountLabel;
+  });
+}
+
+/* =====================================
    PRÉCHARGEMENT
 ===================================== */
 
@@ -369,5 +389,6 @@ initActionModals();
 initAvatarField();
 initOccupancyGrid();
 initCycleToggle();
+initPayoutAccount();
 initAlerts();
 initDatepickers();

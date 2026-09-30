@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PayoutMethod;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -38,6 +39,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'statut',
         'company_name',
+        'payout_method',
+        'payout_account',
+        'payout_holder',
         'avatar_path',
         'password',
         'last_login_at',
@@ -57,6 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'role' => UserRole::class,
             'statut' => UserStatus::class,
+            'payout_method' => PayoutMethod::class,
         ];
     }
 
@@ -110,6 +115,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Subscription::class)->latestOfMany();
     }
 
+    /**
+     * Reversements reçus de DS Holding (propriétaire).
+     */
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | RÔLES ET STATUT
@@ -131,6 +144,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin(): bool
     {
         return $this->hasRole(UserRole::SuperAdmin, UserRole::Admin);
+    }
+
+    /**
+     * Coordonnées de reversement lisibles, ex. « Mobile Money · 07 00 00 00 00 (Awa Koné) ».
+     */
+    public function payoutAccountSummary(): ?string
+    {
+        if (! $this->payout_method || ! $this->payout_account) {
+            return null;
+        }
+
+        return $this->payout_method->label().' · '.$this->payout_account.($this->payout_holder ? ' ('.$this->payout_holder.')' : '');
     }
 
     public function isOwner(): bool

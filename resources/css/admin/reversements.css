@@ -1,0 +1,83 @@
+/* =====================================================================
+   REVERSEMENTS
+   Soldes des propriétaires, détail paiement par paiement, historique
+===================================================================== */
+
+/* Carte de synthèse neutre (déjà reversé) */
+.resa-today-card.tone-neutral .resa-today-icon {
+  background: var(--ds-surface-alt, #f1f5f9);
+  color: var(--ds-navy);
+}
+
+/* Bandeau d'information */
+.moderation-banner.tone-info {
+  border-color: #cfe0f5;
+  background: var(--ds-blue-soft);
+}
+
+.moderation-banner.tone-info > i {
+  color: var(--ds-blue);
+}
+
+/* Détail du solde en pleine largeur, au-dessus de l'historique */
+.payout-lines {
+  margin-bottom: 20px;
+}
+
+/* Tableau du détail placé dans une carte : pas de second cadre */
+.payout-table-card {
+  margin: 0 -4px;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Lignes et reversements annulés */
+.resa-table tbody tr.is-muted-row td {
+  opacity: 0.55;
+}
+
+.payout-list li.is-cancelled .resa-unit-text strong {
+  color: var(--ds-muted);
+  text-decoration: line-through;
+}
+
+.payout-list .cell-icon i {
+  color: var(--ds-success);
+}
+
+.payout-list li.is-cancelled .cell-icon i {
+  color: var(--ds-muted);
+}
+
+/* Coordonnées de reversement */
+.payout-account-form .form-group {
+  margin-bottom: 14px;
+}
+
+.resa-amounts dd.text-wrap {
+  white-space: normal;
+  text-align: right;
+}
+
+/* Comment ça marche */
+.payout-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+}
+
+.payout-steps li {
+  display: flex;
+  gap: 12px;
+}
+
+.payout-steps i {
+  flex: 0 0 18px;
+  margin-top: 3px;
+  color: var(--ds-gold);
+  text-align: center;
+}

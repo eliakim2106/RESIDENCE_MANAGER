@@ -4,8 +4,10 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OwnerPayoutController;
 use App\Http\Controllers\Admin\OwnerSubscriptionController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyTypeController;
@@ -278,6 +280,42 @@ Route::prefix('admin/paiements')
             Route::patch('/{paiement}/rembourser', [PaymentController::class, 'refund'])
                 ->name('refund');
         });
+    });
+
+// =========================
+// REVERSEMENTS AUX PROPRIÉTAIRES
+// =========================
+// DS Holding encaisse les réservations en ligne puis reverse à chaque propriétaire sa part.
+// Un reversement est désigné par son numéro ; son relevé est aussi ouvert au propriétaire concerné.
+
+Route::prefix('admin/reversements')
+    ->name('admin.reversements.')
+    ->middleware(['auth', 'verified'])
+    ->group(function () {
+        Route::get('/{reversement}/releve', [PayoutController::class, 'statement'])
+            ->name('statement');
+
+        Route::middleware('role:super_admin,admin')->group(function () {
+            Route::get('/', [PayoutController::class, 'index'])
+                ->name('index');
+            Route::get('/proprietaires/{proprietaire}', [PayoutController::class, 'owner'])
+                ->name('owner');
+            Route::post('/proprietaires/{proprietaire}', [PayoutController::class, 'store'])
+                ->name('store');
+            Route::patch('/{reversement}/annuler', [PayoutController::class, 'cancel'])
+                ->name('cancel');
+        });
+    });
+
+// Mes reversements (propriétaire)
+Route::prefix('admin/mes-reversements')
+    ->name('admin.mes-reversements.')
+    ->middleware(['auth', 'verified', 'role:owner'])
+    ->group(function () {
+        Route::get('/', [OwnerPayoutController::class, 'index'])
+            ->name('index');
+        Route::put('/coordonnees', [OwnerPayoutController::class, 'updateAccount'])
+            ->name('account');
     });
 
 // =========================

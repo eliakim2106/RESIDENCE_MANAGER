@@ -7,6 +7,7 @@ use App\Enums\TransactionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Override;
 
 /**
@@ -78,6 +79,14 @@ class Payment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Parts de ce paiement reversées au propriétaire.
+     */
+    public function payoutItems(): HasMany
+    {
+        return $this->hasMany(PayoutItem::class);
     }
 
     /*
