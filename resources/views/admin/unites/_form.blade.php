@@ -1,5 +1,5 @@
 @php
-    $status = old('status', $unite->exists && $unite->status !== App\Enums\UnitStatus::Active ? 'inactif' : 'actif');
+    $status = old('statut', $unite->exists && $unite->statut !== App\Enums\ActiveStatus::Active ? 'inactif' : 'actif');
 @endphp
 
 <div class="etablissement-page">
@@ -591,7 +591,7 @@
 
                                 <input
                                     type="radio"
-                                    name="status"
+                                    name="statut"
                                     value="actif"
                                     @checked($status === 'actif')>
 
@@ -629,7 +629,7 @@
 
                                 <input
                                     type="radio"
-                                    name="status"
+                                    name="statut"
                                     value="inactif"
                                     @checked($status === 'inactif')>
 

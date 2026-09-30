@@ -39,7 +39,7 @@ class ReservationFactory extends Factory
             'service_fee' => $serviceFee,
             'total_amount' => $subtotal + $serviceFee,
             'currency' => 'XOF',
-            'status' => ReservationStatus::Pending,
+            'statut' => ReservationStatus::Pending,
             'payment_state' => PaymentState::Unpaid,
             'cancellation_policy' => CancellationPolicy::Flexible,
             'guest_name' => fake()->name(),
@@ -50,10 +50,23 @@ class ReservationFactory extends Factory
         ];
     }
 
+    /**
+     * Demande à valider, avec un délai de paiement encore ouvert.
+     */
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'statut' => ReservationStatus::Pending,
+            'payment_state' => PaymentState::Unpaid,
+            'amount_paid' => 0,
+            'expires_at' => now()->addDays(2),
+        ]);
+    }
+
     public function confirmed(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => ReservationStatus::Confirmed,
+            'statut' => ReservationStatus::Confirmed,
             'payment_state' => PaymentState::Paid,
             'amount_paid' => $attributes['total_amount'],
             'confirmed_at' => now(),
@@ -69,7 +82,7 @@ class ReservationFactory extends Factory
             return [
                 'check_in' => $checkIn,
                 'check_out' => (clone $checkIn)->modify("+{$attributes['nights']} days"),
-                'status' => ReservationStatus::Completed,
+                'statut' => ReservationStatus::Completed,
                 'payment_state' => PaymentState::Paid,
                 'amount_paid' => $attributes['total_amount'],
                 'confirmed_at' => $checkIn,
@@ -81,7 +94,7 @@ class ReservationFactory extends Factory
     public function cancelled(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => ReservationStatus::Cancelled,
+            'statut' => ReservationStatus::Cancelled,
             'cancelled_at' => now(),
             'cancellation_reason' => 'Changement de programme',
             'expires_at' => null,

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ActiveStatus;
 use App\Enums\EquipmentCategory;
 use App\Models\Equipment;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,7 +28,7 @@ class EquipmentFactory extends Factory
             'icon' => 'check',
             'category' => fake()->randomElement(EquipmentCategory::cases()),
             'is_popular' => fake()->boolean(30),
-            'is_active' => true,
+            'statut' => ActiveStatus::Active,
         ];
     }
 }

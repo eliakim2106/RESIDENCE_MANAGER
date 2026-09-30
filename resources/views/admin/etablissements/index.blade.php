@@ -44,7 +44,7 @@
                     <th>Localisation</th>
                     <th>Unités</th>
                     <th>Statut</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -76,7 +76,7 @@
                             </a>
                         </td>
                         <td>
-                            <span class="status-pill status-{{ $etablissement->status->tone() }}">{{ $etablissement->wasRejected() ? 'Refusé' : $etablissement->status->label() }}</span>
+                            <span class="status-pill status-{{ $etablissement->statut->tone() }}">{{ $etablissement->wasRejected() ? 'Refusé' : $etablissement->statut->label() }}</span>
                             @if ($etablissement->wasRejected() || $etablissement->isSuspended())
                                 <small class="cell-reason" title="{{ $etablissement->moderation_note }}">{{ Str::limit($etablissement->moderation_note, 70) }}</small>
                             @endif

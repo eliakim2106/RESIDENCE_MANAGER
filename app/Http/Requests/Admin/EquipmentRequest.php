@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ActiveStatus;
 use App\Enums\EquipmentCategory;
 use App\Models\Equipment;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -28,7 +29,7 @@ class EquipmentRequest extends FormRequest
             'icon' => ['required', 'string', 'max:100', 'regex:/^fa-[a-z0-9-]+$/'],
             'category' => ['required', Rule::enum(EquipmentCategory::class)],
             'is_popular' => ['nullable', 'boolean'],
-            'status' => ['required', Rule::in(['actif', 'inactif'])],
+            'statut' => ['required', Rule::in(['actif', 'inactif'])],
         ];
     }
 
@@ -56,7 +57,7 @@ class EquipmentRequest extends FormRequest
             'icon' => $this->string('icon')->trim()->toString(),
             'category' => $this->input('category'),
             'is_popular' => $this->boolean('is_popular'),
-            'is_active' => $this->input('status') === 'actif',
+            'statut' => ActiveStatus::from((string) $this->input('statut')),
         ];
     }
 }

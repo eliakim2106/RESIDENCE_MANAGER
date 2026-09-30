@@ -1663,7 +1663,7 @@ document.addEventListener("DOMContentLoaded", function () {
   */
 
   const Publication = {
-    radios: document.querySelectorAll("input[name='status']"),
+    radios: document.querySelectorAll("input[name='statut']"),
 
     resume: document.getElementById("publicationResume"),
   };
@@ -1695,7 +1695,7 @@ document.addEventListener("DOMContentLoaded", function () {
   ==================================================*/
 
   Publication.updateResume = function () {
-    const actif = document.querySelector("input[name='status']:checked");
+    const actif = document.querySelector("input[name='statut']:checked");
 
     if (!actif) {
       return;
@@ -1712,7 +1712,7 @@ document.addEventListener("DOMContentLoaded", function () {
   ==================================================*/
 
   Publication.validate = function () {
-    const status = document.querySelector("input[name='status']:checked");
+    const status = document.querySelector("input[name='statut']:checked");
 
     if (!status) {
       return false;

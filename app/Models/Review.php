@@ -31,7 +31,7 @@ class Review extends Model
         'comment',
         'owner_reply',
         'replied_at',
-        'status',
+        'statut',
     ];
 
     #[Override]
@@ -45,7 +45,7 @@ class Review extends Model
             'staff' => 'integer',
             'value_for_money' => 'integer',
             'replied_at' => 'datetime',
-            'status' => ReviewStatus::class,
+            'statut' => ReviewStatus::class,
         ];
     }
 
@@ -99,6 +99,6 @@ class Review extends Model
     #[Scope]
     protected function approved(Builder $query): void
     {
-        $query->where('status', ReviewStatus::Approved);
+        $query->where('statut', ReviewStatus::Approved);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActiveStatus;
 use App\Models\Concerns\HasFontAwesomeIcon;
 use App\Models\Concerns\HasSlugFromName;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -20,14 +21,14 @@ class UnitType extends Model
         'slug',
         'icon',
         'description',
-        'is_active',
+        'statut',
     ];
 
     #[Override]
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            'statut' => ActiveStatus::class,
         ];
     }
 
@@ -51,6 +52,17 @@ class UnitType extends Model
     #[Scope]
     protected function active(Builder $query): void
     {
-        $query->where('is_active', true);
+        $query->where('statut', ActiveStatus::Active);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÉTHODES MÉTIER
+    |--------------------------------------------------------------------------
+    */
+
+    public function isActive(): bool
+    {
+        return $this->statut === ActiveStatus::Active;
     }
 }

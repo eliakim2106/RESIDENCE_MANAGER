@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ActiveStatus;
 use App\Models\City;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class CityFactory extends Factory
             'slug' => Str::slug($name),
             'region' => fake()->randomElement(['Abidjan', 'Sud-Comoé', 'Gbêkê', 'San-Pédro', 'Poro']),
             'country' => 'CI',
-            'is_active' => true,
+            'statut' => ActiveStatus::Active,
         ];
     }
 }

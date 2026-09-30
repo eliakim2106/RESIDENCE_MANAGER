@@ -19,7 +19,7 @@
         </div>
 
         <div class="admin-page-actions">
-            <span class="status-pill status-{{ $user->status->tone() }} status-pill-lg">{{ $user->status->label() }}</span>
+            <span class="status-pill status-{{ $user->statut->tone() }} status-pill-lg">{{ $user->statut->label() }}</span>
             <a href="{{ route('admin.utilisateurs.index') }}" class="btn-secondary">
                 <i class="fa-solid fa-arrow-left"></i>
                 Retour
@@ -81,7 +81,7 @@
                                         <a href="{{ route('admin.etablissements.edit', $property) }}" class="cell-title-link"><strong>{{ $property->name }}</strong></a>
                                         <small>{{ $property->units_count }} unité{{ $property->units_count > 1 ? 's' : '' }}</small>
                                     </span>
-                                    <span class="status-pill status-{{ $property->status->tone() }}">{{ $property->status->label() }}</span>
+                                    <span class="status-pill status-{{ $property->statut->tone() }}">{{ $property->statut->label() }}</span>
                                 </li>
                             @endforeach
                         </ul>
@@ -115,7 +115,7 @@
                                     </span>
                                     <span class="resa-payment-end">
                                         <span class="resa-unit-amount">{{ $money($reservation->total_amount) }}</span>
-                                        <span class="status-pill status-{{ $reservation->status->tone() }}">{{ $reservation->status->label() }}</span>
+                                        <span class="status-pill status-{{ $reservation->statut->tone() }}">{{ $reservation->statut->label() }}</span>
                                     </span>
                                 </li>
                             @endforeach
@@ -211,7 +211,7 @@
                         @endif
 
                         @if ($canManage)
-                            @if ($user->status === App\Enums\UserStatus::Suspended)
+                            @if ($user->statut === App\Enums\UserStatus::Suspended)
                                 <form method="POST" action="{{ route('admin.utilisateurs.reactivate', $user) }}">
                                     @csrf
                                     @method('PATCH')

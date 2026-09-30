@@ -25,11 +25,11 @@ class PropertyModeration
      */
     public function applyVisibility(Property $property, User $by, bool $online): void
     {
-        $status = $property->status ?? PropertyStatus::Draft;
+        $status = $property->statut ?? PropertyStatus::Draft;
 
         if ($by->isAdmin()) {
             match (true) {
-                ! $online => $property->update(['status' => PropertyStatus::Draft]),
+                ! $online => $property->update(['statut' => PropertyStatus::Draft]),
                 $status === PropertyStatus::Pending => $this->approve($property, $by),
                 $status === PropertyStatus::Suspended => $this->reinstate($property, $by),
                 default => $this->publish($property, $by),
@@ -44,7 +44,7 @@ class PropertyModeration
         }
 
         if (! $online) {
-            $property->update(['status' => PropertyStatus::Draft]);
+            $property->update(['statut' => PropertyStatus::Draft]);
 
             return;
         }
@@ -59,7 +59,7 @@ class PropertyModeration
         $this->expectStatus($property, [PropertyStatus::Draft], 'Seul un brouillon peut être soumis à validation.');
 
         $property->update([
-            'status' => PropertyStatus::Pending,
+            'statut' => PropertyStatus::Pending,
             'submitted_at' => now(),
         ]);
 
@@ -110,7 +110,7 @@ class PropertyModeration
     private function publish(Property $property, User $admin): void
     {
         $property->update([
-            'status' => PropertyStatus::Published,
+            'statut' => PropertyStatus::Published,
             'published_at' => $property->published_at ?? now(),
             'moderation_note' => null,
             'moderated_at' => now(),
@@ -121,7 +121,7 @@ class PropertyModeration
     private function decide(Property $property, User $admin, PropertyStatus $status, string $reason): void
     {
         $property->update([
-            'status' => $status,
+            'statut' => $status,
             'moderation_note' => $reason,
             'moderated_at' => now(),
             'moderated_by' => $admin->id,
@@ -138,7 +138,7 @@ class PropertyModeration
      */
     private function expectStatus(Property $property, array $allowed, string $message): void
     {
-        if (! in_array($property->status, $allowed, true)) {
+        if (! in_array($property->statut, $allowed, true)) {
             throw new WorkflowException($message);
         }
     }

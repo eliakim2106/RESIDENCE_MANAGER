@@ -45,13 +45,13 @@ class PropertyValidationController extends Controller
                     ->orWhereHas('owner', fn (Builder $query) => $query->where('name', 'like', $like)->orWhere('email', 'like', $like)));
             });
 
-        $byStatus = (clone $query)->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+        $byStatus = (clone $query)->selectRaw('statut, COUNT(*) as total')->groupBy('statut')->pluck('total', 'statut');
         $counts = array_map(fn (array $tab): int => (int) ($byStatus[$tab[1]->value] ?? 0), self::TABS);
 
         $status = self::TABS[$tab][1];
 
         $properties = $query
-            ->where('status', $status)
+            ->where('statut', $status)
             ->with(['owner', 'city', 'propertyType', 'coverImage', 'moderator'])
             ->withCount(['units', 'images'])
             // Les plus anciennes demandes d'abord : premier arrivé, premier servi

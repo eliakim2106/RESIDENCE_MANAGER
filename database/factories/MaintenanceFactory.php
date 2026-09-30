@@ -28,7 +28,7 @@ class MaintenanceFactory extends Factory
             'starts_on' => $startsOn,
             'ends_on' => (clone $startsOn)->modify('+'.fake()->numberBetween(1, 5).' days'),
             'quantity' => 1,
-            'status' => MaintenanceStatus::Planned,
+            'statut' => MaintenanceStatus::Planned,
         ];
     }
 }

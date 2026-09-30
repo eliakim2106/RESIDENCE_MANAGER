@@ -25,7 +25,7 @@ class Payment extends Model
         'operator',
         'amount',
         'currency',
-        'status',
+        'statut',
         'payment_url',
         'payment_token',
         'operator_reference',
@@ -45,7 +45,7 @@ class Payment extends Model
         return [
             'amount' => 'integer',
             'method' => PaymentMethod::class,
-            'status' => TransactionStatus::class,
+            'statut' => TransactionStatus::class,
             'provider_payload' => 'array',
             'paid_at' => 'datetime',
             'refunded_at' => 'datetime',
@@ -76,6 +76,6 @@ class Payment extends Model
 
     public function isAccepted(): bool
     {
-        return $this->status === TransactionStatus::Accepted;
+        return $this->statut === TransactionStatus::Accepted;
     }
 }

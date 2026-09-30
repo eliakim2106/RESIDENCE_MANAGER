@@ -33,7 +33,7 @@ class ReservationWorkflow
         $this->expectStatus($reservation, [ReservationStatus::Pending], 'Seule une réservation en attente peut être confirmée.');
 
         $reservation->update([
-            'status' => ReservationStatus::Confirmed,
+            'statut' => ReservationStatus::Confirmed,
             'confirmed_at' => now(),
             'expires_at' => null,
         ]);
@@ -44,7 +44,7 @@ class ReservationWorkflow
         $this->expectStatus($reservation, [ReservationStatus::Pending, ReservationStatus::Confirmed], 'Cette réservation ne peut plus être annulée.');
 
         $reservation->update([
-            'status' => ReservationStatus::Cancelled,
+            'statut' => ReservationStatus::Cancelled,
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
         ]);
@@ -61,7 +61,7 @@ class ReservationWorkflow
             throw new WorkflowException('Le séjour ne peut être clôturé qu’à partir du jour du départ ('.$reservation->check_out->format('d/m/Y').').');
         }
 
-        $reservation->update(['status' => ReservationStatus::Completed]);
+        $reservation->update(['statut' => ReservationStatus::Completed]);
     }
 
     /**
@@ -75,7 +75,7 @@ class ReservationWorkflow
             throw new WorkflowException('Le client ne peut être déclaré absent qu’à partir du jour de l’arrivée ('.$reservation->check_in->format('d/m/Y').').');
         }
 
-        $reservation->update(['status' => ReservationStatus::NoShow]);
+        $reservation->update(['statut' => ReservationStatus::NoShow]);
     }
 
     public function updateNotes(Reservation $reservation, ?string $notes): void
@@ -110,7 +110,7 @@ class ReservationWorkflow
                 'method' => $method,
                 'amount' => $amount,
                 'currency' => $reservation->currency ?? 'XOF',
-                'status' => TransactionStatus::Accepted,
+                'statut' => TransactionStatus::Accepted,
                 'operator_reference' => $reference,
                 'paid_at' => now(),
             ]);
@@ -139,7 +139,7 @@ class ReservationWorkflow
      */
     public function availableActions(Reservation $reservation): array
     {
-        $status = $reservation->status;
+        $status = $reservation->statut;
 
         return [
             'confirm' => $status === ReservationStatus::Pending,
@@ -155,7 +155,7 @@ class ReservationWorkflow
      */
     private function expectStatus(Reservation $reservation, array $allowed, string $message): void
     {
-        if (! in_array($reservation->status, $allowed, true)) {
+        if (! in_array($reservation->statut, $allowed, true)) {
             throw new WorkflowException($message);
         }
     }

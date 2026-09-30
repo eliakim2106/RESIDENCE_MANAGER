@@ -45,7 +45,7 @@ class PropertyFactory extends Factory
             'cancellation_policy' => fake()->randomElement(CancellationPolicy::cases()),
             'house_rules' => 'Pas de bruit après 22 h. Pièce d\'identité exigée à l\'arrivée.',
             'allows_pets' => fake()->boolean(20),
-            'status' => PropertyStatus::Published,
+            'statut' => PropertyStatus::Published,
             'is_featured' => fake()->boolean(25),
             'published_at' => now(),
         ];
@@ -54,7 +54,7 @@ class PropertyFactory extends Factory
     public function draft(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => PropertyStatus::Draft,
+            'statut' => PropertyStatus::Draft,
             'published_at' => null,
         ]);
     }
@@ -62,7 +62,7 @@ class PropertyFactory extends Factory
     public function pending(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => PropertyStatus::Pending,
+            'statut' => PropertyStatus::Pending,
             'published_at' => null,
         ]);
     }

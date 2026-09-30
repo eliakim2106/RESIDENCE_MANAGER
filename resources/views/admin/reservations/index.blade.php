@@ -71,7 +71,7 @@
                     <th>Séjour</th>
                     <th>Montant</th>
                     <th>Statut</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -105,8 +105,18 @@
                                 <small class="text-tone-{{ $reservation->payment_state->tone() }}">{{ $reservation->payment_state->label() }}</small>
                             </span>
                         </td>
-                        <td><span class="status-pill status-{{ $reservation->status->tone() }}">{{ $reservation->status->label() }}</span></td>
+                        <td><span class="status-pill status-{{ $reservation->statut->tone() }}">{{ $reservation->statut->label() }}</span></td>
                         <td>
+                            @if ($reservation->statut === App\Enums\ReservationStatus::Pending && auth()->user()->can('manage', $reservation))
+                                <form method="POST" action="{{ route('admin.reservations.confirm', $reservation) }}" class="inline-action"
+                                    data-confirm="Valider la réservation {{ $reservation->reference }} ?">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="action-btn add-unit" title="Valider" aria-label="Valider la réservation {{ $reservation->reference }}">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            @endif
                             <a href="{{ route('admin.reservations.show', $reservation) }}" class="action-btn edit" title="Voir le détail" aria-label="Voir la réservation {{ $reservation->reference }}">
                                 <i class="fa-solid fa-eye"></i>
                             </a>

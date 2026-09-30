@@ -37,7 +37,7 @@ class PropertyController extends Controller
                 ->orWhereHas('city', fn ($query) => $query->where('name', 'like', "%{$search}%"))));
 
         // Actif = publié sur le site
-        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('status', PropertyStatus::Published));
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('statut', PropertyStatus::Published));
 
         $etablissements = $query
             ->with(['propertyType', 'city', 'coverImage'])
@@ -68,7 +68,7 @@ class PropertyController extends Controller
                 ...$request->propertyAttributes(),
                 'owner_id' => $request->user()->id,
                 // Toujours créé en brouillon : la publication ou la soumission se fait ensuite (PropertyModeration)
-                'status' => PropertyStatus::Draft,
+                'statut' => PropertyStatus::Draft,
             ]);
 
             $this->syncMedia($property, $request);

@@ -55,7 +55,7 @@ class Property extends Model
         'logo_path',
         'meta_title',
         'meta_description',
-        'status',
+        'statut',
         'submitted_at',
         'moderation_note',
         'moderated_at',
@@ -70,7 +70,7 @@ class Property extends Model
     protected function casts(): array
     {
         return [
-            'status' => PropertyStatus::class,
+            'statut' => PropertyStatus::class,
             'cancellation_policy' => CancellationPolicy::class,
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
@@ -175,7 +175,7 @@ class Property extends Model
 
     public function approvedReviews(): HasMany
     {
-        return $this->reviews()->where('status', ReviewStatus::Approved);
+        return $this->reviews()->where('statut', ReviewStatus::Approved);
     }
 
     public function favoritedBy(): BelongsToMany
@@ -209,17 +209,17 @@ class Property extends Model
 
     public function isPublished(): bool
     {
-        return $this->status === PropertyStatus::Published;
+        return $this->statut === PropertyStatus::Published;
     }
 
     public function isPending(): bool
     {
-        return $this->status === PropertyStatus::Pending;
+        return $this->statut === PropertyStatus::Pending;
     }
 
     public function isSuspended(): bool
     {
-        return $this->status === PropertyStatus::Suspended;
+        return $this->statut === PropertyStatus::Suspended;
     }
 
     /**
@@ -227,7 +227,7 @@ class Property extends Model
      */
     public function wasRejected(): bool
     {
-        return $this->status === PropertyStatus::Draft && filled($this->moderation_note);
+        return $this->statut === PropertyStatus::Draft && filled($this->moderation_note);
     }
 
     /**
@@ -250,7 +250,7 @@ class Property extends Model
     #[Scope]
     protected function published(Builder $query): void
     {
-        $query->where('status', PropertyStatus::Published);
+        $query->where('statut', PropertyStatus::Published);
     }
 
     #[Scope]

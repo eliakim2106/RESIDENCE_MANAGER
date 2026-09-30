@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActiveStatus;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,14 +20,14 @@ class City extends Model
         'region',
         'country',
         'image_path',
-        'is_active',
+        'statut',
     ];
 
     #[Override]
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            'statut' => ActiveStatus::class,
         ];
     }
 
@@ -50,6 +51,17 @@ class City extends Model
     #[Scope]
     protected function active(Builder $query): void
     {
-        $query->where('is_active', true);
+        $query->where('statut', ActiveStatus::Active);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÉTHODES MÉTIER
+    |--------------------------------------------------------------------------
+    */
+
+    public function isActive(): bool
+    {
+        return $this->statut === ActiveStatus::Active;
     }
 }

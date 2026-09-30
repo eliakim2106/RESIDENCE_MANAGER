@@ -47,18 +47,18 @@ class PaymentController extends Controller
                         ->orWhere('guest_name', 'like', $like)));
             });
 
-        $byStatus = (clone $query)->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+        $byStatus = (clone $query)->selectRaw('statut, COUNT(*) as total')->groupBy('statut')->pluck('total', 'statut');
         $counts = collect(self::TABS)->map(fn (array $tab): int => $tab[1] === null ? (int) $byStatus->sum() : (int) ($byStatus[$tab[1]->value] ?? 0));
 
-        $accepted = (clone $query)->where('status', TransactionStatus::Accepted);
+        $accepted = (clone $query)->where('statut', TransactionStatus::Accepted);
         $totals = [
             'all' => (int) (clone $accepted)->sum('amount'),
             'month' => (int) (clone $accepted)->whereBetween('paid_at', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount'),
-            'pending' => (int) (clone $query)->where('status', TransactionStatus::Pending)->sum('amount'),
+            'pending' => (int) (clone $query)->where('statut', TransactionStatus::Pending)->sum('amount'),
         ];
 
         $payments = $query
-            ->when(self::TABS[$tab][1], fn (Builder $query, TransactionStatus $status) => $query->where('status', $status))
+            ->when(self::TABS[$tab][1], fn (Builder $query, TransactionStatus $status) => $query->where('statut', $status))
             ->with(['reservation.property', 'reservation.user'])
             ->latest('id')
             ->paginate(15)

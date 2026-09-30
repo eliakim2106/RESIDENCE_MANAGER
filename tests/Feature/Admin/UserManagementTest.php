@@ -51,14 +51,14 @@ class UserManagementTest extends TestCase
         $client = User::factory()->create();
 
         $this->actingAs($admin)->patch(route('admin.utilisateurs.suspend', $client))->assertSessionHas('success');
-        $this->assertSame(UserStatus::Suspended, $client->fresh()->status);
+        $this->assertSame(UserStatus::Suspended, $client->fresh()->statut);
 
         // Le compte suspendu est déconnecté à sa requête suivante
         $this->actingAs($client->fresh())->get(route('dashboard'))->assertRedirect(route('login'));
         $this->assertGuest();
 
         $this->actingAs($admin)->patch(route('admin.utilisateurs.reactivate', $client))->assertSessionHas('success');
-        $this->assertSame(UserStatus::Active, $client->fresh()->status);
+        $this->assertSame(UserStatus::Active, $client->fresh()->statut);
     }
 
     public function test_admins_cannot_act_on_themselves_or_on_other_administrators(): void
@@ -70,7 +70,7 @@ class UserManagementTest extends TestCase
         $this->actingAs($admin)->patch(route('admin.utilisateurs.suspend', $otherAdmin))->assertForbidden();
         $this->actingAs($admin)->patch(route('admin.utilisateurs.role', $otherAdmin), ['role' => 'client'])->assertForbidden();
 
-        $this->assertSame(UserStatus::Active, $otherAdmin->fresh()->status);
+        $this->assertSame(UserStatus::Active, $otherAdmin->fresh()->statut);
     }
 
     public function test_only_a_super_admin_changes_roles(): void

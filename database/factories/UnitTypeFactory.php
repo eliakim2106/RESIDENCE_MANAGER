@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ActiveStatus;
 use App\Models\UnitType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class UnitTypeFactory extends Factory
             'slug' => Str::slug($name),
             'icon' => 'bed',
             'description' => fake()->sentence(),
-            'is_active' => true,
+            'statut' => ActiveStatus::Active,
         ];
     }
 }

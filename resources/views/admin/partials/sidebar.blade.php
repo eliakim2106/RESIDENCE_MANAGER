@@ -10,14 +10,14 @@
     // Réservations en attente de confirmation (établissements du propriétaire, ou toute la plateforme)
     $pendingReservations = $user->hasRole(...$management)
         ? App\Models\Reservation::query()
-            ->where('status', App\Enums\ReservationStatus::Pending)
+            ->where('statut', App\Enums\ReservationStatus::Pending)
             ->unless($user->isAdmin(), fn ($query) => $query->whereHas('property', fn ($query) => $query->ownedBy($user)))
             ->count()
         : 0;
 
     // Établissements soumis par les propriétaires, en attente d'un administrateur
     $pendingProperties = $user->isAdmin()
-        ? App\Models\Property::query()->where('status', App\Enums\PropertyStatus::Pending)->count()
+        ? App\Models\Property::query()->where('statut', App\Enums\PropertyStatus::Pending)->count()
         : 0;
 
     // Chaque lien : titre, icône, route, préfixe de route pour l'état actif, rôles autorisés, compteur (facultatif)

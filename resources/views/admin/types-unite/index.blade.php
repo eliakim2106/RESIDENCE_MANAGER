@@ -31,7 +31,7 @@
                     <th>Type</th>
                     <th>Unités</th>
                     <th>Statut</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -49,7 +49,7 @@
                         </td>
                         <td>{{ $type->units_count }}</td>
                         <td>
-                            @if ($type->is_active)
+                            @if ($type->isActive())
                                 <span class="badge-success">Actif</span>
                             @else
                                 <span class="badge-neutral">Inactif</span>

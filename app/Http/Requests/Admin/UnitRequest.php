@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\UnitStatus;
+use App\Enums\ActiveStatus;
 use App\Models\Unit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -33,7 +33,7 @@ class UnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type_unite_id' => ['required', Rule::exists('unit_types', 'id')->where('is_active', true)],
+            'type_unite_id' => ['required', Rule::exists('unit_types', 'id')->where('statut', ActiveStatus::Active->value)],
             'nom' => ['required', 'string', 'max:255'],
             'nombre_unite' => ['required', 'integer', 'between:1,999'],
             'capacite' => ['required', 'integer', 'between:1,50'],
@@ -45,12 +45,12 @@ class UnitRequest extends FormRequest
             'prix_promo' => ['nullable', 'integer', 'min:0', 'lt:prix'],
             'description' => ['nullable', 'string', 'max:10000'],
             'equipement_id' => ['nullable', 'array'],
-            'equipement_id.*' => ['integer', Rule::exists('equipments', 'id')->where('is_active', true)],
+            'equipement_id.*' => ['integer', Rule::exists('equipments', 'id')->where('statut', ActiveStatus::Active->value)],
             'images' => ['nullable', 'array', 'max:'.self::MAX_IMAGES],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'deleted_gallery' => ['nullable', 'json'],
             'gallery_cover' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['actif', 'inactif'])],
+            'statut' => ['required', Rule::in(['actif', 'inactif'])],
         ];
     }
 
@@ -86,7 +86,7 @@ class UnitRequest extends FormRequest
             'prix.required' => 'Le prix est obligatoire.',
             'prix_promo.lt' => 'Le prix promotionnel doit être inférieur au prix.',
             'images.*.max' => 'Chaque image doit faire 5 Mo au maximum.',
-            'status.required' => 'Le statut est obligatoire.',
+            'statut.required' => 'Le statut est obligatoire.',
         ];
     }
 
@@ -122,7 +122,7 @@ class UnitRequest extends FormRequest
             'size_m2' => $this->input('surperficie') ?: null,
             'base_price' => $this->integer('prix'),
             'promo_price' => $this->input('prix_promo'),
-            'status' => $this->input('status') === 'actif' ? UnitStatus::Active : UnitStatus::Inactive,
+            'statut' => $this->input('statut') === 'actif' ? ActiveStatus::Active : ActiveStatus::Inactive,
         ];
     }
 

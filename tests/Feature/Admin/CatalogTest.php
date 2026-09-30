@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\ActiveStatus;
 use App\Models\Equipment;
 use App\Models\Property;
 use App\Models\PropertyType;
@@ -32,12 +33,12 @@ class CatalogTest extends TestCase
             'nom' => 'Résidence meublée',
             'icon' => 'fa-building',
             'description' => 'Résidence équipée.',
-            'status' => 'actif',
+            'statut' => 'actif',
         ])->assertRedirect(route('admin.types-etablissement.index'));
 
         $type = PropertyType::firstWhere('name', 'Résidence meublée');
         $this->assertSame('residence-meublee', $type->slug);
-        $this->assertTrue($type->is_active);
+        $this->assertSame(ActiveStatus::Active, $type->statut);
 
         $this->actingAs($admin)->get(route('admin.types-etablissement.index'))->assertSee('Résidence meublée');
         $this->actingAs($admin)->get(route('admin.types-etablissement.edit', $type))->assertOk();
@@ -46,10 +47,10 @@ class CatalogTest extends TestCase
             'nom' => 'Résidence meublée',
             'icon' => 'fa-building',
             'description' => 'Résidence équipée.',
-            'status' => 'inactif',
+            'statut' => 'inactif',
         ])->assertRedirect();
 
-        $this->assertFalse($type->fresh()->is_active);
+        $this->assertSame(ActiveStatus::Inactive, $type->fresh()->statut);
 
         $this->actingAs($admin)->delete(route('admin.types-etablissement.destroy', $type))->assertRedirect();
         $this->assertModelMissing($type);
@@ -60,7 +61,7 @@ class CatalogTest extends TestCase
         PropertyType::factory()->create(['name' => 'Villa']);
 
         $this->actingAs($this->admin())->post(route('admin.types-etablissement.store'), [
-            'nom' => 'Villa', 'icon' => 'fa-house', 'description' => 'Villa.', 'status' => 'actif',
+            'nom' => 'Villa', 'icon' => 'fa-house', 'description' => 'Villa.', 'statut' => 'actif',
         ])->assertSessionHasErrors(['nom' => "Ce type d'établissement existe déjà."]);
     }
 
@@ -82,7 +83,7 @@ class CatalogTest extends TestCase
         $this->actingAs($admin)->get(route('admin.types-unite.create'))->assertOk();
 
         $this->actingAs($admin)->post(route('admin.types-unite.store'), [
-            'nom' => 'Suite Junior', 'icon' => 'fa-door-open', 'description' => 'Suite élégante.', 'status' => 'actif',
+            'nom' => 'Suite Junior', 'icon' => 'fa-door-open', 'description' => 'Suite élégante.', 'statut' => 'actif',
         ])->assertRedirect(route('admin.types-unite.index'));
 
         $this->assertDatabaseHas('unit_types', ['name' => 'Suite Junior', 'slug' => 'suite-junior']);
@@ -97,7 +98,7 @@ class CatalogTest extends TestCase
         $this->actingAs($admin)->get(route('admin.equipements.create'))->assertOk();
 
         $this->actingAs($admin)->post(route('admin.equipements.store'), [
-            'nom' => 'Wi-Fi fibre', 'icon' => 'fa-wifi', 'category' => 'general', 'is_popular' => '1', 'status' => 'actif',
+            'nom' => 'Wi-Fi fibre', 'icon' => 'fa-wifi', 'category' => 'general', 'is_popular' => '1', 'statut' => 'actif',
         ])->assertRedirect(route('admin.equipements.index'));
 
         $equipment = Equipment::firstWhere('name', 'Wi-Fi fibre');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ActiveStatus;
 use App\Models\Property;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -36,12 +37,12 @@ class PropertyRequest extends FormRequest
     {
         return [
             // Informations
-            'type_etablissement_id' => ['required', Rule::exists('property_types', 'id')->where('is_active', true)],
+            'type_etablissement_id' => ['required', Rule::exists('property_types', 'id')->where('statut', ActiveStatus::Active->value)],
             'nom' => ['required', 'string', 'min:3', 'max:255'],
             'description' => ['nullable', 'string', 'max:10000'],
 
             // Localisation
-            'city_id' => ['required', Rule::exists('cities', 'id')->where('is_active', true)],
+            'city_id' => ['required', Rule::exists('cities', 'id')->where('statut', ActiveStatus::Active->value)],
             'commune' => ['required', 'string', 'max:100'],
             'quartier' => ['nullable', 'string', 'max:100'],
             'adresse' => ['required', 'string', 'max:255'],
@@ -66,7 +67,7 @@ class PropertyRequest extends FormRequest
             'gallery_cover' => ['nullable', 'string', 'max:255'],
 
             // Publication
-            'status' => ['required', Rule::in(['actif', 'inactif'])],
+            'statut' => ['required', Rule::in(['actif', 'inactif'])],
 
             // SEO
             'meta_title' => ['required', 'string', 'max:60'],
@@ -114,7 +115,7 @@ class PropertyRequest extends FormRequest
             'telephone.digits' => 'Le téléphone doit contenir 10 chiffres.',
             'logo.max' => 'Le logo dépasse 2 Mo.',
             'gallery.*.max' => 'Chaque image de la galerie doit faire 5 Mo au maximum.',
-            'status.required' => 'Le statut de publication est obligatoire.',
+            'statut.required' => 'Le statut de publication est obligatoire.',
             'meta_title.required' => 'Le titre méta est obligatoire.',
             'slug.unique' => 'Cette URL est déjà utilisée par un autre établissement.',
         ];
@@ -155,7 +156,7 @@ class PropertyRequest extends FormRequest
      */
     public function wantsOnline(): bool
     {
-        return $this->input('status') === 'actif';
+        return $this->input('statut') === 'actif';
     }
 
     /**

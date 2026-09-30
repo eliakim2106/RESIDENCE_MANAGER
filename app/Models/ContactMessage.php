@@ -19,14 +19,14 @@ class ContactMessage extends Model
         'phone',
         'subject',
         'message',
-        'status',
+        'statut',
     ];
 
     #[Override]
     protected function casts(): array
     {
         return [
-            'status' => ContactMessageStatus::class,
+            'statut' => ContactMessageStatus::class,
         ];
     }
 

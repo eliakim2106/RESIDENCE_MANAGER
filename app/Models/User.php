@@ -35,7 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'city',
         'country',
         'role',
-        'status',
+        'statut',
         'company_name',
         'avatar_path',
         'password',
@@ -55,7 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
-            'status' => UserStatus::class,
+            'statut' => UserStatus::class,
         ];
     }
 
@@ -123,7 +123,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isActive(): bool
     {
-        return $this->status === UserStatus::Active;
+        return $this->statut === UserStatus::Active;
     }
 
     /**

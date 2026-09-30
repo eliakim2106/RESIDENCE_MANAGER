@@ -241,7 +241,7 @@
                                     </span>
                                 </td>
                                 <td class="text-nowrap"><strong>{{ $money($reservation->total_amount) }}</strong></td>
-                                <td><span class="status-pill status-{{ $reservation->status->tone() }}">{{ $reservation->status->label() }}</span></td>
+                                <td><span class="status-pill status-{{ $reservation->statut->tone() }}">{{ $reservation->statut->label() }}</span></td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -266,13 +266,13 @@
                 @foreach ($byStatus as $row)
                     <li>
                         <div class="status-breakdown-label">
-                            <span class="status-dot status-{{ $row['status']->tone() }}"></span>
-                            <span>{{ $row['status']->label() }}</span>
+                            <span class="status-dot status-{{ $row['statut']->tone() }}"></span>
+                            <span>{{ $row['statut']->label() }}</span>
                             <strong>{{ $row['count'] }}</strong>
                             <small>{{ round($row['count'] / $totalStatus * 100) }} %</small>
                         </div>
                         <div class="status-breakdown-track">
-                            <span class="status-{{ $row['status']->tone() }}" style="width: {{ round($row['count'] / $totalStatus * 100, 1) }}%"></span>
+                            <span class="status-{{ $row['statut']->tone() }}" style="width: {{ round($row['count'] / $totalStatus * 100, 1) }}%"></span>
                         </div>
                     </li>
                 @endforeach

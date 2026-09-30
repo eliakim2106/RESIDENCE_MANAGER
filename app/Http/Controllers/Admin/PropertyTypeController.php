@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ActiveStatus;
 use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PropertyTypeRequest;
@@ -23,7 +24,7 @@ class PropertyTypeController extends Controller
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")));
 
-        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('is_active', true));
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('statut', ActiveStatus::Active));
 
         $types = $query
             ->withCount('properties')

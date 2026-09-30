@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ActiveStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
@@ -34,7 +35,7 @@ abstract class TypeRequest extends FormRequest
             'nom' => ['required', 'string', 'max:100', Rule::unique($this->table(), 'name')->ignore($type)],
             'icon' => ['required', 'string', 'max:100', 'regex:/^fa-[a-z0-9-]+$/'],
             'description' => ['required', 'string', 'max:1000'],
-            'status' => ['required', Rule::in(['actif', 'inactif'])],
+            'statut' => ['required', Rule::in(['actif', 'inactif'])],
         ];
     }
 
@@ -60,7 +61,7 @@ abstract class TypeRequest extends FormRequest
             'name' => $this->string('nom')->trim()->toString(),
             'icon' => $this->string('icon')->trim()->toString(),
             'description' => $this->string('description')->trim()->toString(),
-            'is_active' => $this->input('status') === 'actif',
+            'statut' => ActiveStatus::from((string) $this->input('statut')),
         ];
     }
 }

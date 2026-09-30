@@ -33,7 +33,7 @@ class ReviewFactory extends Factory
             'value_for_money' => fake()->numberBetween(6, 10),
             'title' => fake()->randomElement(['Séjour parfait', 'Très bon accueil', 'Bon rapport qualité-prix', 'Je recommande', 'Agréable séjour']),
             'comment' => fake()->paragraph(),
-            'status' => ReviewStatus::Approved,
+            'statut' => ReviewStatus::Approved,
         ];
     }
 }

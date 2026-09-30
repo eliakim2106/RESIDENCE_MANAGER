@@ -22,7 +22,7 @@ class Maintenance extends Model
         'starts_on',
         'ends_on',
         'quantity',
-        'status',
+        'statut',
     ];
 
     #[Override]
@@ -32,7 +32,7 @@ class Maintenance extends Model
             'starts_on' => 'date',
             'ends_on' => 'date',
             'quantity' => 'integer',
-            'status' => MaintenanceStatus::class,
+            'statut' => MaintenanceStatus::class,
         ];
     }
 

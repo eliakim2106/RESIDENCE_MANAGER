@@ -50,7 +50,7 @@ class UserController extends Controller
         $stateKey = array_key_exists((string) $request->query('etat'), self::STATES) ? (string) $request->query('etat') : null;
 
         $query = User::query()
-            ->when($stateKey, fn (Builder $query) => $query->where('status', self::STATES[$stateKey]))
+            ->when($stateKey, fn (Builder $query) => $query->where('statut', self::STATES[$stateKey]))
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $like = '%'.addcslashes($search, '%_\\').'%';
 
@@ -106,7 +106,7 @@ class UserController extends Controller
         Gate::authorize('manage', $utilisateur);
 
         // Une session ouverte est fermée à la requête suivante (EnsureUserIsActive)
-        $utilisateur->update(['status' => UserStatus::Suspended]);
+        $utilisateur->update(['statut' => UserStatus::Suspended]);
 
         return back()->with('success', "Le compte de {$utilisateur->name} est suspendu : il ne peut plus se connecter.");
     }
@@ -115,7 +115,7 @@ class UserController extends Controller
     {
         Gate::authorize('manage', $utilisateur);
 
-        $utilisateur->update(['status' => UserStatus::Active]);
+        $utilisateur->update(['statut' => UserStatus::Active]);
 
         return back()->with('success', "Le compte de {$utilisateur->name} est de nouveau actif.");
     }

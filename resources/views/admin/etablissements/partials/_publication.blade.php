@@ -1,9 +1,9 @@
 @php
     use App\Enums\PropertyStatus;
 
-    $current = $etablissement->status ?? PropertyStatus::Draft;
+    $current = $etablissement->statut ?? PropertyStatus::Draft;
     $online = in_array($current, [PropertyStatus::Published, PropertyStatus::Pending, PropertyStatus::Suspended], true);
-    $status = old('status', $etablissement->exists ? ($online ? 'actif' : 'inactif') : 'actif');
+    $status = old('statut', $etablissement->exists ? ($online ? 'actif' : 'inactif') : 'actif');
 
     // Un administrateur publie directement ; un propriétaire soumet à validation
     if (auth()->user()->isAdmin()) {
@@ -94,7 +94,7 @@
 
                     <input
                         type="radio"
-                        name="status"
+                        name="statut"
                         value="actif"
                         data-resume="{{ $options['actif'][2] }}"
                         @checked($status === 'actif')>
@@ -133,7 +133,7 @@
 
                     <input
                         type="radio"
-                        name="status"
+                        name="statut"
                         value="inactif"
                         data-resume="{{ $options['inactif'][2] }}"
                         @checked($status === 'inactif')>

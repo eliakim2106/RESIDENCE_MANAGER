@@ -101,7 +101,7 @@ class ReservationTest extends TestCase
         $reservation = Reservation::factory()->for(Property::factory()->for($owner, 'owner'))->create(['total_amount' => 50000]);
 
         $this->actingAs($owner)->patch(route('admin.reservations.confirm', $reservation))->assertSessionHas('success');
-        $this->assertSame(ReservationStatus::Confirmed, $reservation->fresh()->status);
+        $this->assertSame(ReservationStatus::Confirmed, $reservation->fresh()->statut);
 
         $this->actingAs($owner)->post(route('admin.reservations.payments.store', $reservation), [
             'montant' => '20 000',
@@ -112,7 +112,7 @@ class ReservationTest extends TestCase
         $reservation->refresh();
         $this->assertSame(20000, $reservation->amount_paid);
         $this->assertSame(PaymentState::Partial, $reservation->payment_state);
-        $this->assertDatabaseHas('payments', ['reservation_id' => $reservation->id, 'amount' => 20000, 'status' => TransactionStatus::Accepted->value, 'operator_reference' => 'RECU-042']);
+        $this->assertDatabaseHas('payments', ['reservation_id' => $reservation->id, 'amount' => 20000, 'statut' => TransactionStatus::Accepted->value, 'operator_reference' => 'RECU-042']);
 
         // Le solde ne peut pas être dépassé
         $this->actingAs($owner)->post(route('admin.reservations.payments.store', $reservation), ['montant' => 40000, 'moyen' => 'cash'])
@@ -135,10 +135,32 @@ class ReservationTest extends TestCase
         $past = Reservation::factory()->confirmed()->for($property)->create(['check_in' => now()->subDays(5), 'check_out' => now()->subDays(2)]);
 
         $this->actingAs($owner)->patch(route('admin.reservations.complete', $upcoming))->assertSessionHas('error');
-        $this->assertSame(ReservationStatus::Confirmed, $upcoming->fresh()->status);
+        $this->assertSame(ReservationStatus::Confirmed, $upcoming->fresh()->statut);
 
         $this->actingAs($owner)->patch(route('admin.reservations.complete', $past))->assertSessionHas('success');
-        $this->assertSame(ReservationStatus::Completed, $past->fresh()->status);
+        $this->assertSame(ReservationStatus::Completed, $past->fresh()->statut);
+    }
+
+    public function test_super_admin_validates_refuses_and_cancels_any_reservation(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $toValidate = Reservation::factory()->pending()->create();
+        $toRefuse = Reservation::factory()->pending()->create();
+        $toCancel = Reservation::factory()->confirmed()->create();
+
+        $this->actingAs($superAdmin)->get(route('admin.reservations.show', $toRefuse))
+            ->assertOk()->assertSee('Valider la réservation')->assertSee('Refuser la réservation');
+
+        $this->actingAs($superAdmin)->patch(route('admin.reservations.confirm', $toValidate))->assertSessionHas('success', 'Réservation validée.');
+        $this->assertSame(ReservationStatus::Confirmed, $toValidate->fresh()->statut);
+
+        $this->actingAs($superAdmin)->patch(route('admin.reservations.cancel', $toRefuse), ['motif' => 'Établissement complet'])
+            ->assertSessionHas('success', 'Réservation refusée.');
+        $this->assertSame(ReservationStatus::Cancelled, $toRefuse->fresh()->statut);
+
+        $this->actingAs($superAdmin)->get(route('admin.reservations.show', $toCancel))->assertOk()->assertSee('Annuler la réservation');
+        $this->actingAs($superAdmin)->patch(route('admin.reservations.cancel', $toCancel))->assertSessionHas('success', 'Réservation annulée.');
+        $this->assertSame(ReservationStatus::Cancelled, $toCancel->fresh()->statut);
     }
 
     public function test_owner_cannot_act_on_another_owner_reservation(): void
@@ -149,7 +171,7 @@ class ReservationTest extends TestCase
             ->patch(route('admin.reservations.confirm', $reservation))
             ->assertForbidden();
 
-        $this->assertSame(ReservationStatus::Pending, $reservation->fresh()->status);
+        $this->assertSame(ReservationStatus::Pending, $reservation->fresh()->statut);
     }
 
     /*
@@ -169,7 +191,7 @@ class ReservationTest extends TestCase
             ->assertSessionHas('success');
 
         $reservation->refresh();
-        $this->assertSame(ReservationStatus::Cancelled, $reservation->status);
+        $this->assertSame(ReservationStatus::Cancelled, $reservation->statut);
         $this->assertSame('Changement de programme', $reservation->cancellation_reason);
         $this->assertNotNull($reservation->cancelled_at);
     }
@@ -180,6 +202,6 @@ class ReservationTest extends TestCase
         $reservation = Reservation::factory()->confirmed()->for($client)->create(['check_in' => now()->subDay(), 'check_out' => now()->addDays(2)]);
 
         $this->actingAs($client)->patch(route('admin.reservations.cancel', $reservation))->assertForbidden();
-        $this->assertSame(ReservationStatus::Confirmed, $reservation->fresh()->status);
+        $this->assertSame(ReservationStatus::Confirmed, $reservation->fresh()->statut);
     }
 }

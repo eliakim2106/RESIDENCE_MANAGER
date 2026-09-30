@@ -8,6 +8,9 @@
     $canManage = auth()->user()->can('manage', $reservation);
     $canCancel = $actions['cancel'] && auth()->user()->can('cancel', $reservation);
     $managerActions = $canManage && ($actions['confirm'] || $actions['complete'] || $actions['noShow'] || $actions['payment']);
+
+    // Une demande en attente se « refuse » ; une réservation validée s'« annule »
+    $refusing = $canManage && $reservation->statut === App\Enums\ReservationStatus::Pending;
     $deadline = $reservation->freeCancellationDeadline();
     $guests = $reservation->adults + $reservation->children;
 @endphp
@@ -25,7 +28,7 @@
         </div>
 
         <div class="admin-page-actions">
-            <span class="status-pill status-{{ $reservation->status->tone() }} status-pill-lg">{{ $reservation->status->label() }}</span>
+            <span class="status-pill status-{{ $reservation->statut->tone() }} status-pill-lg">{{ $reservation->statut->label() }}</span>
             <a href="{{ route('admin.reservations.index') }}" class="btn-secondary">
                 <i class="fa-solid fa-arrow-left"></i>
                 Retour
@@ -202,7 +205,7 @@
                                 </span>
                                 <span class="resa-payment-end">
                                     <span class="resa-unit-amount">{{ $money($payment->amount) }}</span>
-                                    <span class="status-pill status-{{ $payment->status->tone() }}">{{ $payment->status->label() }}</span>
+                                    <span class="status-pill status-{{ $payment->statut->tone() }}">{{ $payment->statut->label() }}</span>
                                 </span>
                             </li>
                         @endforeach
@@ -279,9 +282,16 @@
                                 @method('PATCH')
                                 <button type="submit" class="btn-primary">
                                     <i class="fa-solid fa-check"></i>
-                                    Confirmer la réservation
+                                    Valider la réservation
                                 </button>
                             </form>
+
+                            @if ($canCancel)
+                                <button type="button" class="btn-outline-danger" data-modal-open="cancelModal">
+                                    <i class="fa-solid fa-xmark"></i>
+                                    Refuser la réservation
+                                </button>
+                            @endif
                         @endif
 
                         @if ($canManage && $actions['payment'])
@@ -315,7 +325,7 @@
                             </form>
                         @endif
 
-                        @if ($canCancel)
+                        @if ($canCancel && ! $refusing)
                             <button type="button" class="btn-outline-danger" data-modal-open="cancelModal">
                                 <i class="fa-solid fa-ban"></i>
                                 Annuler la réservation
@@ -348,7 +358,7 @@
                         <strong>Réservation créée</strong>
                         <small>{{ $reservation->created_at->translatedFormat('d M Y à H:i') }}</small>
                     </li>
-                    @if ($reservation->status === App\Enums\ReservationStatus::Pending && $reservation->expires_at)
+                    @if ($reservation->statut === App\Enums\ReservationStatus::Pending && $reservation->expires_at)
                         <li class="is-warning">
                             <strong>En attente de paiement</strong>
                             <small>Unités libérées le {{ $reservation->expires_at->translatedFormat('d M Y à H:i') }}</small>
@@ -369,13 +379,13 @@
                             @endif
                         </li>
                     @endif
-                    @if ($reservation->status === App\Enums\ReservationStatus::Completed)
+                    @if ($reservation->statut === App\Enums\ReservationStatus::Completed)
                         <li class="is-info">
                             <strong>Séjour terminé</strong>
                             <small>Départ le {{ $reservation->check_out->translatedFormat('d M Y') }}</small>
                         </li>
                     @endif
-                    @if ($reservation->status === App\Enums\ReservationStatus::NoShow)
+                    @if ($reservation->statut === App\Enums\ReservationStatus::NoShow)
                         <li>
                             <strong>Client non présenté</strong>
                         </li>
@@ -414,20 +424,23 @@
     @if ($canCancel)
         <div class="modal-overlay" id="cancelModal" data-action-modal @if ($errors->has('motif')) data-open-on-load @endif>
             <div class="modal-card modal-form" role="dialog" aria-modal="true" aria-labelledby="cancelModalTitle">
-                <div class="modal-icon"><i class="fa-solid fa-ban"></i></div>
-                <h3 id="cancelModalTitle">Annuler la réservation {{ $reservation->reference }} ?</h3>
-                <p>Les unités seront de nouveau disponibles à la réservation. Cette action est définitive.</p>
+                <div class="modal-icon"><i class="fa-solid {{ $refusing ? 'fa-xmark' : 'fa-ban' }}"></i></div>
+                <h3 id="cancelModalTitle">{{ $refusing ? 'Refuser' : 'Annuler' }} la réservation {{ $reservation->reference }} ?</h3>
+                <p>
+                    {{ $refusing ? 'Le client sera informé que sa demande n’est pas acceptée.' : '' }}
+                    Les unités seront de nouveau disponibles à la réservation. Cette action est définitive.
+                </p>
 
                 <form method="POST" action="{{ route('admin.reservations.cancel', $reservation) }}">
                     @csrf
                     @method('PATCH')
                     <div class="form-group">
                         <label for="motif">Motif <span class="field-optional">(facultatif)</span></label>
-                        <textarea name="motif" id="motif" maxlength="500" rows="3" placeholder="{{ $canManage ? 'Ex. : établissement complet, demande du client…' : 'Ex. : changement de programme…' }}">{{ old('motif') }}</textarea>
+                        <textarea name="motif" id="motif" maxlength="500" rows="3" placeholder="{{ $refusing ? 'Ex. : établissement complet à ces dates, travaux en cours…' : ($canManage ? 'Ex. : demande du client, problème technique…' : 'Ex. : changement de programme…') }}">{{ old('motif') }}</textarea>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn-cancel" data-modal-close>Retour</button>
-                        <button type="submit" class="btn-delete">Annuler la réservation</button>
+                        <button type="submit" class="btn-delete">{{ $refusing ? 'Refuser' : 'Annuler' }} la réservation</button>
                     </div>
                 </form>
             </div>

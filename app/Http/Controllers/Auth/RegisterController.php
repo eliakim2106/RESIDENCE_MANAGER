@@ -47,7 +47,7 @@ class RegisterController extends Controller
         $user = User::create([
             ...$request->userAttributes(),
             'role' => $role,
-            'status' => UserStatus::Active,
+            'statut' => UserStatus::Active,
         ]);
 
         // Envoie le lien de confirmation par email (le compte n'accède à son espace qu'une fois l'adresse confirmée)

@@ -6,7 +6,7 @@
 @php
     $currentName = old('nom', $type->name);
     $currentIcon = old('icon', $type->exists ? $type->fa_icon : '');
-    $active = old('status', $type->exists && ! $type->is_active ? 'inactif' : 'actif') === 'actif';
+    $active = old('statut', $type->exists && ! $type->isActive() ? 'inactif' : 'actif') === 'actif';
 
     // Un type créé hors de la liste proposée (données existantes) reste sélectionnable
     if ($currentName && ! in_array($currentName, $choices, true)) {
@@ -67,9 +67,9 @@
                 <h2>Publication</h2>
             </header>
 
-            <input type="hidden" name="status" value="inactif">
+            <input type="hidden" name="statut" value="inactif">
             <label class="switch-field">
-                <input type="checkbox" name="status" value="actif" @checked($active) data-status-toggle>
+                <input type="checkbox" name="statut" value="actif" @checked($active) data-status-toggle>
                 <span class="switch-ui" aria-hidden="true"></span>
                 <span class="switch-text">
                     <strong>Type actif</strong>

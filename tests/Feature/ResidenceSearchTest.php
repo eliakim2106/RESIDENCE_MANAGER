@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ActiveStatus;
 use App\Enums\PropertyStatus;
-use App\Enums\UnitStatus;
 use App\Models\City;
 use App\Models\Equipment;
 use App\Models\Property;
@@ -31,8 +31,8 @@ class ResidenceSearchTest extends TestCase
     public function test_only_published_properties_with_an_active_unit_are_listed(): void
     {
         $this->residence(['name' => 'Visible']);
-        $this->residence(['name' => 'Brouillon', 'status' => PropertyStatus::Draft]);
-        $this->residence(['name' => 'Sans unité active'], ['status' => UnitStatus::Inactive]);
+        $this->residence(['name' => 'Brouillon', 'statut' => PropertyStatus::Draft]);
+        $this->residence(['name' => 'Sans unité active'], ['statut' => ActiveStatus::Inactive]);
 
         $this->search()
             ->assertOk()
@@ -153,12 +153,12 @@ class ResidenceSearchTest extends TestCase
     {
         $residence = Property::factory()->create([
             'property_type_id' => $this->type->id,
-            'status' => PropertyStatus::Published,
+            'statut' => PropertyStatus::Published,
             ...$property,
         ]);
 
         Unit::factory()->for($residence)->create([
-            'status' => UnitStatus::Active,
+            'statut' => ActiveStatus::Active,
             'promo_price' => null,
             ...$unit,
         ]);

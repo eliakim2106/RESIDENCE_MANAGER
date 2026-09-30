@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\ActiveStatus;
 use App\Enums\ContactMessageStatus;
 use App\Enums\PropertyStatus;
 use App\Enums\ReservationStatus;
 use App\Enums\ReviewStatus;
 use App\Enums\TransactionStatus;
-use App\Enums\UnitStatus;
 use App\Enums\UserRole;
 use App\Models\ContactMessage;
 use App\Models\Payment;
@@ -67,7 +67,7 @@ class DashboardStats
     private function acceptedPayments(): Builder
     {
         return Payment::query()
-            ->where('status', TransactionStatus::Accepted)
+            ->where('statut', TransactionStatus::Accepted)
             ->whereIn('reservation_id', $this->reservations()->select('id'));
     }
 
@@ -111,10 +111,10 @@ class DashboardStats
      */
     public function overview(): array
     {
-        $published = $this->properties()->where('status', PropertyStatus::Published)->count();
+        $published = $this->properties()->where('statut', PropertyStatus::Published)->count();
         $total = $this->properties()->count();
         $units = (int) Unit::query()
-            ->where('status', UnitStatus::Active)
+            ->where('statut', ActiveStatus::Active)
             ->whereIn('property_id', $this->properties()->select('id'))
             ->sum('quantity');
 
@@ -167,17 +167,17 @@ class DashboardStats
     /**
      * Répartition des réservations par statut, dans l'ordre du parcours d'une réservation.
      *
-     * @return list<array{status: ReservationStatus, count: int}>
+     * @return list<array{statut: ReservationStatus, count: int}>
      */
     public function reservationsByStatus(): array
     {
         $counts = $this->reservations()
-            ->selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
+            ->selectRaw('statut, COUNT(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
 
         return collect([ReservationStatus::Pending, ReservationStatus::Confirmed, ReservationStatus::Completed, ReservationStatus::Cancelled, ReservationStatus::NoShow])
-            ->map(fn (ReservationStatus $status): array => ['status' => $status, 'count' => (int) ($counts[$status->value] ?? 0)])
+            ->map(fn (ReservationStatus $status): array => ['statut' => $status, 'count' => (int) ($counts[$status->value] ?? 0)])
             ->filter(fn (array $row): bool => $row['count'] > 0)
             ->values()
             ->all();
@@ -192,8 +192,8 @@ class DashboardStats
     {
         $tasks = [
             [
-                'label' => 'Réservations à confirmer',
-                'count' => $this->reservations()->where('status', ReservationStatus::Pending)->count(),
+                'label' => 'Réservations à valider',
+                'count' => $this->reservations()->where('statut', ReservationStatus::Pending)->count(),
                 'icon' => 'fa-hourglass-half',
                 'tone' => 'warning',
                 'url' => route('admin.reservations.index', ['statut' => 'en-attente']),
@@ -201,13 +201,13 @@ class DashboardStats
             // Administrateur : demandes à valider. Propriétaire : brouillons (dont refus) à compléter et soumettre.
             $this->scoped ? [
                 'label' => 'Établissements à soumettre',
-                'count' => $this->properties()->where('status', PropertyStatus::Draft)->count(),
+                'count' => $this->properties()->where('statut', PropertyStatus::Draft)->count(),
                 'icon' => 'fa-file-pen',
                 'tone' => 'info',
                 'url' => route('admin.etablissements.index', ['statut' => 'inactifs']),
             ] : [
                 'label' => 'Établissements à valider',
-                'count' => $this->properties()->where('status', PropertyStatus::Pending)->count(),
+                'count' => $this->properties()->where('statut', PropertyStatus::Pending)->count(),
                 'icon' => 'fa-building-circle-check',
                 'tone' => 'warning',
                 'url' => route('admin.validations.index'),
@@ -217,14 +217,14 @@ class DashboardStats
         if (! $this->scoped) {
             $tasks[] = [
                 'label' => 'Avis à modérer',
-                'count' => Review::where('status', ReviewStatus::Pending)->count(),
+                'count' => Review::where('statut', ReviewStatus::Pending)->count(),
                 'icon' => 'fa-star-half-stroke',
                 'tone' => 'info',
                 'url' => null,
             ];
             $tasks[] = [
                 'label' => 'Messages non lus',
-                'count' => ContactMessage::where('status', ContactMessageStatus::New)->count(),
+                'count' => ContactMessage::where('statut', ContactMessageStatus::New)->count(),
                 'icon' => 'fa-envelope',
                 'tone' => 'info',
                 'url' => null,
@@ -243,7 +243,7 @@ class DashboardStats
     {
         return $this->reservations()
             ->with(['property', 'user'])
-            ->whereIn('status', [ReservationStatus::Confirmed, ReservationStatus::Pending])
+            ->whereIn('statut', [ReservationStatus::Confirmed, ReservationStatus::Pending])
             ->where('check_in', '>=', today())
             ->orderBy('check_in')
             ->limit($limit)
@@ -269,11 +269,11 @@ class DashboardStats
             ->selectRaw('COALESCE(SUM(payments.amount), 0)')
             ->join('reservations', 'reservations.id', '=', 'payments.reservation_id')
             ->whereColumn('reservations.property_id', 'properties.id')
-            ->where('payments.status', TransactionStatus::Accepted);
+            ->where('payments.statut', TransactionStatus::Accepted);
 
         return $this->properties()
             ->with(['city', 'coverImage'])
-            ->withCount(['reservations' => fn (Builder $query) => $query->where('status', '!=', ReservationStatus::Cancelled)])
+            ->withCount(['reservations' => fn (Builder $query) => $query->where('statut', '!=', ReservationStatus::Cancelled)])
             ->addSelect(['revenue' => $revenue])
             ->orderByDesc('revenue')
             ->when($limit, fn (Builder $query, int $limit) => $query->limit($limit))
@@ -291,7 +291,7 @@ class DashboardStats
         return Reservation::query()
             ->whereBelongsTo($this->user)
             ->with(['property.coverImage', 'property.city'])
-            ->whereIn('status', [ReservationStatus::Confirmed, ReservationStatus::Pending])
+            ->whereIn('statut', [ReservationStatus::Confirmed, ReservationStatus::Pending])
             ->where('check_out', '>=', today())
             ->orderBy('check_in')
             ->first();
@@ -305,13 +305,13 @@ class DashboardStats
         $reservations = Reservation::query()->whereBelongsTo($this->user);
 
         $paid = (int) Payment::query()
-            ->where('status', TransactionStatus::Accepted)
+            ->where('statut', TransactionStatus::Accepted)
             ->whereIn('reservation_id', (clone $reservations)->select('id'))
             ->sum('amount');
 
         return [
-            ['label' => 'Séjours effectués', 'value' => (string) (clone $reservations)->where('status', ReservationStatus::Completed)->count(), 'icon' => 'fa-suitcase-rolling'],
-            ['label' => 'Réservations à venir', 'value' => (string) (clone $reservations)->whereIn('status', [ReservationStatus::Confirmed, ReservationStatus::Pending])->where('check_in', '>=', today())->count(), 'icon' => 'fa-calendar-check'],
+            ['label' => 'Séjours effectués', 'value' => (string) (clone $reservations)->where('statut', ReservationStatus::Completed)->count(), 'icon' => 'fa-suitcase-rolling'],
+            ['label' => 'Réservations à venir', 'value' => (string) (clone $reservations)->whereIn('statut', [ReservationStatus::Confirmed, ReservationStatus::Pending])->where('check_in', '>=', today())->count(), 'icon' => 'fa-calendar-check'],
             ['label' => 'Montant réglé', 'value' => number_format($paid, 0, ',', ' ').' FCFA', 'icon' => 'fa-wallet'],
             ['label' => 'Avis publiés', 'value' => (string) Review::whereBelongsTo($this->user)->count(), 'icon' => 'fa-star'],
         ];
@@ -344,7 +344,7 @@ class DashboardStats
     private function staysStartingIn(Carbon $month): int
     {
         return $this->reservations()
-            ->where('status', '!=', ReservationStatus::Cancelled)
+            ->where('statut', '!=', ReservationStatus::Cancelled)
             ->whereBetween('check_in', [$month->copy()->startOfMonth()->toDateString(), $month->copy()->endOfMonth()->toDateString()])
             ->count();
     }
@@ -358,7 +358,7 @@ class DashboardStats
         $monthEnd = $this->monthStart->copy()->addMonth();
 
         $capacity = (int) Unit::query()
-            ->where('status', UnitStatus::Active)
+            ->where('statut', ActiveStatus::Active)
             ->whereIn('property_id', $this->properties()->select('id'))
             ->sum('quantity') * $days;
 

@@ -53,7 +53,7 @@ class PropertyTest extends TestCase
             ],
             'gallery_cover' => 'piscine.jpg',
             'logo' => UploadedFile::fake()->image('logo.png'),
-            'status' => 'actif',
+            'statut' => 'actif',
             'meta_title' => 'Hôtel Palm Club Abidjan',
             'meta_description' => 'Hôtel 4 étoiles à Cocody.',
             'slug' => '',
@@ -76,7 +76,7 @@ class PropertyTest extends TestCase
         $this->assertTrue($property->owner->is($owner));
         $this->assertSame('hotel-palm-club', $property->slug);
         // Un propriétaire ne publie pas directement : l'établissement attend la validation d'un administrateur
-        $this->assertSame(PropertyStatus::Pending, $property->status);
+        $this->assertSame(PropertyStatus::Pending, $property->statut);
         $this->assertNotNull($property->submitted_at);
         $this->assertNull($property->published_at);
         $this->assertSame('0701020304', $property->phone);
@@ -104,9 +104,9 @@ class PropertyTest extends TestCase
     public function test_inactive_status_saves_a_draft(): void
     {
         $this->actingAs(User::factory()->owner()->create())
-            ->post(route('admin.etablissements.store'), $this->payload(['status' => 'inactif']));
+            ->post(route('admin.etablissements.store'), $this->payload(['statut' => 'inactif']));
 
-        $this->assertSame(PropertyStatus::Draft, Property::sole()->status);
+        $this->assertSame(PropertyStatus::Draft, Property::sole()->statut);
     }
 
     public function test_owner_only_sees_and_edits_their_own_properties(): void

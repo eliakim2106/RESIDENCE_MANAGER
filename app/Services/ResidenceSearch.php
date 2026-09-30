@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\ActiveStatus;
 use App\Enums\MaintenanceStatus;
 use App\Enums\PropertyStatus;
-use App\Enums\UnitStatus;
 use App\Models\Availability;
 use App\Models\City;
 use App\Models\Equipment;
@@ -121,7 +121,7 @@ class ResidenceSearch
                 'capacite_max' => Unit::query()
                     ->selectRaw('MAX(max_adults + max_children)')
                     ->whereColumn('units.property_id', 'properties.id')
-                    ->where('status', UnitStatus::Active),
+                    ->where('statut', ActiveStatus::Active),
                 'en_promo' => Unit::query()
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('units.property_id', 'properties.id')
@@ -167,7 +167,7 @@ class ResidenceSearch
     {
         $filters = $this->filters;
 
-        $units->where('units.status', UnitStatus::Active)
+        $units->where('units.statut', ActiveStatus::Active)
             ->when($filters['voyageurs'], fn (Builder $query, int $guests) => $query->whereRaw('max_adults + max_children >= ?', [$guests]))
             ->when($filters['prix_min'], fn (Builder $query, int $price) => $query->whereRaw('COALESCE(promo_price, base_price) >= ?', [$price]))
             ->when($filters['prix_max'], fn (Builder $query, int $price) => $query->whereRaw('COALESCE(promo_price, base_price) <= ?', [$price]));
@@ -203,7 +203,7 @@ class ResidenceSearch
         $inMaintenance = Maintenance::query()
             ->selectRaw('COALESCE(SUM(maintenances.quantity), 0)')
             ->whereColumn('maintenances.unit_id', 'units.id')
-            ->where('status', '!=', MaintenanceStatus::Done)
+            ->where('statut', '!=', MaintenanceStatus::Done)
             ->where('starts_on', '<=', $lastNight->toDateString())
             ->where('ends_on', '>=', $arrival->toDateString());
 
@@ -246,7 +246,7 @@ class ResidenceSearch
     public function cities(): Collection
     {
         return City::active()
-            ->withCount(['properties' => fn (Builder $query) => $query->where('status', PropertyStatus::Published)])
+            ->withCount(['properties' => fn (Builder $query) => $query->where('statut', PropertyStatus::Published)])
             ->orderBy('name')
             ->get()
             ->filter(fn (City $city): bool => $city->properties_count > 0)
@@ -260,7 +260,7 @@ class ResidenceSearch
     public function propertyTypes(): Collection
     {
         return PropertyType::active()
-            ->withCount(['properties' => fn (Builder $query) => $query->where('status', PropertyStatus::Published)])
+            ->withCount(['properties' => fn (Builder $query) => $query->where('statut', PropertyStatus::Published)])
             ->orderBy('name')
             ->get()
             ->filter(fn (PropertyType $type): bool => $type->properties_count > 0)
@@ -283,7 +283,7 @@ class ResidenceSearch
     public function priceBounds(): array
     {
         $bounds = Unit::query()
-            ->where('status', UnitStatus::Active)
+            ->where('statut', ActiveStatus::Active)
             ->whereHas('property', fn (Builder $query) => $query->published())
             ->selectRaw('MIN(COALESCE(promo_price, base_price)) AS min_price, MAX(COALESCE(promo_price, base_price)) AS max_price')
             ->first();

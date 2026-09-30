@@ -37,7 +37,7 @@ class Reservation extends Model
         'total_amount',
         'amount_paid',
         'currency',
-        'status',
+        'statut',
         'payment_state',
         'cancellation_policy',
         'guest_name',
@@ -68,7 +68,7 @@ class Reservation extends Model
             'discount_amount' => 'integer',
             'total_amount' => 'integer',
             'amount_paid' => 'integer',
-            'status' => ReservationStatus::class,
+            'statut' => ReservationStatus::class,
             'payment_state' => PaymentState::class,
             'cancellation_policy' => CancellationPolicy::class,
             'expires_at' => 'datetime',
@@ -161,7 +161,7 @@ class Reservation extends Model
 
     public function isCancellable(): bool
     {
-        return in_array($this->status, [ReservationStatus::Pending, ReservationStatus::Confirmed], true)
+        return in_array($this->statut, [ReservationStatus::Pending, ReservationStatus::Confirmed], true)
             && $this->check_in->isFuture();
     }
 
@@ -188,9 +188,9 @@ class Reservation extends Model
     protected function blocking(Builder $query): void
     {
         $query->where(function (Builder $query): void {
-            $query->whereIn('status', [ReservationStatus::Confirmed, ReservationStatus::Completed])
+            $query->whereIn('statut', [ReservationStatus::Confirmed, ReservationStatus::Completed])
                 ->orWhere(function (Builder $query): void {
-                    $query->where('status', ReservationStatus::Pending)
+                    $query->where('statut', ReservationStatus::Pending)
                         ->where(fn (Builder $query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()));
                 });
         });

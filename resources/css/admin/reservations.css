@@ -651,3 +651,9 @@
   color: var(--ds-blue);
   text-decoration: underline;
 }
+
+/* Bouton d'action rapide dans une ligne de tableau (formulaire en ligne) */
+.inline-action {
+  display: inline;
+  margin: 0;
+}

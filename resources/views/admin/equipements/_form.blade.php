@@ -4,7 +4,7 @@
 
     $icon = old('icon', $equipement->exists ? $equipement->fa_icon : '');
     $category = old('category', $equipement->category?->value ?? EquipmentCategory::General->value);
-    $active = old('status', $equipement->exists && ! $equipement->is_active ? 'inactif' : 'actif') === 'actif';
+    $active = old('statut', $equipement->exists && ! $equipement->isActive() ? 'inactif' : 'actif') === 'actif';
     $popular = (bool) old('is_popular', $equipement->is_popular);
 @endphp
 
@@ -70,9 +70,9 @@
                 <h2>Publication</h2>
             </header>
 
-            <input type="hidden" name="status" value="inactif">
+            <input type="hidden" name="statut" value="inactif">
             <label class="switch-field">
-                <input type="checkbox" name="status" value="actif" @checked($active) data-status-toggle>
+                <input type="checkbox" name="statut" value="actif" @checked($active) data-status-toggle>
                 <span class="switch-ui" aria-hidden="true"></span>
                 <span class="switch-text">
                     <strong>Équipement actif</strong>

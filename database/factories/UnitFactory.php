@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\UnitStatus;
+use App\Enums\ActiveStatus;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Models\UnitType;
@@ -41,7 +41,7 @@ class UnitFactory extends Factory
             'weekend_price' => fake()->boolean(40) ? (int) ($basePrice * 1.2) : null,
             'cleaning_fee' => fake()->randomElement([0, 2000, 5000]),
             'min_nights' => 1,
-            'status' => UnitStatus::Active,
+            'statut' => ActiveStatus::Active,
         ];
     }
 }

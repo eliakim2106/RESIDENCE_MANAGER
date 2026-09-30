@@ -32,7 +32,7 @@
                     <th>Catégorie</th>
                     <th>Utilisation</th>
                     <th>Statut</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -58,7 +58,7 @@
                             {{ $equipement->properties_count }} établ. · {{ $equipement->units_count }} unité{{ $equipement->units_count > 1 ? 's' : '' }}
                         </td>
                         <td>
-                            @if ($equipement->is_active)
+                            @if ($equipement->isActive())
                                 <span class="badge-success">Actif</span>
                             @else
                                 <span class="badge-neutral">Inactif</span>

@@ -121,7 +121,7 @@ class DemoSeeder extends Seeder
      */
     private function createReservations(Property $property, Collection $units, $clients): void
     {
-        foreach (['completed', 'completed', 'completed', 'confirmed', 'confirmed', 'cancelled'] as $state) {
+        foreach (['completed', 'completed', 'completed', 'confirmed', 'confirmed', 'pending', 'cancelled'] as $state) {
             $client = $clients->random();
             $unit = $units->random();
 
@@ -143,7 +143,7 @@ class DemoSeeder extends Seeder
                 'cleaning_fee' => $unit->cleaning_fee,
                 'service_fee' => $serviceFee,
                 'total_amount' => $total,
-                'amount_paid' => $state === 'cancelled' ? 0 : $total,
+                'amount_paid' => in_array($state, ['pending', 'cancelled'], true) ? 0 : $total,
             ]);
 
             ReservationUnit::factory()->for($reservation)->for($unit)->create([
@@ -151,7 +151,7 @@ class DemoSeeder extends Seeder
                 'subtotal' => $subtotal,
             ]);
 
-            if ($state !== 'cancelled') {
+            if (! in_array($state, ['pending', 'cancelled'], true)) {
                 Payment::factory()->accepted()->for($reservation)->create([
                     'user_id' => $client->id,
                     'amount' => $total,

@@ -29,14 +29,14 @@ class PaymentFactory extends Factory
             'operator' => fake()->randomElement(['OM', 'MOMO', 'FLOOZ', 'WAVE']),
             'amount' => fake()->numberBetween(10, 300) * 1000,
             'currency' => 'XOF',
-            'status' => TransactionStatus::Pending,
+            'statut' => TransactionStatus::Pending,
         ];
     }
 
     public function accepted(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => TransactionStatus::Accepted,
+            'statut' => TransactionStatus::Accepted,
             'operator_reference' => Str::upper(Str::random(10)),
             'paid_at' => now(),
         ]);

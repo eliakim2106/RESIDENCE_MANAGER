@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
-enum UnitStatus: string
+/**
+ * Statut marche / arrêt : référentiels (villes, types, équipements) et unités.
+ */
+enum ActiveStatus: string
 {
-    case Active = 'active';
-    case Inactive = 'inactive';
+    case Active = 'actif';
+    case Inactive = 'inactif';
 
     /**
      * Libellé affiché à l'utilisateur.
@@ -13,8 +16,8 @@ enum UnitStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Active => 'Active',
-            self::Inactive => 'Inactive',
+            self::Active => 'Actif',
+            self::Inactive => 'Inactif',
         };
     }
 
@@ -26,6 +29,17 @@ enum UnitStatus: string
         return match ($this) {
             self::Active => 'green',
             self::Inactive => 'gray',
+        };
+    }
+
+    /**
+     * Ton de la pastille (status-good, status-neutral) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Active => 'good',
+            self::Inactive => 'neutral',
         };
     }
 

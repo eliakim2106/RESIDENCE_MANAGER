@@ -24,7 +24,7 @@ class ContactMessageFactory extends Factory
             'phone' => '+225 05 '.fake()->numerify('## ## ## ##'),
             'subject' => fake()->sentence(4),
             'message' => fake()->paragraph(),
-            'status' => ContactMessageStatus::New,
+            'statut' => ContactMessageStatus::New,
         ];
     }
 }

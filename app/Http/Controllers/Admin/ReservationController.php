@@ -64,13 +64,13 @@ class ReservationController extends Controller
                     ->orWhereHas('property', fn (Builder $query) => $query->where('name', 'like', $like)));
             });
 
-        $byStatus = (clone $query)->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+        $byStatus = (clone $query)->selectRaw('statut, COUNT(*) as total')->groupBy('statut')->pluck('total', 'statut');
         $counts = collect(self::TABS)->map(fn (array $tab): int => $tab[1] === []
             ? (int) $byStatus->sum()
             : (int) collect($tab[1])->sum(fn (ReservationStatus $status) => $byStatus[$status->value] ?? 0));
 
         $reservations = $query
-            ->when(self::TABS[$tab][1] !== [], fn (Builder $query) => $query->whereIn('status', self::TABS[$tab][1]))
+            ->when(self::TABS[$tab][1] !== [], fn (Builder $query) => $query->whereIn('statut', self::TABS[$tab][1]))
             ->with(['property', 'user'])
             ->orderByDesc('check_in')
             ->orderByDesc('id')
@@ -111,14 +111,17 @@ class ReservationController extends Controller
     {
         Gate::authorize('manage', $reservation);
 
-        return $this->run(fn () => $this->workflow->confirm($reservation), 'Réservation confirmée.');
+        return $this->run(fn () => $this->workflow->confirm($reservation), 'Réservation validée.');
     }
 
     public function cancel(ReservationCancelRequest $request, Reservation $reservation): RedirectResponse
     {
         Gate::authorize('cancel', $reservation);
 
-        return $this->run(fn () => $this->workflow->cancel($reservation, $request->reason()), 'Réservation annulée.');
+        // Une demande en attente écartée par l'établissement ou un administrateur est un refus
+        $refused = $reservation->statut === ReservationStatus::Pending && $request->user()->can('manage', $reservation);
+
+        return $this->run(fn () => $this->workflow->cancel($reservation, $request->reason()), $refused ? 'Réservation refusée.' : 'Réservation annulée.');
     }
 
     public function complete(Reservation $reservation): RedirectResponse

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\UnitStatus;
+use App\Enums\ActiveStatus;
 use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UnitRequest;
@@ -37,7 +37,7 @@ class UnitController extends Controller
                 ->where('name', 'like', "%{$search}%")
                 ->orWhereHas('property', fn ($query) => $query->where('name', 'like', "%{$search}%"))));
 
-        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('status', UnitStatus::Active));
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('statut', ActiveStatus::Active));
 
         $unites = $query
             ->with(['unitType', 'property', 'images' => fn ($query) => $query->limit(1)])

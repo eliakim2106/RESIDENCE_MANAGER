@@ -106,7 +106,7 @@
                                 </span>
                             </td>
                             <td class="text-nowrap"><strong>{{ number_format($reservation->total_amount, 0, ',', ' ') }} FCFA</strong></td>
-                            <td><span class="status-pill status-{{ $reservation->status->tone() }}">{{ $reservation->status->label() }}</span></td>
+                            <td><span class="status-pill status-{{ $reservation->statut->tone() }}">{{ $reservation->statut->label() }}</span></td>
                         </tr>
                     @endforeach
                 </tbody>

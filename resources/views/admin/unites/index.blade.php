@@ -33,7 +33,7 @@
                     <th>Capacité</th>
                     <th>Prix / nuit</th>
                     <th>Statut</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -71,7 +71,7 @@
                             @endif
                         </td>
                         <td>
-                            @if ($unite->status === App\Enums\UnitStatus::Active)
+                            @if ($unite->statut === App\Enums\ActiveStatus::Active)
                                 <span class="badge-success">Active</span>
                             @else
                                 <span class="badge-neutral">Inactive</span>

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\UnitStatus;
+use App\Enums\ActiveStatus;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -42,14 +42,14 @@ class Unit extends Model
         'cleaning_fee',
         'min_nights',
         'max_nights',
-        'status',
+        'statut',
     ];
 
     #[Override]
     protected function casts(): array
     {
         return [
-            'status' => UnitStatus::class,
+            'statut' => ActiveStatus::class,
             'max_adults' => 'integer',
             'max_children' => 'integer',
             'quantity' => 'integer',
@@ -147,6 +147,6 @@ class Unit extends Model
     #[Scope]
     protected function active(Builder $query): void
     {
-        $query->where('status', UnitStatus::Active);
+        $query->where('statut', ActiveStatus::Active);
     }
 }

@@ -80,7 +80,7 @@
                                     · <i class="fa-solid fa-location-dot"></i> {{ collect([$property->district, $property->city?->name])->filter()->implode(', ') }}
                                 </p>
                             </div>
-                            <span class="status-pill status-{{ $property->status->tone() }}">{{ $property->status->label() }}</span>
+                            <span class="status-pill status-{{ $property->statut->tone() }}">{{ $property->statut->label() }}</span>
                         </header>
 
                         <dl class="moderation-meta">
@@ -94,11 +94,11 @@
                                 </dd>
                             </div>
                             <div>
-                                @if ($property->status === PropertyStatus::Pending)
+                                @if ($property->statut === PropertyStatus::Pending)
                                     <dt>Soumis</dt>
                                     <dd>{{ $property->submitted_at ? $property->submitted_at->diffForHumans() : '—' }}</dd>
                                 @else
-                                    <dt>{{ $property->status === PropertyStatus::Suspended ? 'Suspendu' : 'Publié' }}</dt>
+                                    <dt>{{ $property->statut === PropertyStatus::Suspended ? 'Suspendu' : 'Publié' }}</dt>
                                     <dd>
                                         {{ ($property->moderated_at ?? $property->published_at)?->translatedFormat('d M Y') ?? '—' }}
                                         @if ($property->moderator)
@@ -109,7 +109,7 @@
                             </div>
                         </dl>
 
-                        @if ($property->status === PropertyStatus::Pending)
+                        @if ($property->statut === PropertyStatus::Pending)
                             <ul class="moderation-checks" aria-label="Points à vérifier">
                                 @foreach ($checks as [$label, $ok, $detail])
                                     <li class="{{ $ok ? 'is-ok' : 'is-missing' }}">
@@ -123,7 +123,7 @@
                         @if ($property->moderation_note)
                             <p class="moderation-note">
                                 <i class="fa-solid fa-quote-left"></i>
-                                {{ $property->status === PropertyStatus::Pending ? 'Motif du refus précédent : ' : '' }}{{ $property->moderation_note }}
+                                {{ $property->statut === PropertyStatus::Pending ? 'Motif du refus précédent : ' : '' }}{{ $property->moderation_note }}
                             </p>
                         @endif
 
@@ -133,7 +133,7 @@
                                 Voir la fiche
                             </a>
 
-                            @if ($property->status === PropertyStatus::Pending)
+                            @if ($property->statut === PropertyStatus::Pending)
                                 <button type="button" class="btn-outline-danger btn-sm" data-modal-open="rejectModal"
                                     data-form-action="{{ route('admin.validations.reject', $property) }}" data-name="{{ $property->name }}">
                                     <i class="fa-solid fa-xmark"></i>
@@ -147,7 +147,7 @@
                                         Approuver et publier
                                     </button>
                                 </form>
-                            @elseif ($property->status === PropertyStatus::Published)
+                            @elseif ($property->statut === PropertyStatus::Published)
                                 <button type="button" class="btn-outline-danger btn-sm" data-modal-open="suspendModal"
                                     data-form-action="{{ route('admin.validations.suspend', $property) }}" data-name="{{ $property->name }}">
                                     <i class="fa-solid fa-ban"></i>

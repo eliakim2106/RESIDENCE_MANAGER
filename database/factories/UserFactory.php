@@ -31,7 +31,7 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => '+225 07 '.fake()->numerify('## ## ## ##'),
             'role' => UserRole::Client,
-            'status' => UserStatus::Active,
+            'statut' => UserStatus::Active,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make(User::DEFAULT_PASSWORD),
             'remember_token' => Str::random(10),
@@ -73,7 +73,7 @@ class UserFactory extends Factory
     public function suspended(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => UserStatus::Suspended,
+            'statut' => UserStatus::Suspended,
         ]);
     }
 }

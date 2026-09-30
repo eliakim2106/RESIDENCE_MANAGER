@@ -55,7 +55,7 @@
                     <th>Activité</th>
                     <th>Dernière connexion</th>
                     <th>Statut</th>
-                    <th><span class="visually-hidden">Actions</span></th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -95,7 +95,7 @@
                             @endif
                         </td>
                         <td>
-                            <span class="status-pill status-{{ $user->status->tone() }}">{{ $user->status->label() }}</span>
+                            <span class="status-pill status-{{ $user->statut->tone() }}">{{ $user->statut->label() }}</span>
                             @unless ($user->hasVerifiedEmail())
                                 <small class="cell-hint">Email non confirmé</small>
                             @endunless

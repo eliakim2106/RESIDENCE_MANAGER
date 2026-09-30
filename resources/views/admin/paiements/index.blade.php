@@ -116,7 +116,7 @@
                             </span>
                         </td>
                         <td><span class="cell-amount">{{ $money($payment->amount) }}</span></td>
-                        <td><span class="status-pill status-{{ $payment->status->tone() }}">{{ $payment->status->label() }}</span></td>
+                        <td><span class="status-pill status-{{ $payment->statut->tone() }}">{{ $payment->statut->label() }}</span></td>
                     </tr>
                 @empty
                     <tr>

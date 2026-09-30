@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Enums\UnitStatus;
+use App\Enums\ActiveStatus;
 use App\Models\Equipment;
 use App\Models\Property;
 use App\Models\Unit;
@@ -46,7 +46,7 @@ class UnitTest extends TestCase
             'equipement_id' => Equipment::factory()->count(2)->create()->modelKeys(),
             'images' => [UploadedFile::fake()->image('chambre.jpg'), UploadedFile::fake()->image('salle-de-bain.jpg')],
             'gallery_cover' => 'salle-de-bain.jpg',
-            'status' => 'actif',
+            'statut' => 'actif',
             ...$overrides,
         ];
     }
@@ -69,7 +69,7 @@ class UnitTest extends TestCase
         $this->assertSame(45000, $unit->base_price);
         $this->assertSame(40000, $unit->promo_price);
         $this->assertSame(30, $unit->size_m2);
-        $this->assertSame(UnitStatus::Active, $unit->status);
+        $this->assertSame(ActiveStatus::Active, $unit->statut);
         $this->assertCount(2, $unit->equipments);
 
         // L'image principale passe en première position
@@ -114,12 +114,12 @@ class UnitTest extends TestCase
             'images' => [],
             'equipement_id' => [],
             'gallery_cover' => (string) $second->id,
-            'status' => 'inactif',
+            'statut' => 'inactif',
         ]))->assertRedirect(route('admin.unites.index'))->assertSessionHasNoErrors();
 
         $unit->refresh();
 
-        $this->assertSame(UnitStatus::Inactive, $unit->status);
+        $this->assertSame(ActiveStatus::Inactive, $unit->statut);
         $this->assertCount(0, $unit->equipments);
         $this->assertSame(0, $second->fresh()->position);
         $this->assertSame(1, $first->fresh()->position);
