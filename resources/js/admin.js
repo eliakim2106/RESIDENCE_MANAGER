@@ -139,6 +139,8 @@ function initDeleteModal() {
 /* =====================================
    MODALES D'ACTION, CONFIRMATIONS, FILTRES
    [data-modal-open="id"] ouvre la modale #id, [data-modal-close] la ferme.
+   Une modale partagée entre plusieurs lignes reçoit du bouton data-form-action (adresse du formulaire)
+   et data-name (affiché dans [data-modal-name]).
    form[data-confirm] demande une confirmation avant l'envoi.
    select[data-auto-submit] envoie son formulaire dès qu'on change la valeur.
 ===================================== */
@@ -152,6 +154,22 @@ function initActionModals() {
 
       if (!modal) {
         return;
+      }
+
+      const form = modal.querySelector("form");
+
+      if (btn.dataset.formAction && form) {
+        form.action = btn.dataset.formAction;
+
+        // Conservés pour rouvrir la modale sur la bonne ligne après une erreur de validation
+        form.querySelector("input[name='_form_action']")?.setAttribute("value", btn.dataset.formAction);
+        form.querySelector("input[name='_form_name']")?.setAttribute("value", btn.dataset.name ?? "");
+      }
+
+      if (btn.dataset.name) {
+        modal.querySelectorAll("[data-modal-name]").forEach((el) => {
+          el.textContent = btn.dataset.name;
+        });
       }
 
       modal.classList.add("show");

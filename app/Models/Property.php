@@ -56,6 +56,10 @@ class Property extends Model
         'meta_title',
         'meta_description',
         'status',
+        'submitted_at',
+        'moderation_note',
+        'moderated_at',
+        'moderated_by',
         'is_featured',
         'rating_average',
         'reviews_count',
@@ -77,6 +81,8 @@ class Property extends Model
             'manages_units' => 'boolean',
             'rating_average' => 'decimal:1',
             'published_at' => 'datetime',
+            'submitted_at' => 'datetime',
+            'moderated_at' => 'datetime',
         ];
     }
 
@@ -117,6 +123,14 @@ class Property extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Administrateur qui a pris la dernière décision de validation.
+     */
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
     }
 
     public function propertyType(): BelongsTo
@@ -196,6 +210,24 @@ class Property extends Model
     public function isPublished(): bool
     {
         return $this->status === PropertyStatus::Published;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === PropertyStatus::Pending;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === PropertyStatus::Suspended;
+    }
+
+    /**
+     * Brouillon renvoyé par un administrateur avec un motif.
+     */
+    public function wasRejected(): bool
+    {
+        return $this->status === PropertyStatus::Draft && filled($this->moderation_note);
     }
 
     /**

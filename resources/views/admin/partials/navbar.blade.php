@@ -9,6 +9,7 @@
     $sections = [
         'admin.reservations.' => [$user->isAdmin() || $user->isOwner() ? 'Réservations' : 'Mes réservations', 'admin.reservations.index'],
         'admin.paiements.' => ['Paiements', 'admin.paiements.index'],
+        'admin.validations.' => ['Validations', 'admin.validations.index'],
         'admin.etablissements.unites.' => ['Établissements', 'admin.etablissements.index'],
         'admin.etablissements.' => ['Établissements', 'admin.etablissements.index'],
         'admin.unites.' => ['Unités', 'admin.unites.index'],
@@ -79,12 +80,21 @@
             <div class="dropdown-menu dropdown-menu-end admin-dropdown">
                 <div class="admin-dropdown-header">
                     <strong>Notifications</strong>
+                    @if ($notifications > 0)
+                        <form method="POST" action="{{ route('admin.notifications.read-all') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-link-btn">Tout marquer comme lu</button>
+                        </form>
+                    @endif
                 </div>
                 @forelse ($user->unreadNotifications()->latest()->limit(5)->get() as $notification)
-                    <div class="admin-dropdown-item">
-                        <i class="fa-regular fa-bell"></i>
-                        <span>{{ $notification->data['message'] ?? 'Nouvelle notification' }}</span>
-                    </div>
+                    <a href="{{ route('admin.notifications.open', $notification->id) }}" class="admin-dropdown-item notification-item">
+                        <i class="fa-solid {{ $notification->data['icon'] ?? 'fa-bell' }} tone-{{ $notification->data['tone'] ?? 'info' }}"></i>
+                        <span>
+                            {{ $notification->data['message'] ?? 'Nouvelle notification' }}
+                            <small>{{ $notification->created_at->diffForHumans() }}</small>
+                        </span>
+                    </a>
                 @empty
                     <div class="admin-dropdown-empty">
                         <i class="fa-regular fa-bell-slash"></i>

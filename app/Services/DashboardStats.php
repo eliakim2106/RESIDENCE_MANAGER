@@ -198,12 +198,19 @@ class DashboardStats
                 'tone' => 'warning',
                 'url' => route('admin.reservations.index', ['statut' => 'en-attente']),
             ],
-            [
-                'label' => $this->scoped ? 'Établissements à publier' : 'Établissements non publiés',
-                'count' => $this->properties()->where('status', '!=', PropertyStatus::Published)->count(),
+            // Administrateur : demandes à valider. Propriétaire : brouillons (dont refus) à compléter et soumettre.
+            $this->scoped ? [
+                'label' => 'Établissements à soumettre',
+                'count' => $this->properties()->where('status', PropertyStatus::Draft)->count(),
                 'icon' => 'fa-file-pen',
                 'tone' => 'info',
                 'url' => route('admin.etablissements.index', ['statut' => 'inactifs']),
+            ] : [
+                'label' => 'Établissements à valider',
+                'count' => $this->properties()->where('status', PropertyStatus::Pending)->count(),
+                'icon' => 'fa-building-circle-check',
+                'tone' => 'warning',
+                'url' => route('admin.validations.index'),
             ],
         ];
 

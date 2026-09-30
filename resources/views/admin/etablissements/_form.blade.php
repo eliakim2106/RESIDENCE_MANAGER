@@ -27,6 +27,36 @@
 
         @include('partials.flash')
 
+        {{-- État de la validation par un administrateur --}}
+        @if ($etablissement->exists)
+            @if ($etablissement->isPending())
+                <div class="moderation-banner tone-warning" role="status">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <div>
+                        <strong>En attente de validation</strong>
+                        <p>Soumis {{ $etablissement->submitted_at?->diffForHumans() ?? '' }}. L’établissement sera visible sur le site dès qu’un administrateur l’aura approuvé.</p>
+                    </div>
+                </div>
+            @elseif ($etablissement->isSuspended())
+                <div class="moderation-banner tone-critical" role="status">
+                    <i class="fa-solid fa-ban"></i>
+                    <div>
+                        <strong>Établissement suspendu{{ $etablissement->moderated_at ? ' le '.$etablissement->moderated_at->translatedFormat('d F Y') : '' }}</strong>
+                        <p>{{ $etablissement->moderation_note ?: 'Il n’est plus visible sur le site.' }}</p>
+                    </div>
+                </div>
+            @elseif ($etablissement->wasRejected())
+                <div class="moderation-banner tone-critical" role="status">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <div>
+                        <strong>Demande de publication refusée</strong>
+                        <p>{{ $etablissement->moderation_note }}</p>
+                        <p>Corrigez les points indiqués, puis choisissez « Soumettre pour validation » à l’étape Publication.</p>
+                    </div>
+                </div>
+            @endif
+        @endif
+
         @include('admin.etablissements.partials._stepper')
 
         <div class="etablissement-layout">

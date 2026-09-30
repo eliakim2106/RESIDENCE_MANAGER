@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\PropertyStatus;
 use App\Models\Property;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -128,8 +127,6 @@ class PropertyRequest extends FormRequest
      */
     public function propertyAttributes(): array
     {
-        $published = $this->input('status') === 'actif';
-
         return [
             'property_type_id' => $this->integer('type_etablissement_id'),
             'name' => $this->string('nom')->trim()->toString(),
@@ -148,11 +145,17 @@ class PropertyRequest extends FormRequest
             'check_out_until' => $this->input('check_out') ?: '12:00',
             'star_rating' => $this->integer('etoile') ?: null,
             'manages_units' => $this->boolean('gestion_unites'),
-            'status' => $published ? PropertyStatus::Published : PropertyStatus::Draft,
-            'published_at' => $published ? ($this->property()?->published_at ?? now()) : null,
             'meta_title' => $this->input('meta_title'),
             'meta_description' => $this->input('meta_description'),
         ];
+    }
+
+    /**
+     * « En ligne » : publié pour un administrateur, soumis à validation pour un propriétaire (PropertyModeration).
+     */
+    public function wantsOnline(): bool
+    {
+        return $this->input('status') === 'actif';
     }
 
     /**

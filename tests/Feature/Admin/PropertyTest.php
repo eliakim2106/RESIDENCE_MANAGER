@@ -75,8 +75,10 @@ class PropertyTest extends TestCase
 
         $this->assertTrue($property->owner->is($owner));
         $this->assertSame('hotel-palm-club', $property->slug);
-        $this->assertSame(PropertyStatus::Published, $property->status);
-        $this->assertNotNull($property->published_at);
+        // Un propriétaire ne publie pas directement : l'établissement attend la validation d'un administrateur
+        $this->assertSame(PropertyStatus::Pending, $property->status);
+        $this->assertNotNull($property->submitted_at);
+        $this->assertNull($property->published_at);
         $this->assertSame('0701020304', $property->phone);
         $this->assertSame('Cocody', $property->district);
         $this->assertSame('Angré', $property->neighborhood);

@@ -6,7 +6,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentState;
 use App\Enums\ReservationStatus;
 use App\Enums\TransactionStatus;
-use App\Exceptions\ReservationActionException;
+use App\Exceptions\WorkflowException;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  * Cycle de vie d'une réservation : en attente → confirmée → terminée,
  * avec annulation ou absence (« non présenté ») possibles, et encaissements manuels.
  *
- * Chaque action vérifie l'état de la réservation et lève ReservationActionException
+ * Chaque action vérifie l'état de la réservation et lève WorkflowException
  * avec un message destiné à l'utilisateur quand elle n'est pas permise.
  */
 class ReservationWorkflow
@@ -58,7 +58,7 @@ class ReservationWorkflow
         $this->expectStatus($reservation, [ReservationStatus::Confirmed], 'Seule une réservation confirmée peut être clôturée.');
 
         if ($reservation->check_out->isFuture()) {
-            throw new ReservationActionException('Le séjour ne peut être clôturé qu’à partir du jour du départ ('.$reservation->check_out->format('d/m/Y').').');
+            throw new WorkflowException('Le séjour ne peut être clôturé qu’à partir du jour du départ ('.$reservation->check_out->format('d/m/Y').').');
         }
 
         $reservation->update(['status' => ReservationStatus::Completed]);
@@ -72,7 +72,7 @@ class ReservationWorkflow
         $this->expectStatus($reservation, [ReservationStatus::Confirmed], 'Seule une réservation confirmée peut être déclarée « non présenté ».');
 
         if ($reservation->check_in->isFuture()) {
-            throw new ReservationActionException('Le client ne peut être déclaré absent qu’à partir du jour de l’arrivée ('.$reservation->check_in->format('d/m/Y').').');
+            throw new WorkflowException('Le client ne peut être déclaré absent qu’à partir du jour de l’arrivée ('.$reservation->check_in->format('d/m/Y').').');
         }
 
         $reservation->update(['status' => ReservationStatus::NoShow]);
@@ -99,7 +99,7 @@ class ReservationWorkflow
         $balance = $reservation->balanceDue();
 
         if ($amount > $balance) {
-            throw new ReservationActionException('Le montant dépasse le solde restant dû ('.number_format($balance, 0, ',', ' ').' FCFA).');
+            throw new WorkflowException('Le montant dépasse le solde restant dû ('.number_format($balance, 0, ',', ' ').' FCFA).');
         }
 
         return DB::transaction(function () use ($reservation, $amount, $method, $reference, $recordedBy): Payment {
@@ -156,7 +156,7 @@ class ReservationWorkflow
     private function expectStatus(Reservation $reservation, array $allowed, string $message): void
     {
         if (! in_array($reservation->status, $allowed, true)) {
-            throw new ReservationActionException($message);
+            throw new WorkflowException($message);
         }
     }
 }

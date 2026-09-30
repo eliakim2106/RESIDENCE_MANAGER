@@ -10,6 +10,7 @@ use App\Models\City;
 use App\Models\Property;
 use App\Models\PropertyType;
 use App\Services\GalleryManager;
+use App\Services\PropertyModeration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ class PropertyController extends Controller
 {
     use FiltersByStatus;
 
-    public function __construct(private GalleryManager $gallery) {}
+    public function __construct(private GalleryManager $gallery, private PropertyModeration $moderation) {}
 
     public function index(Request $request): View
     {
@@ -62,17 +63,24 @@ class PropertyController extends Controller
     {
         Gate::authorize('create', Property::class);
 
-        DB::transaction(function () use ($request): void {
+        $property = DB::transaction(function () use ($request): Property {
             $property = Property::create([
                 ...$request->propertyAttributes(),
                 'owner_id' => $request->user()->id,
+                // Toujours créé en brouillon : la publication ou la soumission se fait ensuite (PropertyModeration)
+                'status' => PropertyStatus::Draft,
             ]);
 
             $this->syncMedia($property, $request);
+            $this->moderation->applyVisibility($property, $request->user(), $request->wantsOnline());
+
+            return $property;
         });
 
         return redirect()->route('admin.etablissements.index')
-            ->with('success', 'Établissement créé avec succès.');
+            ->with('success', $property->isPending()
+                ? 'Établissement créé et envoyé pour validation. Il sera publié dès qu’un administrateur l’aura approuvé.'
+                : 'Établissement créé avec succès.');
     }
 
     public function edit(Property $etablissement): View
@@ -91,14 +99,19 @@ class PropertyController extends Controller
     {
         Gate::authorize('update', $etablissement);
 
+        $wasPending = $etablissement->isPending();
+
         DB::transaction(function () use ($request, $etablissement): void {
             $etablissement->update($request->propertyAttributes());
 
             $this->syncMedia($etablissement, $request);
+            $this->moderation->applyVisibility($etablissement, $request->user(), $request->wantsOnline());
         });
 
         return redirect()->route('admin.etablissements.index')
-            ->with('success', 'Établissement modifié avec succès.');
+            ->with('success', $etablissement->isPending() && ! $wasPending
+                ? 'Établissement envoyé pour validation. Il sera publié dès qu’un administrateur l’aura approuvé.'
+                : 'Établissement modifié avec succès.');
     }
 
     public function destroy(Property $etablissement): RedirectResponse

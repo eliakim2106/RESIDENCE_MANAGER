@@ -1,5 +1,29 @@
 @php
-    $status = old('status', $etablissement->exists ? ($etablissement->isPublished() ? 'actif' : 'inactif') : 'actif');
+    use App\Enums\PropertyStatus;
+
+    $current = $etablissement->status ?? PropertyStatus::Draft;
+    $online = in_array($current, [PropertyStatus::Published, PropertyStatus::Pending, PropertyStatus::Suspended], true);
+    $status = old('status', $etablissement->exists ? ($online ? 'actif' : 'inactif') : 'actif');
+
+    // Un administrateur publie directement ; un propriétaire soumet à validation
+    if (auth()->user()->isAdmin()) {
+        $options = [
+            'actif' => ['Actif', "L'établissement sera immédiatement visible et pourra recevoir des réservations.", "L'établissement sera publié immédiatement après son enregistrement."],
+            'inactif' => ['Inactif', "L'établissement sera enregistré mais restera invisible jusqu'à son activation.", "L'établissement sera enregistré mais restera masqué jusqu'à son activation."],
+        ];
+        $intro = 'Choisissez si cet établissement est immédiatement visible sur la plateforme.';
+    } else {
+        $options = [
+            'actif' => match ($current) {
+                PropertyStatus::Published => ['En ligne', "L'établissement reste visible et continue de recevoir des réservations.", "L'établissement reste en ligne ; vos modifications sont visibles dès l'enregistrement."],
+                PropertyStatus::Pending => ['En attente de validation', 'Votre demande est en cours d’examen par un administrateur.', 'Votre demande de publication reste en cours d’examen.'],
+                PropertyStatus::Suspended => ['Suspendu', 'Seul un administrateur peut rétablir la publication.', 'L’établissement reste suspendu : contactez l’administration pour le rétablir.'],
+                default => ['Soumettre pour validation', 'Un administrateur vérifiera votre établissement avant sa mise en ligne.', "L'établissement sera envoyé pour validation et publié dès son approbation."],
+            },
+            'inactif' => ['Brouillon', "L'établissement est enregistré sans être visible ni envoyé pour validation.", "L'établissement sera enregistré comme brouillon, invisible sur le site."],
+        ];
+        $intro = 'Tout nouvel établissement est vérifié par un administrateur avant d’être publié.';
+    }
 @endphp
 
 <div
@@ -30,7 +54,7 @@
 
                 <p>
 
-                    Choisissez si cet établissement est immédiatement visible sur la plateforme.
+                    {{ $intro }}
 
                 </p>
 
@@ -72,6 +96,7 @@
                         type="radio"
                         name="status"
                         value="actif"
+                        data-resume="{{ $options['actif'][2] }}"
                         @checked($status === 'actif')>
 
                     <div class="publication-content">
@@ -86,13 +111,13 @@
 
                             <h5>
 
-                                Actif
+                                {{ $options['actif'][0] }}
 
                             </h5>
 
                             <p>
 
-                                L'établissement sera immédiatement visible et pourra recevoir des réservations.
+                                {{ $options['actif'][1] }}
 
                             </p>
 
@@ -110,6 +135,7 @@
                         type="radio"
                         name="status"
                         value="inactif"
+                        data-resume="{{ $options['inactif'][2] }}"
                         @checked($status === 'inactif')>
 
                     <div class="publication-content">
@@ -124,13 +150,13 @@
 
                             <h5>
 
-                                Inactif
+                                {{ $options['inactif'][0] }}
 
                             </h5>
 
                             <p>
 
-                                L'établissement sera enregistré mais restera invisible jusqu'à son activation.
+                                {{ $options['inactif'][1] }}
 
                             </p>
 
@@ -174,7 +200,7 @@
 
                         <p id="publicationResume">
 
-                            L'établissement sera publié dès son enregistrement.
+                            {{ $options[$status][2] ?? '' }}
 
                         </p>
 

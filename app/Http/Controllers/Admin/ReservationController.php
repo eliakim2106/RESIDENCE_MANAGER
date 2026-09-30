@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\PaymentMethod;
 use App\Enums\ReservationStatus;
-use App\Exceptions\ReservationActionException;
+use App\Exceptions\WorkflowException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReservationCancelRequest;
 use App\Http\Requests\Admin\ReservationPaymentRequest;
@@ -180,7 +180,7 @@ class ReservationController extends Controller
     {
         try {
             $action();
-        } catch (ReservationActionException $exception) {
+        } catch (WorkflowException $exception) {
             return back()->with('error', $exception->getMessage());
         }
 

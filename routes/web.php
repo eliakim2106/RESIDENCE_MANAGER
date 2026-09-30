@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyTypeController;
+use App\Http\Controllers\Admin\PropertyValidationController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypeController;
@@ -180,6 +182,23 @@ Route::prefix('admin/etablissements')
             ->name('unites.store');
     });
 
+// Validation des établissements soumis par les propriétaires (administrateurs)
+Route::prefix('admin/validations')
+    ->name('admin.validations.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
+    ->group(function () {
+        Route::get('/', [PropertyValidationController::class, 'index'])
+            ->name('index');
+        Route::patch('/{etablissement}/approuver', [PropertyValidationController::class, 'approve'])
+            ->name('approve');
+        Route::patch('/{etablissement}/refuser', [PropertyValidationController::class, 'reject'])
+            ->name('reject');
+        Route::patch('/{etablissement}/suspendre', [PropertyValidationController::class, 'suspend'])
+            ->name('suspend');
+        Route::patch('/{etablissement}/retablir', [PropertyValidationController::class, 'reinstate'])
+            ->name('reinstate');
+    });
+
 // Unités
 Route::prefix('admin/unites')
     ->name('admin.unites.')
@@ -231,6 +250,20 @@ Route::prefix('admin/paiements')
     ->group(function () {
         Route::get('/', [PaymentController::class, 'index'])
             ->name('index');
+    });
+
+// =========================
+// NOTIFICATIONS (tous les rôles)
+// =========================
+
+Route::prefix('admin/notifications')
+    ->name('admin.notifications.')
+    ->middleware(['auth', 'verified'])
+    ->group(function () {
+        Route::get('/{notification}', [NotificationController::class, 'open'])
+            ->name('open');
+        Route::post('/tout-lire', [NotificationController::class, 'readAll'])
+            ->name('read-all');
     });
 
 // =========================

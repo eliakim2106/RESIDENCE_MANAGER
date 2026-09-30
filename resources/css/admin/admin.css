@@ -1515,6 +1515,7 @@ a.nav-icon {
 
 .admin-dropdown {
   min-width: 280px;
+  max-width: min(360px, calc(100vw - 32px));
   padding: 8px;
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius);
@@ -1523,9 +1524,60 @@ a.nav-icon {
 }
 
 .admin-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 8px 12px 10px;
   border-bottom: 1px solid var(--ds-border);
   color: var(--ds-navy);
+}
+
+.admin-dropdown-header form {
+  margin: 0;
+}
+
+.dropdown-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ds-blue);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dropdown-link-btn:hover {
+  text-decoration: underline;
+}
+
+.notification-item {
+  align-items: flex-start;
+  color: var(--ds-text);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.notification-item:hover {
+  background: var(--ds-surface-muted);
+  color: var(--ds-text);
+}
+
+.notification-item i {
+  margin-top: 3px;
+}
+
+.notification-item .tone-good { color: var(--ds-success); }
+.notification-item .tone-info { color: var(--ds-blue); }
+.notification-item .tone-warning { color: var(--ds-warning); }
+.notification-item .tone-critical { color: var(--ds-danger); }
+
+.notification-item small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ds-muted);
+  font-size: 0.75rem;
 }
 
 .admin-dropdown-item {

@@ -1701,12 +1701,9 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    if (actif.value === "actif") {
-      this.resume.textContent =
-        "L'établissement sera publié immédiatement après son enregistrement.";
-    } else {
-      this.resume.textContent =
-        "L'établissement sera enregistré mais restera masqué jusqu'à son activation.";
+    // Le texte dépend du rôle et de l'état de l'établissement : il est fourni par la vue
+    if (actif.dataset.resume) {
+      this.resume.textContent = actif.dataset.resume;
     }
   };
 

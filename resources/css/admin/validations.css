@@ -1,0 +1,284 @@
+/* =====================================================================
+   VALIDATION DES ÉTABLISSEMENTS
+   Cartes de la file de validation, points à vérifier, motifs de décision
+===================================================================== */
+
+.moderation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.moderation-card {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.moderation-media {
+  position: relative;
+  min-height: 180px;
+  background: var(--ds-surface-muted);
+}
+
+.moderation-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.moderation-media-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b7860b;
+  font-size: 2rem;
+  background: var(--ds-gold-soft);
+}
+
+.moderation-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px 22px;
+}
+
+.moderation-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.moderation-header h2 {
+  margin: 0;
+  color: var(--ds-navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.moderation-header p {
+  margin: 2px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.84rem;
+}
+
+.moderation-header p i {
+  font-size: 0.75rem;
+}
+
+.moderation-header .status-pill {
+  flex-shrink: 0;
+}
+
+.moderation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 40px;
+  margin: 0;
+}
+
+.moderation-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.moderation-meta dt {
+  color: var(--ds-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.moderation-meta dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  color: var(--ds-text);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.moderation-meta dd a {
+  color: var(--ds-blue);
+  font-size: 0.82rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.moderation-meta dd small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+/* Points à vérifier : l'icône et le texte portent l'information, pas seulement la couleur */
+.moderation-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moderation-checks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.moderation-checks strong {
+  font-weight: 600;
+}
+
+.moderation-checks .is-ok {
+  background: var(--ds-success-soft);
+  color: #15803d;
+}
+
+.moderation-checks .is-missing {
+  background: var(--ds-warning-soft);
+  color: #b45309;
+}
+
+.moderation-note {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--ds-danger);
+  border-radius: 0 var(--ds-radius-sm) var(--ds-radius-sm) 0;
+  background: var(--ds-danger-soft);
+  color: var(--ds-text);
+  font-size: 0.85rem;
+}
+
+.moderation-note i {
+  margin-right: 4px;
+  color: var(--ds-danger);
+  font-size: 0.75rem;
+}
+
+.moderation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--ds-border);
+}
+
+.moderation-actions form {
+  margin: 0;
+}
+
+.modal-form .field-error {
+  margin: 0;
+  color: var(--ds-danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ---------- Bandeau d'état dans le formulaire d'établissement ---------- */
+
+.moderation-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+  background: var(--ds-surface);
+}
+
+.moderation-banner > i {
+  margin-top: 2px;
+  font-size: 1.15rem;
+}
+
+.moderation-banner strong {
+  display: block;
+  color: var(--ds-navy);
+  font-size: 0.92rem;
+}
+
+.moderation-banner p {
+  margin: 2px 0 0;
+  color: var(--ds-text);
+  font-size: 0.86rem;
+}
+
+.moderation-banner.tone-warning {
+  border-color: #f6d9a8;
+  background: var(--ds-warning-soft);
+}
+
+.moderation-banner.tone-warning > i {
+  color: var(--ds-warning);
+}
+
+.moderation-banner.tone-critical {
+  border-color: #f5c2c2;
+  background: var(--ds-danger-soft);
+}
+
+.moderation-banner.tone-critical > i {
+  color: var(--ds-danger);
+}
+
+/* Motif affiché sous le statut dans la liste des établissements */
+.cell-reason {
+  display: block;
+  max-width: 240px;
+  margin-top: 4px;
+  color: var(--ds-danger);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 767.98px) {
+  .moderation-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .moderation-media {
+    min-height: 160px;
+  }
+
+  .moderation-body {
+    padding: 18px;
+  }
+
+  .moderation-actions {
+    justify-content: stretch;
+  }
+
+  .moderation-actions > *,
+  .moderation-actions form button {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .moderation-actions form {
+    flex: 1 1 100%;
+  }
+}

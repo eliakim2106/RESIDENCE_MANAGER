@@ -15,6 +15,11 @@
             ->count()
         : 0;
 
+    // Établissements soumis par les propriétaires, en attente d'un administrateur
+    $pendingProperties = $user->isAdmin()
+        ? App\Models\Property::query()->where('status', App\Enums\PropertyStatus::Pending)->count()
+        : 0;
+
     // Chaque lien : titre, icône, route, préfixe de route pour l'état actif, rôles autorisés, compteur (facultatif)
     $sections = [
         'Activité' => [
@@ -24,6 +29,7 @@
         'Hébergements' => [
             ['Établissements', 'fa-solid fa-building', 'admin.etablissements.index', 'admin.etablissements.', $management],
             ['Unités', 'fa-solid fa-door-open', 'admin.unites.index', 'admin.unites.', $management],
+            ['Validations', 'fa-solid fa-building-circle-check', 'admin.validations.index', 'admin.validations.', $backOffice, $pendingProperties],
         ],
         'Référentiels' => [
             ["Types d'établissement", 'fa-solid fa-hotel', 'admin.types-etablissement.index', 'admin.types-etablissement.', $backOffice],

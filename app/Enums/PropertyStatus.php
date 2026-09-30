@@ -36,6 +36,19 @@ enum PropertyStatus: string
     }
 
     /**
+     * Ton de la pastille de statut (status-good, status-info…) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Published => 'good',
+            self::Pending => 'warning',
+            self::Suspended => 'critical',
+            self::Draft => 'neutral',
+        };
+    }
+
+    /**
      * Options pour les listes déroulantes.
      *
      * @return array<string, string>

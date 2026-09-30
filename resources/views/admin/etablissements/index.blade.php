@@ -33,7 +33,7 @@
         'statut' => $statut,
         'search' => $search,
         'placeholder' => 'Nom, ville, commune, quartier…',
-        'labels' => ['actifs' => 'Publiés', 'inactifs' => 'Brouillons'],
+        'labels' => ['actifs' => 'Publiés', 'inactifs' => 'Non publiés'],
     ])
 
     <div class="table-card">
@@ -76,10 +76,9 @@
                             </a>
                         </td>
                         <td>
-                            @if ($etablissement->isPublished())
-                                <span class="badge-success">Publié</span>
-                            @else
-                                <span class="badge-neutral">{{ $etablissement->status === App\Enums\PropertyStatus::Draft ? 'Brouillon' : $etablissement->status->label() }}</span>
+                            <span class="status-pill status-{{ $etablissement->status->tone() }}">{{ $etablissement->wasRejected() ? 'Refusé' : $etablissement->status->label() }}</span>
+                            @if ($etablissement->wasRejected() || $etablissement->isSuspended())
+                                <small class="cell-reason" title="{{ $etablissement->moderation_note }}">{{ Str::limit($etablissement->moderation_note, 70) }}</small>
                             @endif
                         </td>
                         <td>
