@@ -53,7 +53,7 @@
 
                 <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" class="form-logo">
 
-                <h2>Bon retour 👋</h2>
+                {{-- <h2>Bon retour 👋</h2> --}}
 
                 <p>
                     Connectez-vous à votre espace.
