@@ -177,24 +177,31 @@
 ===================================================================== */
 
 .home-hero {
+  /* Hauteur réservée en bas pour la carte de recherche qui chevauche le hero */
+  --hero-search-overlap: 92px;
+
   position: relative;
-  height: 100vh;
-  height: 100svh;
-  min-height: 640px;
-  max-height: 1000px;
+  display: flex;
+  flex-direction: column;
+  /* Au moins la hauteur de la fenêtre, mais jamais moins que le contenu : rien ne se chevauche, quel que soit le zoom */
+  min-height: 100vh;
+  min-height: min(100svh, 1100px);
+  padding-top: var(--site-header-height);
+  padding-bottom: calc(var(--hero-search-overlap) + clamp(14px, 3vh, 32px));
   overflow: hidden;
   background: var(--site-navy-dark);
   color: #fff;
 }
 
+/* Les diapositives sont empilées dans la même cellule : le hero prend la hauteur de la plus haute */
 .home-hero-slides {
-  position: absolute;
-  inset: 0;
+  display: grid;
+  flex: 1;
 }
 
+/* Non positionnée : son fond (.home-hero-bg) couvre tout le hero */
 .home-hero-slide {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   display: flex;
   align-items: center;
   opacity: 0;
@@ -238,8 +245,7 @@
 .home-hero-content {
   position: relative;
   z-index: 1;
-  padding-top: var(--site-header-height);
-  padding-bottom: 120px;
+  padding-block: clamp(16px, 5vh, 56px);
 }
 
 .home-hero-content > * {
@@ -268,7 +274,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: clamp(12px, 2.6vh, 22px);
   padding: 8px 16px 8px 12px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
@@ -311,7 +317,7 @@
 .home .home-hero-title {
   margin: 0;
   color: #fff;
-  font-size: clamp(2.4rem, 1.2rem + 4.6vw, 4.6rem);
+  font-size: clamp(2.1rem, 1rem + min(4.6vw, 7.2vh), 4.6rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.05;
@@ -326,23 +332,26 @@
 }
 
 .home-hero-text {
-  margin: 22px 0 0;
+  margin: clamp(12px, 2.4vh, 22px) 0 0;
   color: rgba(255, 255, 255, 0.82);
-  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.2rem);
-  line-height: 1.7;
+  font-size: clamp(0.95rem, 0.8rem + min(0.4vw, 0.9vh), 1.2rem);
+  line-height: 1.65;
 }
 
 .home-hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 34px;
+  margin-top: clamp(18px, 3.6vh, 34px);
 }
 
-/* Commandes */
+.home-hero-actions .home-btn-lg {
+  min-height: clamp(46px, 7vh, 54px);
+}
+
+/* Commandes : dans le flux, en bas du hero, jamais par-dessus le texte */
 .home-hero-controls {
-  position: absolute;
-  inset: auto 0 132px;
+  position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -1389,18 +1398,6 @@
 }
 
 @media (max-width: 991.98px) {
-  .home-hero {
-    min-height: 600px;
-  }
-
-  .home-hero-content {
-    padding-bottom: 150px;
-  }
-
-  .home-hero-controls {
-    bottom: 120px;
-  }
-
   .home-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1441,9 +1438,9 @@
 
 @media (max-width: 767.98px) {
   .home-hero {
-    height: auto;
-    min-height: 100svh;
-    max-height: none;
+    --hero-search-overlap: 0px;
+
+    padding-bottom: 28px;
   }
 
   .home-hero-slide {
@@ -1451,8 +1448,7 @@
   }
 
   .home-hero-content {
-    padding-top: calc(var(--site-header-height) + 32px);
-    padding-bottom: 150px;
+    padding-block: 32px 28px;
   }
 
   .home-hero-bg::after {
@@ -1468,7 +1464,6 @@
   }
 
   .home-hero-controls {
-    bottom: 40px;
     gap: 16px;
   }
 
