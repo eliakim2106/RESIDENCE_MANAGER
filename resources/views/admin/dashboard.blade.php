@@ -39,6 +39,8 @@
         </div>
     </div>
 
+    @include('partials.flash')
+
     <div class="stats-grid">
         @foreach ($kpis as [$label, $value, $icon, $color, $hint])
             <div class="stat-card">

@@ -4,7 +4,9 @@ namespace Tests\Feature\Auth;
 
 use App\Enums\UserRole;
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class RegisterTest extends TestCase
@@ -31,13 +33,18 @@ class RegisterTest extends TestCase
         ];
     }
 
-    public function test_client_can_register(): void
+    public function test_client_can_register_and_must_confirm_their_email(): void
     {
+        Notification::fake();
+
         $this->post(route('register.client'), $this->payload())
-            ->assertRedirect(route('login'))
-            ->assertSessionHas('success');
+            ->assertRedirect(route('verification.notice'));
 
         $user = User::firstWhere('email', 'aya.kouassi@example.com');
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertNull($user->email_verified_at);
+        Notification::assertSentTo($user, VerifyEmail::class);
 
         $this->assertSame('Aya Marie Kouassi', $user->name);
         $this->assertSame(UserRole::Client, $user->role);
@@ -48,7 +55,7 @@ class RegisterTest extends TestCase
 
     public function test_owner_can_register(): void
     {
-        $this->post(route('register.owner'), $this->payload())->assertRedirect(route('login'));
+        $this->post(route('register.owner'), $this->payload())->assertRedirect(route('verification.notice'));
 
         $this->assertSame(UserRole::Owner, User::firstWhere('email', 'aya.kouassi@example.com')->role);
     }

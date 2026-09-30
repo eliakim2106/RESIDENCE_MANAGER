@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypeController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
@@ -62,13 +63,29 @@ Route::prefix('inscription')
             ->name('owner.store');
     });
 
+// Confirmation de l’adresse email : page d’attente, lien signé reçu par email, renvoi du lien
+Route::prefix('email')
+    ->name('verification.')
+    ->middleware('auth')
+    ->group(function () {
+        Route::get('/verification', [EmailVerificationController::class, 'notice'])
+            ->name('notice');
+        Route::get('/verification/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+            ->name('verify')
+            ->middleware(['signed', 'throttle:6,1']);
+        Route::post('/verification/renvoyer', [EmailVerificationController::class, 'send'])
+            ->name('send')
+            ->middleware('throttle:6,1');
+    });
+
 // =========================
 // DASHBOARD
 // =========================
 
+// « verified » : un compte inscrit depuis le site doit d’abord confirmer son adresse email
 Route::get('/admin', DashboardController::class)
     ->name('dashboard')
-    ->middleware('auth');
+    ->middleware(['auth', 'verified']);
 
 // =========================
 // RÉFÉRENTIELS DE LA PLATEFORME (administrateurs)
@@ -77,7 +94,7 @@ Route::get('/admin', DashboardController::class)
 // Types d'établissement
 Route::prefix('admin/types-etablissement')
     ->name('admin.types-etablissement.')
-    ->middleware(['auth', 'role:super_admin,admin'])
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
     ->group(function () {
         Route::get('/', [PropertyTypeController::class, 'index'])
             ->name('index');
@@ -96,7 +113,7 @@ Route::prefix('admin/types-etablissement')
 // Types d'unité
 Route::prefix('admin/types-unite')
     ->name('admin.types-unite.')
-    ->middleware(['auth', 'role:super_admin,admin'])
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
     ->group(function () {
         Route::get('/', [UnitTypeController::class, 'index'])
             ->name('index');
@@ -115,7 +132,7 @@ Route::prefix('admin/types-unite')
 // Équipements
 Route::prefix('admin/equipements')
     ->name('admin.equipements.')
-    ->middleware(['auth', 'role:super_admin,admin'])
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
     ->group(function () {
         Route::get('/', [EquipmentController::class, 'index'])
             ->name('index');
@@ -139,7 +156,7 @@ Route::prefix('admin/equipements')
 // Établissements
 Route::prefix('admin/etablissements')
     ->name('admin.etablissements.')
-    ->middleware(['auth', 'role:super_admin,admin,owner'])
+    ->middleware(['auth', 'verified', 'role:super_admin,admin,owner'])
     ->group(function () {
         Route::get('/', [PropertyController::class, 'index'])
             ->name('index');
@@ -164,7 +181,7 @@ Route::prefix('admin/etablissements')
 // Unités
 Route::prefix('admin/unites')
     ->name('admin.unites.')
-    ->middleware(['auth', 'role:super_admin,admin,owner'])
+    ->middleware(['auth', 'verified', 'role:super_admin,admin,owner'])
     ->group(function () {
         Route::get('/', [UnitController::class, 'index'])
             ->name('index');

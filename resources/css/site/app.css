@@ -606,10 +606,11 @@ FOOTER PREMIUM
 
   display: grid;
 
+  /* Logo, navigation (liens courts), contact (adresse et email plus longs), newsletter */
   grid-template-columns:
     2fr
-    1fr
-    1fr
+    0.7fr
+    1.3fr
     1.5fr;
 
   gap: 60px;
@@ -765,6 +766,14 @@ FOOTER PREMIUM
   margin: 0;
 
   color: rgba(255, 255, 255, 0.6);
+}
+
+/* Écrans intermédiaires : quatre colonnes seraient trop serrées, le pied de page passe en 2 × 2 */
+@media (min-width: 993px) and (max-width: 1199.98px) {
+  .footer-top {
+    grid-template-columns: 1.3fr 1fr;
+    gap: 48px 64px;
+  }
 }
 
 @media (max-width: 992px) {

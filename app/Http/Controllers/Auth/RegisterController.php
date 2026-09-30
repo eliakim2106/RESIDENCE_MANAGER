@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
@@ -49,8 +50,12 @@ class RegisterController extends Controller
             'status' => UserStatus::Active,
         ]);
 
+        // Envoie le lien de confirmation par email (le compte n'accède à son espace qu'une fois l'adresse confirmée)
         event(new Registered($user));
 
-        return redirect()->route('login')->with('success', 'Votre compte a été créé avec succès.');
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('verification.notice');
     }
 }

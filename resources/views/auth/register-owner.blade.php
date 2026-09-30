@@ -1,305 +1,34 @@
-@extends('layouts.site')
-
-@section('title', 'Inscription propriétaire')
-
-@section('content')
-
-    <div class="auth-container">
-
-        <!-- BANNIÈRE -->
-
-        <div class="auth-banner">
-
-            <div class="auth-overlay"></div>
-
-            <div class="banner-content">
-
-                <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="DS Holding">
-
-                <h1>
-
-                    Faites grandir votre
-                    activité avec DS HOLDING
-
-                </h1>
-
-                <p>
-
-                    Créez votre compte propriétaire et profitez d'une
-                    plateforme professionnelle pour gérer vos établissements,
-                    optimiser vos réservations et suivre vos performances
-                    en temps réel.
-
-                </p>
-
-            </div>
-
-        </div>
-
-        <!-- FORMULAIRE -->
-
-        <div class="auth-form-side">
-
-            <div class="auth-card register-card">
-
-                <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" class="form-logo">
-
-                <span class="register-badge">
-
-                    ÉTAPE 2 SUR 2
-
-                </span>
-
-                <h2>
-
-                    Informations personnelles
-
-                </h2>
-
-                <p>
-
-                    Complétez vos informations.
-
-                </p>
-
-                @include('auth.partials.alerts')
-
-                <form method="POST" action="{{ route('register.owner') }}">
-
-                    @csrf
-
-                    <div class="auth-row">
-
-                        <div class="auth-field">
-
-                            <label>Nom</label>
-
-                            <input type="text" name="nom" value="{{ old('nom') }}" required>
-
-                        </div>
-
-                        <div class="auth-field">
-
-                            <label>Prénoms</label>
-
-                            <input type="text" name="prenoms" value="{{ old('prenoms') }}" required>
-
-                        </div>
-
-                    </div>
-
-                    <div class="phone">
-
-                        <label>Numéro de téléphone</label>
-
-                        <div class="phone-wrapper">
-
-                            <select name="country_code" id="countryCode" class="country-select">
-
-                                <option value="+225" @selected(old('country_code', '+225') === '+225') data-length="10"
-                                    data-placeholder="07 01 23 45 67">
-                                    🇨🇮 +225
-                                </option>
-
-                                <option value="+221" @selected(old('country_code', '+225') === '+221') data-length="9"
-                                    data-placeholder="77 123 45 67">
-                                    🇸🇳 +221
-                                </option>
-
-                                <option value="+223" @selected(old('country_code', '+225') === '+223') data-length="8"
-                                    data-placeholder="65 12 34 56">
-                                    🇲🇱 +223
-                                </option>
-
-                                <option value="+226" @selected(old('country_code', '+225') === '+226') data-length="8"
-                                    data-placeholder="70 12 34 56">
-                                    🇧🇫 +226
-                                </option>
-
-                                <option value="+228" @selected(old('country_code', '+225') === '+228') data-length="8"
-                                    data-placeholder="90 12 34 56">
-                                    🇹🇬 +228
-                                </option>
-
-                                <option value="+229" @selected(old('country_code', '+225') === '+229') data-length="8"
-                                    data-placeholder="97 12 34 56">
-                                    🇧🇯 +229
-                                </option>
-
-                                <option value="+233" @selected(old('country_code', '+225') === '+233') data-length="9"
-                                    data-placeholder="24 123 4567">
-                                    🇬🇭 +233
-                                </option>
-
-                                <option value="+224" @selected(old('country_code', '+225') === '+224') data-length="9"
-                                    data-placeholder="620 123 456">
-                                    🇬🇳 +224
-                                </option>
-
-                                <option value="+33" @selected(old('country_code', '+225') === '+33') data-length="9"
-                                    data-placeholder="6 12 34 56 78">
-                                    🇫🇷 +33
-                                </option>
-
-                                <option value="+32" @selected(old('country_code', '+225') === '+32') data-length="9"
-                                    data-placeholder="470 12 34 56">
-                                    🇧🇪 +32
-                                </option>
-
-                                <option value="+1" @selected(old('country_code', '+225') === '+1') data-length="10"
-                                    data-placeholder="(514) 123-4567">
-                                    🇨🇦 +1
-                                </option>
-
-                            </select>
-
-                            <input type="tel" id="phoneNumber" name="telephone" class="phone-number"
-                                value="{{ old('telephone') }}" required>
-
-                        </div>
-
-                        <small id="phoneHelp" class="phone-help">
-                        </small>
-
-                    </div>
-
-                    <div class="auth-field">
-
-                        <label>Email</label>
-
-                        <input type="email" name="email" value="{{ old('email') }}" required>
-
-                    </div>
-
-                    <div class="auth-row">
-
-                        <div class="auth-field">
-
-                            <label>Pays</label>
-
-                            <select name="pays" class="country-select" required>
-
-                                <option value="">
-                                    Sélectionner un pays
-                                </option>
-
-                                <option value="Côte d'Ivoire" @selected(old('pays') === "Côte d'Ivoire")>
-                                    🇨🇮 Côte d'Ivoire
-                                </option>
-
-                                <option value="Sénégal" @selected(old('pays') === 'Sénégal')>
-                                    🇸🇳 Sénégal
-                                </option>
-
-                                <option value="Mali" @selected(old('pays') === 'Mali')>
-                                    🇲🇱 Mali
-                                </option>
-
-                                <option value="Burkina Faso" @selected(old('pays') === 'Burkina Faso')>
-                                    🇧🇫 Burkina Faso
-                                </option>
-
-                                <option value="France" @selected(old('pays') === 'France')>
-                                    🇫🇷 France
-                                </option>
-
-                                <option value="Belgique" @selected(old('pays') === 'Belgique')>
-                                    🇧🇪 Belgique
-                                </option>
-
-                                <option value="Canada" @selected(old('pays') === 'Canada')>
-                                    🇨🇦 Canada
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="auth-field">
-
-                            <label>Ville</label>
-
-                            <input type="text" name="ville" placeholder="Ex : Abidjan" value="{{ old('ville') }}"
-                                required>
-
-                        </div>
-
-                    </div>
-
-                    <div class="auth-row">
-
-                        <div class="auth-field">
-
-                            <label>Mot de passe</label>
-
-                            <div class="password-wrapper">
-
-                                <input type="password" id="password" name="password" required>
-
-                                <button type="button" class="toggle-password" data-target="password">
-
-                                    <i class="fas fa-eye"></i>
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                        <div class="auth-field">
-
-                            <label>Confirmer le mot de passe</label>
-
-                            <div class="password-wrapper">
-
-                                <input type="password" id="confirmPassword" name="confirm_password" required>
-
-                                <button type="button" class="toggle-password" data-target="confirmPassword">
-
-                                    <i class="fas fa-eye"></i>
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <small id="passwordMatch" class="password-match">
-                    </small>
-
-                    <label class="checkbox-row">
-
-                        <input type="checkbox" name="terms" value="1" @checked(old('terms')) required>
-
-                        J'accepte les conditions
-                        générales d'utilisation.
-
-                    </label>
-
-                    <div class="auth-actions">
-
-                        <a href="{{ route('register') }}" class="btn-back">
-
-                            Retour
-
-                        </a>
-
-                        <button type="submit" class="btn-auth">
-
-                            Créer mon compte
-
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-        </div>
-
+@extends('layouts.auth')
+
+@section('title', 'Créer un compte propriétaire')
+
+@section('visual_image', 'assets/images/home/slide-2.webp')
+@section('visual_kicker', 'Compte propriétaire')
+@section('visual_title')
+    Faites grandir <span>votre activité</span>
+@endsection
+@section('visual_text', 'Publiez vos établissements sur DS HOLDING et gérez vos réservations depuis un espace professionnel.')
+@section('visual_points')
+    <li><i class="fa-solid fa-building"></i> Publiez vos établissements et leurs unités</li>
+    <li><i class="fa-solid fa-sliders"></i> Gérez tarifs, photos et disponibilités</li>
+    <li><i class="fa-solid fa-chart-line"></i> Suivez vos réservations et vos revenus</li>
+@endsection
+
+@section('form')
+    @include('auth.partials.steps', ['current' => 2])
+
+    <div class="auth-heading">
+        <span class="auth-badge auth-badge-gold"><i class="fa-solid fa-building-user"></i> Compte propriétaire</span>
+        <h2>Vos informations</h2>
+        <p>Vous pourrez ajouter vos établissements juste après la confirmation de votre email.</p>
     </div>
 
+    @include('auth.partials.alerts')
+
+    @include('auth.partials.register-form', ['action' => route('register.owner.store')])
+
+    <p class="auth-switch">
+        Vous avez déjà un compte ?
+        <a href="{{ route('login') }}">Se connecter</a>
+    </p>
 @endsection

@@ -2,30 +2,6 @@
    CONNEXION ET INSCRIPTION
 ===================================== */
 
-// Choix du profil à l'inscription
-function initAccountTypeChoice() {
-  const continueBtn = document.getElementById("continueBtn");
-
-  if (!continueBtn) {
-    return;
-  }
-
-  continueBtn.addEventListener("click", () => {
-    const selected = document.querySelector('input[name="account_type"]:checked');
-
-    if (!selected) {
-      alert("Veuillez choisir un profil.");
-      return;
-    }
-
-    const url = continueBtn.dataset[selected.value === "owner" ? "ownerUrl" : "clientUrl"];
-
-    if (url) {
-      window.location.href = url;
-    }
-  });
-}
-
 // Format du numéro de téléphone selon l'indicatif
 function initPhoneFormat() {
   const countrySelect = document.getElementById("countryCode");
@@ -105,7 +81,7 @@ function initPhoneFormat() {
 
 // Afficher / masquer un mot de passe
 function initPasswordToggles() {
-  document.querySelectorAll(".toggle-password").forEach((button) => {
+  document.querySelectorAll(".auth-toggle-password").forEach((button) => {
     button.addEventListener("click", () => {
       const input = document.getElementById(button.dataset.target);
       const icon = button.querySelector("i");
@@ -117,9 +93,45 @@ function initPasswordToggles() {
       const hidden = input.type === "password";
 
       input.type = hidden ? "text" : "password";
+      button.setAttribute("aria-label", hidden ? "Masquer le mot de passe" : "Afficher le mot de passe");
       icon?.classList.toggle("fa-eye", !hidden);
       icon?.classList.toggle("fa-eye-slash", hidden);
     });
+  });
+}
+
+// Force du mot de passe : longueur, lettres, chiffres, majuscules et caractères spéciaux
+function initPasswordStrength() {
+  const input = document.querySelector("[data-password-strength]");
+  const meter = document.querySelector("[data-strength-meter]");
+
+  if (!input || !meter) {
+    return;
+  }
+
+  const label = meter.querySelector(".auth-strength-label");
+  const hint = label?.textContent ?? "";
+  const levels = ["", "Trop faible", "Moyen", "Bon", "Excellent"];
+
+  const evaluate = (value) => {
+    if (value.length < 8 || !/[a-z]/i.test(value) || !/\d/.test(value)) {
+      return value === "" ? 0 : 1;
+    }
+
+    let score = 2;
+    score += /[A-Z]/.test(value) && /[a-z]/.test(value) ? 1 : 0;
+    score += /[^A-Za-z0-9]/.test(value) || value.length >= 12 ? 1 : 0;
+
+    return Math.min(score, 4);
+  };
+
+  input.addEventListener("input", () => {
+    const level = evaluate(input.value);
+    meter.dataset.level = String(level);
+
+    if (label) {
+      label.textContent = level === 0 ? hint : `Sécurité : ${levels[level]}`;
+    }
   });
 }
 
@@ -141,10 +153,8 @@ function initPasswordMatch() {
 
     const same = password.value === confirmPassword.value;
 
-    passwordMatch.textContent = same
-      ? "✓ Les mots de passe correspondent"
-      : "✗ Les mots de passe ne correspondent pas";
-    passwordMatch.className = "password-match " + (same ? "success" : "error");
+    passwordMatch.textContent = same ? "Les mots de passe correspondent." : "Les mots de passe ne correspondent pas.";
+    passwordMatch.className = "auth-match " + (same ? "is-ok" : "is-ko");
   };
 
   password.addEventListener("input", check);
@@ -152,8 +162,8 @@ function initPasswordMatch() {
 }
 
 export function initAuthForms() {
-  initAccountTypeChoice();
   initPhoneFormat();
   initPasswordToggles();
+  initPasswordStrength();
   initPasswordMatch();
 }
