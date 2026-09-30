@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyValidationController;
+use App\Http\Controllers\Admin\ReservationCalendarController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypeController;
@@ -230,8 +231,15 @@ Route::prefix('admin/reservations')
     ->group(function () {
         Route::get('/', [ReservationController::class, 'index'])
             ->name('index');
+        Route::get('/export', [ReservationController::class, 'export'])
+            ->name('export');
+        Route::get('/calendrier', [ReservationCalendarController::class, 'index'])
+            ->middleware('role:super_admin,admin,owner')
+            ->name('calendar');
         Route::get('/{reservation}', [ReservationController::class, 'show'])
             ->name('show');
+        Route::get('/{reservation}/bon', [ReservationController::class, 'voucher'])
+            ->name('voucher');
         Route::patch('/{reservation}/confirmer', [ReservationController::class, 'confirm'])
             ->name('confirm');
         Route::patch('/{reservation}/annuler', [ReservationController::class, 'cancel'])
@@ -240,6 +248,8 @@ Route::prefix('admin/reservations')
             ->name('complete');
         Route::patch('/{reservation}/non-presente', [ReservationController::class, 'noShow'])
             ->name('no-show');
+        Route::patch('/{reservation}/rembourser', [ReservationController::class, 'refund'])
+            ->name('refund');
         Route::patch('/{reservation}/notes', [ReservationController::class, 'updateNotes'])
             ->name('notes');
         Route::post('/{reservation}/paiements', [ReservationController::class, 'storePayment'])

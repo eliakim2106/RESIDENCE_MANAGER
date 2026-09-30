@@ -252,6 +252,23 @@ function initAvatarField() {
 }
 
 /* =====================================
+   CALENDRIER D'OCCUPATION
+   La grille défile jusqu'au jour courant.
+===================================== */
+
+function initOccupancyGrid() {
+  const scroller = document.querySelector(".occ-scroll");
+  const today = scroller?.querySelector("thead th.is-today");
+
+  if (!scroller || !today) {
+    return;
+  }
+
+  const unitColumn = scroller.querySelector(".occ-unit-head")?.offsetWidth ?? 0;
+  scroller.scrollLeft = Math.max(0, today.offsetLeft - unitColumn - today.offsetWidth * 3);
+}
+
+/* =====================================
    PRÉCHARGEMENT
 ===================================== */
 
@@ -321,5 +338,6 @@ initLivePreview();
 initDeleteModal();
 initActionModals();
 initAvatarField();
+initOccupancyGrid();
 initAlerts();
 initDatepickers();

@@ -1,0 +1,1197 @@
+/* =====================================================================
+   PAGE RÉSERVATIONS
+   Liste (chiffres du jour, filtres, tableau), fiche (en-tête, frise, séjour),
+   calendrier d'occupation
+===================================================================== */
+
+/* ---------- Chiffres du jour ---------- */
+
+.resa-today {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.resa-today-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+  color: var(--ds-text);
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+a.resa-today-card:hover {
+  border-color: #cfd6e4;
+  box-shadow: var(--ds-shadow);
+  color: var(--ds-text);
+  transform: translateY(-2px);
+}
+
+.resa-today-icon {
+  display: inline-flex;
+  flex: 0 0 46px;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+}
+
+.resa-today-card.tone-info .resa-today-icon { background: var(--ds-blue-soft); color: var(--ds-blue); }
+.resa-today-card.tone-gold .resa-today-icon { background: var(--ds-gold-soft); color: #b7860b; }
+.resa-today-card.tone-good .resa-today-icon { background: var(--ds-success-soft); color: var(--ds-success); }
+.resa-today-card.tone-warning .resa-today-icon { background: var(--ds-warning-soft); color: #b45309; }
+
+.resa-today-card.has-alert {
+  border-color: #f6d9a8;
+  background: linear-gradient(135deg, #fff 55%, var(--ds-warning-soft));
+}
+
+.resa-today-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resa-today-text strong {
+  color: var(--ds-navy);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.resa-today-text span {
+  color: var(--ds-muted);
+  font-size: 0.82rem;
+}
+
+.resa-today-go {
+  margin-left: auto;
+  color: #b45309;
+}
+
+/* ---------- Filtres ---------- */
+
+.resa-filters {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.resa-filters .list-toolbar {
+  margin-bottom: 0;
+}
+
+.resa-filters .status-tabs {
+  border-color: transparent;
+  background: var(--ds-surface-muted);
+}
+
+.resa-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--ds-border);
+}
+
+.period-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.period-chips-label {
+  margin-right: 4px;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.period-chip {
+  padding: 7px 14px;
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  font-size: 0.84rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.period-chip:hover {
+  border-color: #cfd6e4;
+  color: var(--ds-navy);
+}
+
+.period-chip.is-active {
+  border-color: var(--ds-navy);
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+.period-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.period-range > i {
+  color: var(--ds-muted);
+  font-size: 0.75rem;
+}
+
+.period-range input,
+.period-range .ds-date-input {
+  width: 128px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--ds-border);
+  border-radius: 10px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  font-family: inherit;
+  font-size: 0.84rem;
+}
+
+.period-range .ds-date-input:focus {
+  border-color: var(--ds-blue);
+  box-shadow: var(--ds-ring);
+  outline: none;
+}
+
+.resa-filter-row .list-filter {
+  margin-left: auto;
+}
+
+.resa-filter-row .list-filter select {
+  min-height: 38px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.active-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ds-blue-soft);
+  color: var(--ds-blue);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.active-filters-reset {
+  color: var(--ds-danger);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.active-filters-reset:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Tableau ---------- */
+
+/* Une ligne par information : les textes longs sont coupés proprement (titre complet au survol) */
+.guest-cell strong,
+.guest-cell small,
+.property-cell span,
+.property-cell small {
+  display: block;
+  overflow: hidden;
+  max-width: 170px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-cell span {
+  color: var(--ds-text);
+}
+
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.th-sort i {
+  opacity: 0.35;
+  font-size: 0.75rem;
+}
+
+.th-sort:hover,
+.th-sort.is-sorted {
+  color: var(--ds-navy);
+}
+
+.th-sort:hover i,
+.th-sort.is-sorted i {
+  opacity: 1;
+}
+
+.resa-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.resa-table tbody tr:hover {
+  background: #fafbfe;
+}
+
+.resa-table tbody tr.is-pending td:first-child {
+  box-shadow: inset 3px 0 0 var(--ds-warning);
+}
+
+.resa-ref {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-navy);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.resa-ref:hover {
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+.guest-avatar {
+  display: inline-flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ds-navy), var(--ds-blue));
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.guest-avatar-lg {
+  flex-basis: 52px;
+  height: 52px;
+  font-size: 1rem;
+}
+
+.guest-avatar.is-property {
+  background: linear-gradient(135deg, #b7860b, var(--ds-gold));
+}
+
+.stay-dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stay-date {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 44px;
+  padding: 4px 0;
+  border: 1px solid var(--ds-border);
+  border-radius: 10px;
+  background: var(--ds-surface);
+  line-height: 1.1;
+}
+
+.stay-date strong {
+  color: var(--ds-navy);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.stay-date small {
+  color: var(--ds-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.stay-date.is-today {
+  border-color: var(--ds-warning);
+  background: var(--ds-warning-soft);
+}
+
+.stay-nights {
+  position: relative;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.amount-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.amount-cell small {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pay-progress {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  max-width: 140px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+
+.pay-progress-lg {
+  max-width: none;
+  height: 8px;
+}
+
+.pay-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ds-blue);
+}
+
+.pay-progress-bar.tone-good { background: var(--ds-success); }
+.pay-progress-bar.tone-warning { background: var(--ds-warning); }
+.pay-progress-bar.tone-critical { background: var(--ds-danger); }
+.pay-progress-bar.tone-info { background: var(--ds-blue); }
+
+.cell-flag {
+  display: block;
+  margin-top: 6px;
+  color: #b45309;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.row-actions .action-btn {
+  margin-left: 0;
+}
+
+.action-btn:not(.edit):not(.delete):not(.add-unit) {
+  background: var(--ds-surface-muted);
+  color: var(--ds-muted);
+}
+
+.action-btn:not(.edit):not(.delete):not(.add-unit):hover {
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+/* ---------- Fiche : en-tête ---------- */
+
+.resa-header {
+  margin-bottom: 20px;
+  padding: 22px 24px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background:
+    radial-gradient(circle at 100% 0, rgba(212, 167, 44, 0.12), transparent 40%),
+    var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.resa-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--ds-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.resa-back:hover {
+  color: var(--ds-navy);
+}
+
+.resa-header-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.resa-header-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.resa-header h1 {
+  margin: 0;
+  color: var(--ds-navy);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.resa-header-title p {
+  margin: 6px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.88rem;
+}
+
+.dot-sep {
+  margin: 0 6px;
+}
+
+.resa-actionbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.resa-actionbar form {
+  margin: 0;
+}
+
+/* Frise de progression */
+.resa-stepper {
+  display: flex;
+  gap: 0;
+  margin: 22px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid var(--ds-border);
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.step:not(:last-child)::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  margin: 0 12px;
+  border-radius: 2px;
+  background: var(--ds-border);
+}
+
+.step.is-done:not(:last-child)::after {
+  background: var(--ds-success);
+}
+
+.step-dot {
+  display: inline-flex;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: 2px solid var(--ds-border);
+  border-radius: 50%;
+  background: var(--ds-surface);
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
+.step-text strong {
+  color: var(--ds-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.step-text small {
+  color: var(--ds-muted);
+  font-size: 0.75rem;
+}
+
+.step.is-done .step-dot {
+  border-color: var(--ds-success);
+  background: var(--ds-success);
+  color: #fff;
+}
+
+.step.is-done .step-text strong {
+  color: var(--ds-navy);
+}
+
+.step.is-current .step-dot {
+  border-color: var(--ds-warning);
+  background: var(--ds-warning-soft);
+  color: #b45309;
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.12);
+}
+
+.step.is-current .step-text strong {
+  color: #b45309;
+}
+
+.step.is-stopped .step-dot {
+  border-color: var(--ds-danger);
+  background: var(--ds-danger);
+  color: #fff;
+}
+
+.step.is-stopped .step-text strong {
+  color: var(--ds-danger);
+}
+
+.step.is-skipped {
+  opacity: 0.5;
+}
+
+/* ---------- Fiche : séjour ---------- */
+
+.stay-card-dates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.stay-big-date {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.stay-big-date:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.stay-big-label {
+  color: var(--ds-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stay-big-date strong {
+  color: var(--ds-navy);
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.stay-big-date > span:not(.stay-big-label) {
+  color: var(--ds-navy);
+  font-weight: 600;
+}
+
+.stay-big-date small {
+  margin-top: 2px;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.stay-card-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--ds-gold) 0 8px, transparent 8px 14px);
+}
+
+.stay-card-nights {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--ds-navy);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.stay-card-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.stay-card-facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-text);
+  font-size: 0.82rem;
+}
+
+.stay-card-facts i {
+  color: var(--ds-muted);
+}
+
+.stay-card .resa-units {
+  margin-top: 18px;
+  padding-top: 4px;
+  border-top: 1px solid var(--ds-border);
+}
+
+.resa-request {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--ds-radius);
+  background: var(--ds-gold-soft);
+}
+
+.resa-request i {
+  margin-top: 3px;
+  color: #b7860b;
+}
+
+.resa-request strong {
+  color: var(--ds-navy);
+  font-size: 0.85rem;
+}
+
+.resa-request p {
+  margin: 2px 0 0;
+  font-size: 0.86rem;
+  white-space: pre-line;
+}
+
+/* Fiches voyageur et établissement */
+.contact-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.contact-card-head h2 {
+  margin: 0;
+  color: var(--ds-navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.contact-card-head small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.contact-card-label {
+  display: block;
+  color: var(--ds-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-links a,
+.contact-links span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-text);
+  font-size: 0.86rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.contact-links a:hover {
+  background: var(--ds-blue-soft);
+  color: var(--ds-blue);
+}
+
+.contact-links i {
+  flex: 0 0 16px;
+  color: var(--ds-muted);
+  text-align: center;
+}
+
+/* Montant */
+.amount-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.amount-summary strong {
+  color: var(--ds-navy);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.amount-summary small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+/* Case à cocher d'option dans une modale */
+.check-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  cursor: pointer;
+}
+
+.check-option input {
+  margin-top: 4px;
+  accent-color: var(--ds-blue);
+}
+
+.check-option strong {
+  display: block;
+  color: var(--ds-navy);
+  font-size: 0.88rem;
+}
+
+.check-option small {
+  color: var(--ds-muted);
+  font-size: 0.78rem;
+}
+
+/* ---------- Calendrier d'occupation ---------- */
+
+.occ-card {
+  padding: 20px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.occ-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  margin-bottom: 18px;
+}
+
+.occ-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.occ-nav h2 {
+  min-width: 150px;
+  margin: 0;
+  color: var(--ds-navy);
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.occ-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ds-border);
+  border-radius: 10px;
+  color: var(--ds-text);
+  text-decoration: none;
+}
+
+.occ-nav-btn:hover {
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+.occ-rate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.occ-rate-value {
+  color: var(--ds-blue);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.occ-rate-label {
+  color: var(--ds-muted);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.occ-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  list-style: none;
+}
+
+.occ-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.occ-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--ds-border);
+  border-radius: 4px;
+}
+
+.occ-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+}
+
+.occ-scroll:focus-visible {
+  outline: 2px solid var(--ds-blue);
+  outline-offset: 2px;
+}
+
+.occ-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.occ-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  min-width: 28px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  color: var(--ds-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.occ-grid thead th span {
+  display: block;
+  text-transform: uppercase;
+}
+
+.occ-grid thead th strong {
+  display: block;
+  color: var(--ds-navy);
+  font-size: 0.85rem;
+}
+
+.occ-grid thead th.is-weekend {
+  background: var(--ds-surface-muted);
+}
+
+.occ-grid thead th.is-today strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ds-gold);
+  color: var(--ds-navy);
+}
+
+.occ-unit-head,
+.occ-unit {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 170px;
+  padding: 10px 14px !important;
+  border-right: 1px solid var(--ds-border);
+  background: var(--ds-surface) !important;
+  text-align: left !important;
+}
+
+.occ-unit strong {
+  display: block;
+  color: var(--ds-navy);
+  font-size: 0.85rem;
+}
+
+.occ-unit small {
+  color: var(--ds-muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
+.occ-grid tbody tr + tr th,
+.occ-grid tbody tr + tr td {
+  border-top: 1px solid var(--ds-border);
+}
+
+.occ-cell {
+  position: relative;
+  height: 48px;
+  padding: 0;
+  border-left: 1px solid #f1f4f9;
+  text-align: center;
+}
+
+.occ-cell.is-weekend {
+  background: #fafbfd;
+}
+
+.occ-cell.is-today {
+  box-shadow: inset 2px 0 0 var(--ds-gold), inset -2px 0 0 var(--ds-gold);
+}
+
+/* Une seule teinte, du plus clair (partiel) au plus foncé (complet) */
+.state-free { background: var(--ds-surface); }
+.state-partial { background: #cfe1f7 !important; }
+.state-full { background: var(--ds-blue) !important; }
+.state-blocked,
+.state-closed {
+  background: repeating-linear-gradient(135deg, #eef1f6 0 5px, #dde3ec 5px 10px) !important;
+}
+
+.occ-link {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.occ-start,
+.occ-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 6px;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.occ-start {
+  background: var(--ds-surface);
+  color: var(--ds-navy);
+  box-shadow: 0 1px 3px rgba(15, 27, 51, 0.2);
+}
+
+.occ-count {
+  color: var(--ds-navy);
+}
+
+.state-full .occ-count {
+  color: #fff;
+}
+
+.occ-hint {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.occ-hint i {
+  margin-top: 3px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1199.98px) {
+  .resa-today {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991.98px) {
+  .resa-filter-row .list-filter {
+    margin-left: 0;
+  }
+
+  .resa-actionbar {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .guest-cell strong,
+  .guest-cell small,
+  .property-cell span,
+  .property-cell small {
+    max-width: 55vw;
+  }
+
+  .resa-today {
+    gap: 10px;
+  }
+
+  .resa-today-card {
+    padding: 14px;
+  }
+
+  .resa-today-icon {
+    flex-basis: 38px;
+    height: 38px;
+    border-radius: 11px;
+    font-size: 0.95rem;
+  }
+
+  .resa-today-text strong {
+    font-size: 1.3rem;
+  }
+
+  .resa-filters {
+    padding: 12px;
+  }
+
+  .period-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none;
+  }
+
+  .period-range {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .period-range .ds-date-input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .resa-filter-row .list-filter,
+  .resa-filter-row .list-filter select {
+    width: 100%;
+  }
+
+  .resa-header {
+    padding: 18px;
+  }
+
+  .resa-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .resa-actionbar,
+  .resa-actionbar > *,
+  .resa-actionbar form button {
+    width: 100%;
+  }
+
+  .resa-stepper {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .step:not(:last-child)::after {
+    display: none;
+  }
+
+  .stay-card-dates {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stay-card-line {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .stay-big-date strong {
+    font-size: 2rem;
+  }
+
+  .occ-legend {
+    margin-left: 0;
+  }
+
+  .occ-unit-head,
+  .occ-unit {
+    min-width: 120px;
+  }
+}

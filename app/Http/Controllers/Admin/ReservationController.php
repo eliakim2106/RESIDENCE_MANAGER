@@ -8,15 +8,15 @@ use App\Exceptions\WorkflowException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReservationCancelRequest;
 use App\Http\Requests\Admin\ReservationPaymentRequest;
-use App\Models\Property;
 use App\Models\Reservation;
+use App\Services\ReservationListing;
 use App\Services\ReservationWorkflow;
 use Closure;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Réservations : toutes pour un administrateur, celles de ses établissements pour un propriétaire,
@@ -24,68 +24,76 @@ use Illuminate\View\View;
  */
 class ReservationController extends Controller
 {
-    /**
-     * Onglets de la liste : clé d'URL => [libellé, statuts]
-     *
-     * @var array<string, array{0: string, 1: list<ReservationStatus>}>
-     */
-    private const TABS = [
-        'toutes' => ['Toutes', []],
-        'en-attente' => ['En attente', [ReservationStatus::Pending]],
-        'confirmees' => ['Confirmées', [ReservationStatus::Confirmed]],
-        'terminees' => ['Terminées', [ReservationStatus::Completed]],
-        'annulees' => ['Annulées', [ReservationStatus::Cancelled, ReservationStatus::NoShow]],
-    ];
-
     public function __construct(private ReservationWorkflow $workflow) {}
 
     public function index(Request $request): View
     {
-        $user = $request->user();
-        $search = trim((string) $request->query('search'));
-        $tab = array_key_exists((string) $request->query('statut'), self::TABS) ? (string) $request->query('statut') : 'toutes';
-
-        $properties = $user->isAdmin() || $user->isOwner()
-            ? Property::query()->unless($user->isAdmin(), fn (Builder $query) => $query->ownedBy($user))->orderBy('name')->get(['id', 'name', 'slug'])
-            : collect();
-        $propertySlug = (string) $request->query('etablissement');
-        $property = $properties->firstWhere('slug', $propertySlug);
-
-        $query = $this->scoped($request)
-            ->when($property, fn (Builder $query) => $query->where('property_id', $property->id))
-            ->when($search !== '', function (Builder $query) use ($search): void {
-                $like = '%'.addcslashes($search, '%_\\').'%';
-
-                $query->where(fn (Builder $query) => $query
-                    ->where('reference', 'like', $like)
-                    ->orWhere('guest_name', 'like', $like)
-                    ->orWhere('guest_email', 'like', $like)
-                    ->orWhereHas('user', fn (Builder $query) => $query->where('name', 'like', $like))
-                    ->orWhereHas('property', fn (Builder $query) => $query->where('name', 'like', $like)));
-            });
-
-        $byStatus = (clone $query)->selectRaw('statut, COUNT(*) as total')->groupBy('statut')->pluck('total', 'statut');
-        $counts = collect(self::TABS)->map(fn (array $tab): int => $tab[1] === []
-            ? (int) $byStatus->sum()
-            : (int) collect($tab[1])->sum(fn (ReservationStatus $status) => $byStatus[$status->value] ?? 0));
-
-        $reservations = $query
-            ->when(self::TABS[$tab][1] !== [], fn (Builder $query) => $query->whereIn('statut', self::TABS[$tab][1]))
-            ->with(['property', 'user'])
-            ->orderByDesc('check_in')
-            ->orderByDesc('id')
-            ->paginate(12)
-            ->withQueryString();
+        $listing = new ReservationListing($request->user(), $request);
 
         return view('admin.reservations.index', [
-            'reservations' => $reservations,
-            'tabs' => array_map(fn (array $tab): string => $tab[0], self::TABS),
-            'counts' => $counts,
-            'tab' => $tab,
-            'search' => $search,
-            'properties' => $properties,
-            'propertySlug' => $property?->slug,
+            'listing' => $listing,
+            'reservations' => $listing->paginate(),
+            'tabs' => array_map(fn (array $tab): string => $tab[0], ReservationListing::TABS),
+            'counts' => $listing->counts(),
+            'today' => $listing->today(),
         ]);
+    }
+
+    /**
+     * Export CSV de la liste, avec les filtres affichés (Excel l'ouvre directement : séparateur « ; », encodage UTF-8).
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $listing = new ReservationListing($request->user(), $request);
+        $filename = 'reservations-'.now()->format('Y-m-d-His').'.csv';
+
+        return response()->streamDownload(function () use ($listing): void {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+
+            fputcsv($out, [
+                'Référence', 'Réservée le', 'Statut', 'Client', 'Email', 'Téléphone', 'Établissement', 'Unités',
+                'Arrivée', 'Départ', 'Nuits', 'Adultes', 'Enfants', 'Total (FCFA)', 'Réglé (FCFA)', 'Reste dû (FCFA)', 'Paiement',
+            ], ';');
+
+            $listing->query()->with(['property', 'items.unit'])->chunk(200, function ($reservations) use ($out): void {
+                foreach ($reservations as $reservation) {
+                    fputcsv($out, [
+                        $reservation->reference,
+                        $reservation->created_at->format('d/m/Y H:i'),
+                        $reservation->statut->label(),
+                        $reservation->guest_name,
+                        $reservation->guest_email,
+                        $reservation->guest_phone,
+                        $reservation->property?->name,
+                        $reservation->items->map(fn ($item) => ($item->quantity > 1 ? $item->quantity.' x ' : '').$item->unit?->name)->filter()->implode(', '),
+                        $reservation->check_in->format('d/m/Y'),
+                        $reservation->check_out->format('d/m/Y'),
+                        $reservation->nights,
+                        $reservation->adults,
+                        $reservation->children,
+                        $reservation->total_amount,
+                        $reservation->amount_paid,
+                        $reservation->balanceDue(),
+                        $reservation->payment_state->label(),
+                    ], ';');
+                }
+            });
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Bon de réservation imprimable (et enregistrable en PDF depuis la fenêtre d'impression).
+     */
+    public function voucher(Reservation $reservation): View
+    {
+        Gate::authorize('view', $reservation);
+
+        $reservation->load(['property.city', 'items.unit.unitType', 'guests', 'user']);
+
+        return view('admin.reservations.voucher', ['reservation' => $reservation]);
     }
 
     public function show(Reservation $reservation): View
@@ -111,7 +119,7 @@ class ReservationController extends Controller
     {
         Gate::authorize('manage', $reservation);
 
-        return $this->run(fn () => $this->workflow->confirm($reservation), 'Réservation validée.');
+        return $this->run(fn () => $this->workflow->confirm($reservation), 'Réservation validée. Le client est prévenu par email.');
     }
 
     public function cancel(ReservationCancelRequest $request, Reservation $reservation): RedirectResponse
@@ -121,7 +129,20 @@ class ReservationController extends Controller
         // Une demande en attente écartée par l'établissement ou un administrateur est un refus
         $refused = $reservation->statut === ReservationStatus::Pending && $request->user()->can('manage', $reservation);
 
-        return $this->run(fn () => $this->workflow->cancel($reservation, $request->reason()), $refused ? 'Réservation refusée.' : 'Réservation annulée.');
+        // Seuls l'établissement et les administrateurs décident d'un remboursement
+        $refund = $request->boolean('rembourser') && $request->user()->can('manage', $reservation);
+
+        return $this->run(
+            fn () => $this->workflow->cancel($reservation, $request->reason(), $request->user(), $refund),
+            ($refused ? 'Réservation refusée.' : 'Réservation annulée.').($refund ? ' Le remboursement est enregistré.' : ''),
+        );
+    }
+
+    public function refund(Reservation $reservation): RedirectResponse
+    {
+        Gate::authorize('manage', $reservation);
+
+        return $this->run(fn () => $this->workflow->refund($reservation), 'Remboursement enregistré. Le client est prévenu par email.');
     }
 
     public function complete(Reservation $reservation): RedirectResponse
@@ -164,20 +185,6 @@ class ReservationController extends Controller
     | OUTILS
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Réservations visibles par l'utilisateur connecté.
-     *
-     * @return Builder<Reservation>
-     */
-    private function scoped(Request $request): Builder
-    {
-        $user = $request->user();
-
-        return Reservation::query()
-            ->when($user->isOwner(), fn (Builder $query) => $query->whereHas('property', fn (Builder $query) => $query->ownedBy($user)))
-            ->when(! $user->isAdmin() && ! $user->isOwner(), fn (Builder $query) => $query->whereBelongsTo($user));
-    }
 
     private function run(Closure $action, string $success): RedirectResponse
     {

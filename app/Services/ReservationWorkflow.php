@@ -10,12 +10,15 @@ use App\Exceptions\WorkflowException;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Notifications\ReservationUpdated;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 /**
  * Cycle de vie d'une réservation : en attente → confirmée → terminée,
- * avec annulation ou absence (« non présenté ») possibles, et encaissements manuels.
+ * avec refus, annulation ou absence (« non présenté ») possibles, encaissements manuels et remboursement.
+ * Le client est prévenu par email de chaque décision qui le concerne.
  *
  * Chaque action vérifie l'état de la réservation et lève WorkflowException
  * avec un message destiné à l'utilisateur quand elle n'est pas permise.
@@ -37,17 +40,41 @@ class ReservationWorkflow
             'confirmed_at' => now(),
             'expires_at' => null,
         ]);
+
+        $this->notifyGuest($reservation, ReservationUpdated::CONFIRMED);
     }
 
-    public function cancel(Reservation $reservation, ?string $reason): void
+    /**
+     * Annulation par le client, ou par l'établissement / un administrateur (un « refus » si la demande était en attente).
+     * Les sommes déjà réglées peuvent être remboursées dans la foulée.
+     */
+    public function cancel(Reservation $reservation, ?string $reason, ?User $by = null, bool $refund = false): void
     {
         $this->expectStatus($reservation, [ReservationStatus::Pending, ReservationStatus::Confirmed], 'Cette réservation ne peut plus être annulée.');
+
+        $byGuest = $by !== null && $reservation->user_id === $by->id;
+        $event = match (true) {
+            $byGuest => ReservationUpdated::CANCELLED_BY_GUEST,
+            $reservation->statut === ReservationStatus::Pending => ReservationUpdated::REFUSED,
+            default => ReservationUpdated::CANCELLED,
+        };
 
         $reservation->update([
             'statut' => ReservationStatus::Cancelled,
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
         ]);
+
+        if ($byGuest) {
+            // Le client sait qu'il a annulé : l'établissement, lui, doit l'apprendre
+            $reservation->property?->owner?->notify(new ReservationUpdated($reservation, $event));
+        } else {
+            $this->notifyGuest($reservation, $event);
+        }
+
+        if ($refund && $reservation->amount_paid > 0) {
+            $this->refund($reservation);
+        }
     }
 
     /**
@@ -126,6 +153,36 @@ class ReservationWorkflow
         });
     }
 
+    /**
+     * Rembourse les paiements reçus d'une réservation annulée (ou d'un client absent).
+     * La plateforme enregistre le remboursement ; le versement se fait par le moyen de paiement d'origine.
+     */
+    public function refund(Reservation $reservation): int
+    {
+        $this->expectStatus($reservation, [ReservationStatus::Cancelled, ReservationStatus::NoShow], 'Seule une réservation annulée ou un client absent peut être remboursé.');
+
+        if ($reservation->amount_paid <= 0) {
+            throw new WorkflowException('Aucune somme n’a été réglée sur cette réservation.');
+        }
+
+        $amount = $reservation->amount_paid;
+
+        DB::transaction(function () use ($reservation): void {
+            $reservation->payments()
+                ->where('statut', TransactionStatus::Accepted)
+                ->update(['statut' => TransactionStatus::Refunded, 'refunded_at' => now()]);
+
+            $reservation->update([
+                'amount_paid' => 0,
+                'payment_state' => PaymentState::Refunded,
+            ]);
+        });
+
+        $this->notifyGuest($reservation, ReservationUpdated::REFUNDED, $amount);
+
+        return $amount;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | OUTILS
@@ -135,7 +192,7 @@ class ReservationWorkflow
     /**
      * Actions disponibles sur une réservation pour la vue (les droits sont vérifiés à part, par la policy).
      *
-     * @return array{confirm: bool, cancel: bool, complete: bool, noShow: bool, payment: bool}
+     * @return array{confirm: bool, cancel: bool, complete: bool, noShow: bool, payment: bool, refund: bool}
      */
     public function availableActions(Reservation $reservation): array
     {
@@ -147,7 +204,22 @@ class ReservationWorkflow
             'complete' => $status === ReservationStatus::Confirmed && ! $reservation->check_out->isFuture(),
             'noShow' => $status === ReservationStatus::Confirmed && ! $reservation->check_in->isFuture(),
             'payment' => $status !== ReservationStatus::Cancelled && $status !== ReservationStatus::NoShow && $reservation->balanceDue() > 0,
+            'refund' => in_array($status, [ReservationStatus::Cancelled, ReservationStatus::NoShow], true) && $reservation->amount_paid > 0,
         ];
+    }
+
+    /**
+     * Email au client : son compte, ou à défaut l'adresse saisie lors de la réservation.
+     */
+    private function notifyGuest(Reservation $reservation, string $event, ?int $amount = null): void
+    {
+        $notification = new ReservationUpdated($reservation, $event, $amount);
+
+        if ($reservation->user) {
+            $reservation->user->notify($notification);
+        } elseif (filled($reservation->guest_email)) {
+            Notification::route('mail', $reservation->guest_email)->notify($notification);
+        }
     }
 
     /**

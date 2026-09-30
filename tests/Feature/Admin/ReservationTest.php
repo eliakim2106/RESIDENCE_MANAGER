@@ -151,7 +151,7 @@ class ReservationTest extends TestCase
         $this->actingAs($superAdmin)->get(route('admin.reservations.show', $toRefuse))
             ->assertOk()->assertSee('Valider la réservation')->assertSee('Refuser la réservation');
 
-        $this->actingAs($superAdmin)->patch(route('admin.reservations.confirm', $toValidate))->assertSessionHas('success', 'Réservation validée.');
+        $this->actingAs($superAdmin)->patch(route('admin.reservations.confirm', $toValidate))->assertSessionHas('success', 'Réservation validée. Le client est prévenu par email.');
         $this->assertSame(ReservationStatus::Confirmed, $toValidate->fresh()->statut);
 
         $this->actingAs($superAdmin)->patch(route('admin.reservations.cancel', $toRefuse), ['motif' => 'Établissement complet'])

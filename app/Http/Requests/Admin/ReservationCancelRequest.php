@@ -19,6 +19,7 @@ class ReservationCancelRequest extends FormRequest
     {
         return [
             'motif' => ['nullable', 'string', 'max:500'],
+            'rembourser' => ['nullable', 'boolean'],
         ];
     }
 
