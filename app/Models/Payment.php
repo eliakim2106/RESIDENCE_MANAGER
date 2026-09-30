@@ -4,30 +4,42 @@ namespace App\Models;
 
 use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
-use Database\Factories\PaymentFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * Transaction de paiement (CinetPay ou encaissement sur place).
  */
-#[Fillable([
-    'reservation_id', 'user_id', 'transaction_id', 'provider', 'method', 'operator', 'amount',
-    'currency', 'status', 'payment_url', 'payment_token', 'operator_reference', 'provider_payload',
-    'paid_at', 'refunded_at',
-])]
-#[Hidden(['payment_token', 'provider_payload'])]
 class Payment extends Model
 {
-    /** @use HasFactory<PaymentFactory> */
     use HasFactory;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'reservation_id',
+        'user_id',
+        'transaction_id',
+        'provider',
+        'method',
+        'operator',
+        'amount',
+        'currency',
+        'status',
+        'payment_url',
+        'payment_token',
+        'operator_reference',
+        'provider_payload',
+        'paid_at',
+        'refunded_at',
+    ];
+
+    protected $hidden = [
+        'payment_token',
+        'provider_payload',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -40,21 +52,27 @@ class Payment extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<Reservation, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);
     }
 
-    /**
-     * @return BelongsTo<User, $this>
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÉTHODES MÉTIER
+    |--------------------------------------------------------------------------
+    */
 
     public function isAccepted(): bool
     {

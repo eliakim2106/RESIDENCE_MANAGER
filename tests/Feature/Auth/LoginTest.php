@@ -12,9 +12,9 @@ class LoginTest extends TestCase
 
     public function test_user_can_log_in_and_is_sent_to_the_dashboard(): void
     {
-        $user = User::factory()->create(['password' => 'password123']);
+        $user = User::factory()->create();
 
-        $this->post(route('login'), ['email' => $user->email, 'password' => 'password123'])
+        $this->post(route('login'), ['email' => $user->email, 'password' => User::DEFAULT_PASSWORD])
             ->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
@@ -35,9 +35,9 @@ class LoginTest extends TestCase
 
     public function test_suspended_account_cannot_log_in(): void
     {
-        $user = User::factory()->suspended()->create(['password' => 'password123']);
+        $user = User::factory()->suspended()->create();
 
-        $this->post(route('login'), ['email' => $user->email, 'password' => 'password123'])
+        $this->post(route('login'), ['email' => $user->email, 'password' => User::DEFAULT_PASSWORD])
             ->assertSessionHasErrors(['email' => 'Votre compte est actuellement indisponible.']);
 
         $this->assertGuest();

@@ -5,9 +5,6 @@ namespace App\Models;
 use App\Enums\CancellationPolicy;
 use App\Enums\PaymentState;
 use App\Enums\ReservationStatus;
-use Database\Factories\ReservationFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,42 +14,45 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Override;
 
-#[RouteKey('reference')]
-#[Fillable([
-    'reference', 'user_id', 'property_id', 'check_in', 'check_out', 'nights', 'adults', 'children',
-    'subtotal', 'cleaning_fee', 'service_fee', 'tax_amount', 'discount_amount', 'total_amount',
-    'amount_paid', 'currency', 'status', 'payment_state', 'cancellation_policy', 'guest_name',
-    'guest_email', 'guest_phone', 'estimated_arrival_time', 'special_requests', 'owner_notes',
-    'expires_at', 'confirmed_at', 'cancelled_at', 'cancellation_reason',
-])]
 class Reservation extends Model
 {
-    /** @use HasFactory<ReservationFactory> */
     use HasFactory;
 
-    protected static function booted(): void
-    {
-        static::creating(function (Reservation $reservation): void {
-            $reservation->reference ??= static::generateReference();
-        });
-    }
+    protected $fillable = [
+        'reference',
+        'user_id',
+        'property_id',
+        'check_in',
+        'check_out',
+        'nights',
+        'adults',
+        'children',
+        'subtotal',
+        'cleaning_fee',
+        'service_fee',
+        'tax_amount',
+        'discount_amount',
+        'total_amount',
+        'amount_paid',
+        'currency',
+        'status',
+        'payment_state',
+        'cancellation_policy',
+        'guest_name',
+        'guest_email',
+        'guest_phone',
+        'estimated_arrival_time',
+        'special_requests',
+        'owner_notes',
+        'expires_at',
+        'confirmed_at',
+        'cancelled_at',
+        'cancellation_reason',
+    ];
 
-    /**
-     * Génère une référence unique lisible, ex. DS-7K2M9QXA.
-     */
-    public static function generateReference(): string
-    {
-        do {
-            $reference = 'DS-'.Str::upper(Str::random(8));
-        } while (static::where('reference', $reference)->exists());
-
-        return $reference;
-    }
-
-    /**
-     * @return array<string, string>
-     */
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -77,53 +77,72 @@ class Reservation extends Model
         ];
     }
 
+    #[Override]
+    public function getRouteKeyName(): string
+    {
+        return 'reference';
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Reservation $reservation): void {
+            $reservation->reference ??= static::generateReference();
+        });
+    }
+
     /**
-     * @return BelongsTo<User, $this>
+     * Génère une référence unique lisible, ex. DS-7K2M9QXA.
      */
+    public static function generateReference(): string
+    {
+        do {
+            $reference = 'DS-'.Str::upper(Str::random(8));
+        } while (static::where('reference', $reference)->exists());
+
+        return $reference;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return BelongsTo<Property, $this>
-     */
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
     }
 
-    /**
-     * @return HasMany<ReservationUnit, $this>
-     */
     public function items(): HasMany
     {
         return $this->hasMany(ReservationUnit::class);
     }
 
-    /**
-     * @return HasMany<ReservationGuest, $this>
-     */
     public function guests(): HasMany
     {
         return $this->hasMany(ReservationGuest::class);
     }
 
-    /**
-     * @return HasMany<Payment, $this>
-     */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
-    /**
-     * @return HasOne<Review, $this>
-     */
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÉTHODES MÉTIER
+    |--------------------------------------------------------------------------
+    */
 
     public function balanceDue(): int
     {
@@ -146,10 +165,14 @@ class Reservation extends Model
             && $this->check_in->isFuture();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
+
     /**
      * Réservations qui chevauchent la période [from, to[ (les dates de départ sont libres).
-     *
-     * @param  Builder<Reservation>  $query
      */
     #[Scope]
     protected function overlapping(Builder $query, Carbon $from, Carbon $to): void
@@ -160,8 +183,6 @@ class Reservation extends Model
 
     /**
      * Réservations qui occupent réellement des unités (en attente non expirée, confirmée ou terminée).
-     *
-     * @param  Builder<Reservation>  $query
      */
     #[Scope]
     protected function blocking(Builder $query): void

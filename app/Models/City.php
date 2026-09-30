@@ -2,23 +2,27 @@
 
 namespace App\Models;
 
-use Database\Factories\CityFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 
-#[Fillable(['name', 'slug', 'region', 'country', 'image_path', 'is_active'])]
 class City extends Model
 {
-    /** @use HasFactory<CityFactory> */
     use HasFactory;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'region',
+        'country',
+        'image_path',
+        'is_active',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -26,17 +30,23 @@ class City extends Model
         ];
     }
 
-    /**
-     * @return HasMany<Property, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function properties(): HasMany
     {
         return $this->hasMany(Property::class);
     }
 
-    /**
-     * @param  Builder<City>  $query
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
+
     #[Scope]
     protected function active(Builder $query): void
     {

@@ -2,19 +2,30 @@
 
 namespace App\Models;
 
-use Database\Factories\NewsletterSubscriberFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Override;
 
-#[Fillable(['email', 'token', 'unsubscribed_at'])]
 class NewsletterSubscriber extends Model
 {
-    /** @use HasFactory<NewsletterSubscriberFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'email',
+        'token',
+        'unsubscribed_at',
+    ];
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'unsubscribed_at' => 'datetime',
+        ];
+    }
 
     protected static function booted(): void
     {
@@ -23,19 +34,12 @@ class NewsletterSubscriber extends Model
         });
     }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'unsubscribed_at' => 'datetime',
-        ];
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * @param  Builder<NewsletterSubscriber>  $query
-     */
     #[Scope]
     protected function subscribed(Builder $query): void
     {

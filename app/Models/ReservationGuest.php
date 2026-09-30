@@ -2,21 +2,24 @@
 
 namespace App\Models;
 
-use Database\Factories\ReservationGuestFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
-#[Fillable(['reservation_id', 'full_name', 'is_child', 'id_document_number', 'nationality'])]
 class ReservationGuest extends Model
 {
-    /** @use HasFactory<ReservationGuestFactory> */
     use HasFactory;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'reservation_id',
+        'full_name',
+        'is_child',
+        'id_document_number',
+        'nationality',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -24,9 +27,12 @@ class ReservationGuest extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<Reservation, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);

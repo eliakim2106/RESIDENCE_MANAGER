@@ -4,23 +4,26 @@ namespace App\Models;
 
 use App\Models\Concerns\HasFontAwesomeIcon;
 use App\Models\Concerns\HasSlugFromName;
-use Database\Factories\UnitTypeFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 
-#[Fillable(['name', 'slug', 'icon', 'description', 'is_active'])]
 class UnitType extends Model
 {
-    /** @use HasFactory<UnitTypeFactory> */
     use HasFactory, HasFontAwesomeIcon, HasSlugFromName;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'icon',
+        'description',
+        'is_active',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -28,17 +31,23 @@ class UnitType extends Model
         ];
     }
 
-    /**
-     * @return HasMany<Unit, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class);
     }
 
-    /**
-     * @param  Builder<UnitType>  $query
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
+
     #[Scope]
     protected function active(Builder $query): void
     {

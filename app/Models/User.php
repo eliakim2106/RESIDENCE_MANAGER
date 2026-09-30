@@ -4,9 +4,6 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,19 +12,37 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Override;
 
-#[Fillable(['name', 'email', 'phone', 'city', 'country', 'role', 'status', 'company_name', 'avatar_path', 'password', 'last_login_at'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
+    /**
+     * Mot de passe des comptes générés par la factory (tests et données de démonstration).
+     */
+    public const DEFAULT_PASSWORD = 'Residence@2026';
+
     use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'city',
+        'country',
+        'role',
+        'status',
+        'company_name',
+        'avatar_path',
+        'password',
+        'last_login_at',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -39,47 +54,46 @@ class User extends Authenticatable
         ];
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     /**
      * Établissements gérés par le propriétaire.
-     *
-     * @return HasMany<Property, $this>
      */
     public function properties(): HasMany
     {
         return $this->hasMany(Property::class, 'owner_id');
     }
 
-    /**
-     * @return HasMany<Reservation, $this>
-     */
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
     }
 
-    /**
-     * @return HasMany<Review, $this>
-     */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    /**
-     * @return BelongsToMany<Property, $this>
-     */
     public function favorites(): BelongsToMany
     {
         return $this->belongsToMany(Property::class, 'favorites')->withPivot('created_at');
     }
 
-    /**
-     * @return HasMany<LoginLog, $this>
-     */
     public function loginLogs(): HasMany
     {
         return $this->hasMany(LoginLog::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RÔLES ET STATUT
+    |--------------------------------------------------------------------------
+    | Super admin et admin : toute la plateforme | Propriétaire : ses établissements | Client : ses réservations
+    */
 
     /**
      * Indique si l'utilisateur possède l'un des rôles donnés.
@@ -107,9 +121,12 @@ class User extends Authenticatable
         return $this->status === UserStatus::Active;
     }
 
-    /**
-     * @param  Builder<User>  $query
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
+
     #[Scope]
     protected function withRole(Builder $query, UserRole $role): void
     {

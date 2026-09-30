@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\SettingFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -11,19 +9,29 @@ use Illuminate\Support\Facades\Cache;
 /**
  * Paramètre de la plateforme modifiable depuis le back-office (clé / valeur).
  */
-#[Fillable(['key', 'value', 'group'])]
 class Setting extends Model
 {
-    /** @use HasFactory<SettingFactory> */
+    private const CACHE_KEY = 'settings.all';
+
     use HasFactory;
 
-    private const CACHE_KEY = 'settings.all';
+    protected $fillable = [
+        'key',
+        'value',
+        'group',
+    ];
 
     protected static function booted(): void
     {
         static::saved(fn () => Cache::forget(self::CACHE_KEY));
         static::deleted(fn () => Cache::forget(self::CACHE_KEY));
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LECTURE ET ÉCRITURE
+    |--------------------------------------------------------------------------
+    */
 
     /**
      * Lit un paramètre (mis en cache).

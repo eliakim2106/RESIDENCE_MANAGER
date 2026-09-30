@@ -3,24 +3,29 @@
 namespace App\Models;
 
 use App\Enums\MaintenanceStatus;
-use Database\Factories\MaintenanceFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * Période de maintenance qui rend des unités indisponibles.
  */
-#[Fillable(['unit_id', 'title', 'description', 'starts_on', 'ends_on', 'quantity', 'status'])]
 class Maintenance extends Model
 {
-    /** @use HasFactory<MaintenanceFactory> */
     use HasFactory;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'unit_id',
+        'title',
+        'description',
+        'starts_on',
+        'ends_on',
+        'quantity',
+        'status',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -31,9 +36,12 @@ class Maintenance extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<Unit, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);

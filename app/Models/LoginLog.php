@@ -2,26 +2,29 @@
 
 namespace App\Models;
 
-use Database\Factories\LoginLogFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * Journal des tentatives de connexion.
  */
-#[Fillable(['user_id', 'email', 'ip_address', 'user_agent', 'successful'])]
 class LoginLog extends Model
 {
-    /** @use HasFactory<LoginLogFactory> */
-    use HasFactory;
-
     public const UPDATED_AT = null;
 
-    /**
-     * @return array<string, string>
-     */
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'email',
+        'ip_address',
+        'user_agent',
+        'successful',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -29,9 +32,12 @@ class LoginLog extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<User, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

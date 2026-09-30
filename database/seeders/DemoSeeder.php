@@ -23,7 +23,7 @@ use Illuminate\Support\Str;
 
 /**
  * Données de démonstration : comptes, établissements, unités, réservations, paiements et avis.
- * Tous les comptes ont le mot de passe « password ». Ne pas exécuter en production.
+ * Tous les comptes ont le mot de passe User::DEFAULT_PASSWORD (« Residence@2026 »). Ne pas exécuter en production.
  */
 class DemoSeeder extends Seeder
 {

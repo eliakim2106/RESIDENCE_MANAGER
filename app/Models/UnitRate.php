@@ -2,24 +2,28 @@
 
 namespace App\Models;
 
-use Database\Factories\UnitRateFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * Tarif saisonnier appliqué à une unité sur une période.
  */
-#[Fillable(['unit_id', 'name', 'starts_on', 'ends_on', 'price', 'min_nights'])]
 class UnitRate extends Model
 {
-    /** @use HasFactory<UnitRateFactory> */
     use HasFactory;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'unit_id',
+        'name',
+        'starts_on',
+        'ends_on',
+        'price',
+        'min_nights',
+    ];
+
+    #[Override]
     protected function casts(): array
     {
         return [
@@ -30,9 +34,12 @@ class UnitRate extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<Unit, $this>
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);

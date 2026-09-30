@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
+     * Mot de passe haché partagé par tous les comptes générés (User::DEFAULT_PASSWORD).
      */
     protected static ?string $password;
 
@@ -33,7 +33,7 @@ class UserFactory extends Factory
             'role' => UserRole::Client,
             'status' => UserStatus::Active,
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password' => static::$password ??= Hash::make(User::DEFAULT_PASSWORD),
             'remember_token' => Str::random(10),
         ];
     }
