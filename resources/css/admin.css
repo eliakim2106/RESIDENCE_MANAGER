@@ -1,0 +1,6 @@
+/* Administration : Bootstrap 5, Font Awesome, puis les styles DS Holding */
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+@import "./alert.css";
+@import "./admin/admin.css";

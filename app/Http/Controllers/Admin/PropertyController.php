@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PropertyRequest;
+use App\Models\City;
+use App\Models\Property;
+use App\Models\PropertyType;
+use App\Services\GalleryManager;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+
+class PropertyController extends Controller
+{
+    public function __construct(private GalleryManager $gallery) {}
+
+    public function index(Request $request): View
+    {
+        $search = trim((string) $request->query('search'));
+        $user = $request->user();
+
+        $etablissements = Property::query()
+            ->with(['propertyType', 'city'])
+            ->withCount('units')
+            ->unless($user->isAdmin(), fn ($query) => $query->ownedBy($user))
+            ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('district', 'like', "%{$search}%")
+                ->orWhere('neighborhood', 'like', "%{$search}%")))
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.etablissements.index', compact('etablissements', 'search'));
+    }
+
+    public function create(): View
+    {
+        Gate::authorize('create', Property::class);
+
+        return view('admin.etablissements.create', [
+            'etablissement' => new Property,
+            ...$this->formOptions(),
+        ]);
+    }
+
+    public function store(PropertyRequest $request): RedirectResponse
+    {
+        Gate::authorize('create', Property::class);
+
+        DB::transaction(function () use ($request): void {
+            $property = Property::create([
+                ...$request->propertyAttributes(),
+                'owner_id' => $request->user()->id,
+            ]);
+
+            $this->syncMedia($property, $request);
+        });
+
+        return redirect()->route('admin.etablissements.index')
+            ->with('success', 'Établissement créé avec succès.');
+    }
+
+    public function edit(Property $etablissement): View
+    {
+        Gate::authorize('update', $etablissement);
+
+        $etablissement->load(['images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('position')]);
+
+        return view('admin.etablissements.edit', [
+            'etablissement' => $etablissement,
+            ...$this->formOptions(),
+        ]);
+    }
+
+    public function update(PropertyRequest $request, Property $etablissement): RedirectResponse
+    {
+        Gate::authorize('update', $etablissement);
+
+        DB::transaction(function () use ($request, $etablissement): void {
+            $etablissement->update($request->propertyAttributes());
+
+            $this->syncMedia($etablissement, $request);
+        });
+
+        return redirect()->route('admin.etablissements.index')
+            ->with('success', 'Établissement modifié avec succès.');
+    }
+
+    public function destroy(Property $etablissement): RedirectResponse
+    {
+        Gate::authorize('delete', $etablissement);
+
+        $etablissement->delete();
+
+        return redirect()->route('admin.etablissements.index')
+            ->with('success', 'Suppression effectuée avec succès.');
+    }
+
+    private function syncMedia(Property $property, PropertyRequest $request): void
+    {
+        $directory = "properties/{$property->id}";
+
+        $property->update([
+            'logo_path' => $this->gallery->replace(
+                $property->logo_path,
+                $request->file('logo'),
+                $request->boolean('deleted_logo'),
+                "{$directory}/logo",
+            ),
+        ]);
+
+        $this->gallery->sync(
+            fn () => $property->images(),
+            "{$directory}/gallery",
+            $request->deletedGalleryIds(),
+            $request->file('gallery', []),
+            $request->input('gallery_cover'),
+            hasCoverColumn: true,
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formOptions(): array
+    {
+        return [
+            'typesEtablissement' => PropertyType::active()->orderBy('name')->get(),
+            'villes' => City::active()->orderBy('name')->get(),
+        ];
+    }
+}
