@@ -1,15 +1,26 @@
 @extends('layouts.site')
 
-@section('title', 'Résidences')
+@section('title', 'Nos résidences')
 
 @section('content')
     @include('site.partials.navbar')
 
-    @include('site.partials.residences.residence-hero-section')
+    {{-- Un seul formulaire GET : barre de recherche, filtres et tri --}}
+    <form method="GET" action="{{ route('residences.index') }}" class="listing" id="listingForm" data-listing-form>
 
-    @include('site.partials.residences.residence-filter-section')
+        @include('site.partials.residences.residence-hero-section')
 
-    @include('site.partials.residences.residence-grid-section')
+        <div class="container listing-body">
+            <div class="listing-layout">
+
+                @include('site.partials.residences.residence-filter-section')
+
+                @include('site.partials.residences.residence-grid-section')
+
+            </div>
+        </div>
+
+    </form>
 
     @include('site.partials.residences.residence-cta-section')
 

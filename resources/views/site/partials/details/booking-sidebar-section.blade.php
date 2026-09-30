@@ -19,7 +19,7 @@
 
                 <label for="booking-check-in">Date d'arrivée</label>
 
-                <input type="date" id="booking-check-in">
+                <input type="date" id="booking-check-in" name="arrivee" min="{{ now()->toDateString() }}" data-placeholder="Choisir" data-datepicker data-datepicker-start="reservation">
 
             </div>
 
@@ -27,7 +27,7 @@
 
                 <label for="booking-check-out">Date de départ</label>
 
-                <input type="date" id="booking-check-out">
+                <input type="date" id="booking-check-out" name="depart" min="{{ now()->addDay()->toDateString() }}" data-placeholder="Choisir" data-datepicker data-datepicker-end="reservation">
 
             </div>
 

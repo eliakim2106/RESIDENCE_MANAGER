@@ -115,12 +115,12 @@
 
             <div class="home-search-field">
                 <label for="checkin"><i class="fa-regular fa-calendar"></i> Arrivée</label>
-                <input type="date" id="checkin" name="arrivee" min="{{ now()->toDateString() }}">
+                <input type="date" id="checkin" name="arrivee" min="{{ now()->toDateString() }}" data-placeholder="Ajouter une date" data-datepicker data-datepicker-start="recherche">
             </div>
 
             <div class="home-search-field">
                 <label for="checkout"><i class="fa-regular fa-calendar-check"></i> Départ</label>
-                <input type="date" id="checkout" name="depart" min="{{ now()->toDateString() }}">
+                <input type="date" id="checkout" name="depart" min="{{ now()->addDay()->toDateString() }}" data-placeholder="Ajouter une date" data-datepicker data-datepicker-end="recherche">
             </div>
 
             <div class="home-search-field">

@@ -1,6 +1,7 @@
 import * as bootstrap from "bootstrap";
 
 import { initAlerts } from "./alerts";
+import { initDatepickers } from "./datepicker";
 
 window.bootstrap = bootstrap;
 
@@ -154,3 +155,4 @@ initSidebar();
 initResponsiveTables();
 initDeleteModal();
 initAlerts();
+initDatepickers();

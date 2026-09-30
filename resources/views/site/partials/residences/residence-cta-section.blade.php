@@ -1,46 +1,17 @@
-<section class="residence-cta-section">
-
-    <div class="cta-overlay"></div>
-
+<section class="listing-cta">
     <div class="container">
+        <div class="listing-cta-card">
+            <span class="listing-cta-icon"><i class="fa-solid fa-building-circle-check"></i></span>
 
-        <div class="residence-cta-card">
-
-            <h2>
-
-                Vous ne trouvez pas encore
-                la résidence idéale ?
-
-            </h2>
-
-            <p>
-
-                Notre équipe vous accompagne dans le choix
-                de la résidence parfaite selon votre budget,
-                votre localisation et vos besoins.
-
-            </p>
-
-            <div class="cta-buttons">
-
-                <a href="{{ route('home') }}#contact-section"
-                    class="btn-cta-primary">
-
-                    Nous contacter
-
-                </a>
-
-                <a href="tel:+2250141601278"
-                    class="btn-cta-outline">
-
-                    Appeler maintenant
-
-                </a>
-
+            <div class="listing-cta-content">
+                <h2>Vous êtes propriétaire ou gérant d’un établissement ?</h2>
+                <p>Publiez vos logements sur DS HOLDING, gérez vos unités et recevez des réservations en ligne.</p>
             </div>
 
+            <a href="{{ route('register.owner') }}" class="site-btn site-btn-gold listing-cta-btn">
+                Publier mon établissement
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
         </div>
-
     </div>
-
 </section>

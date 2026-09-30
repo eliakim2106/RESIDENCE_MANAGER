@@ -1,0 +1,367 @@
+/* =====================================================================
+   CALENDRIER DS HOLDING
+   Thème de flatpickr aux couleurs DS Holding, partagé par le site et l'administration.
+   Le composant est initialisé par resources/js/datepicker.js sur les champs data-datepicker.
+===================================================================== */
+
+@import "flatpickr/dist/flatpickr.min.css";
+
+.ds-calendar {
+  --cal-navy: #0a1f44;
+  --cal-blue: #1565c0;
+  --cal-blue-soft: #eaf2fd;
+  --cal-gold: #d4a72c;
+  --cal-gold-light: #f2c94c;
+  --cal-text: #0f1b33;
+  --cal-muted: #94a3b8;
+  --cal-border: #e6eaf2;
+
+  width: auto !important;
+  padding: 16px;
+  border: 1px solid var(--cal-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 27, 51, 0.06), 0 24px 60px rgba(10, 31, 68, 0.2);
+  font-family: "Poppins", system-ui, sans-serif;
+}
+
+/* Petite flèche vers le champ : masquée, le calendrier flotte simplement sous le champ */
+.ds-calendar::before,
+.ds-calendar::after {
+  display: none;
+}
+
+.ds-calendar.open {
+  animation: dsCalendarIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dsCalendarIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- En-tête : mois et navigation ---------- */
+
+.ds-calendar .flatpickr-months {
+  position: relative;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ds-calendar .flatpickr-month {
+  height: 44px;
+  color: var(--cal-navy);
+  fill: var(--cal-navy);
+}
+
+.ds-calendar .flatpickr-current-month {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ds-calendar .flatpickr-current-month span.cur-month {
+  margin: 0;
+  color: var(--cal-navy);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.ds-calendar .flatpickr-current-month span.cur-month:hover {
+  background: none;
+}
+
+.ds-calendar .flatpickr-current-month .numInputWrapper {
+  width: 4.2ch;
+}
+
+.ds-calendar .flatpickr-current-month input.cur-year {
+  padding: 0;
+  color: var(--cal-navy);
+  font-weight: 700;
+}
+
+.ds-calendar .numInputWrapper:hover {
+  background: none;
+}
+
+.ds-calendar .numInputWrapper span {
+  display: none;
+}
+
+.ds-calendar .flatpickr-prev-month,
+.ds-calendar .flatpickr-next-month {
+  top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--cal-border);
+  border-radius: 50%;
+  color: var(--cal-navy);
+  font-size: 0.8rem;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.ds-calendar .flatpickr-prev-month {
+  left: 0 !important;
+}
+
+.ds-calendar .flatpickr-next-month {
+  right: 0 !important;
+}
+
+.ds-calendar .flatpickr-prev-month:hover,
+.ds-calendar .flatpickr-next-month:hover {
+  border-color: var(--cal-navy);
+  background: var(--cal-navy);
+  color: #fff;
+}
+
+.ds-calendar .flatpickr-prev-month:hover i,
+.ds-calendar .flatpickr-next-month:hover i {
+  color: #fff;
+}
+
+.ds-calendar .flatpickr-prev-month.flatpickr-disabled,
+.ds-calendar .flatpickr-next-month.flatpickr-disabled {
+  display: inline-flex;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ---------- Jours de la semaine ---------- */
+
+.ds-calendar .flatpickr-weekdays {
+  height: 32px;
+}
+
+.ds-calendar span.flatpickr-weekday {
+  color: var(--cal-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------- Grille des jours ---------- */
+
+.ds-calendar .flatpickr-innerContainer,
+.ds-calendar .flatpickr-rContainer,
+.ds-calendar .flatpickr-days {
+  width: auto !important;
+}
+
+.ds-calendar .flatpickr-days {
+  border: 0;
+}
+
+.ds-calendar .dayContainer {
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  row-gap: 2px;
+}
+
+.ds-calendar.multiMonth .dayContainer + .dayContainer {
+  margin-left: 24px;
+  box-shadow: none;
+}
+
+.ds-calendar.multiMonth .flatpickr-weekdaycontainer + .flatpickr-weekdaycontainer {
+  margin-left: 24px;
+}
+
+.ds-calendar .flatpickr-day {
+  max-width: 40px;
+  height: 40px;
+  margin: 0;
+  border: 0;
+  border-radius: 12px;
+  color: var(--cal-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 40px;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.ds-calendar .flatpickr-day:hover,
+.ds-calendar .flatpickr-day:focus {
+  border: 0;
+  background: var(--cal-blue-soft);
+  color: var(--cal-blue);
+}
+
+/* Aujourd'hui : point doré sous le chiffre */
+.ds-calendar .flatpickr-day.today {
+  border: 0;
+  font-weight: 700;
+}
+
+.ds-calendar .flatpickr-day.today::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--cal-gold);
+}
+
+.ds-calendar .flatpickr-day {
+  position: relative;
+}
+
+/* Jour choisi */
+.ds-calendar .flatpickr-day.selected,
+.ds-calendar .flatpickr-day.selected:hover,
+.ds-calendar .flatpickr-day.ds-range-start,
+.ds-calendar .flatpickr-day.ds-range-end {
+  border: 0;
+  background: var(--cal-navy);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 14px rgba(10, 31, 68, 0.28);
+}
+
+.ds-calendar .flatpickr-day.selected.today::after,
+.ds-calendar .flatpickr-day.ds-range-start.today::after,
+.ds-calendar .flatpickr-day.ds-range-end.today::after {
+  background: var(--cal-gold-light);
+}
+
+/* Période arrivée → départ */
+.ds-calendar .flatpickr-day.ds-in-range {
+  border-radius: 0;
+  background: var(--cal-blue-soft);
+  color: var(--cal-navy);
+  box-shadow: none;
+}
+
+.ds-calendar .flatpickr-day.ds-range-start:not(.ds-range-end) {
+  border-radius: 12px 0 0 12px;
+}
+
+.ds-calendar .flatpickr-day.ds-range-end:not(.ds-range-start) {
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(135deg, var(--cal-gold) 0%, var(--cal-gold-light) 100%);
+  color: var(--cal-navy);
+  box-shadow: 0 6px 14px rgba(212, 167, 44, 0.35);
+}
+
+/* Jours hors du mois ou indisponibles */
+.ds-calendar .flatpickr-day.prevMonthDay,
+.ds-calendar .flatpickr-day.nextMonthDay {
+  color: #cbd5e1;
+}
+
+.ds-calendar .flatpickr-day.flatpickr-disabled,
+.ds-calendar .flatpickr-day.flatpickr-disabled:hover {
+  background: none;
+  color: #d5dbe5;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* Le jour d’arrivée reste marqué comme début de période, même s’il n’est pas sélectionnable comme départ */
+.ds-calendar .flatpickr-day.flatpickr-disabled.ds-range-start,
+.ds-calendar .flatpickr-day.flatpickr-disabled.ds-range-start:hover {
+  background: var(--cal-navy);
+  color: #fff;
+  text-decoration: none;
+  cursor: default;
+}
+
+/* ---------- Pied : résumé et « Effacer » ---------- */
+
+.ds-calendar-footer {
+  /* Suit la largeur de la grille des jours sans l'élargir : le résumé passe à la ligne si besoin */
+  width: 0;
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cal-border);
+}
+
+.ds-calendar-summary {
+  color: var(--cal-navy);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ds-calendar-summary::first-letter {
+  text-transform: uppercase;
+}
+
+.ds-calendar-clear {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--cal-blue);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ds-calendar-clear:hover {
+  background: var(--cal-blue-soft);
+}
+
+/* ---------- Champ visible ---------- */
+
+input.ds-date-input {
+  cursor: pointer;
+}
+
+input.ds-date-input[readonly] {
+  background-color: inherit;
+}
+
+/* ---------- Petits écrans : le calendrier occupe la largeur disponible ---------- */
+
+@media (max-width: 400px) {
+  .ds-calendar {
+    padding: 12px;
+  }
+
+  .ds-calendar .dayContainer {
+    width: 266px;
+    min-width: 266px;
+    max-width: 266px;
+  }
+
+  .ds-calendar .flatpickr-day {
+    height: 38px;
+    line-height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-calendar.open {
+    animation: none;
+  }
+}

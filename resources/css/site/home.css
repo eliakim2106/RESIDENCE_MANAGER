@@ -5,6 +5,10 @@
 ===================================================================== */
 
 .home {
+  /* Carte de recherche : hauteur qui chevauche le hero, et bande d’image laissée visible sous elle */
+  --hero-search-overlap: 92px;
+  --hero-search-gap: clamp(24px, 4.5vh, 48px);
+
   --home-bg: #f6f7fb;
   --home-surface: #ffffff;
   --home-border: #e6eaf2;
@@ -177,9 +181,6 @@
 ===================================================================== */
 
 .home-hero {
-  /* Hauteur réservée en bas pour la carte de recherche qui chevauche le hero */
-  --hero-search-overlap: 92px;
-
   position: relative;
   display: flex;
   flex-direction: column;
@@ -187,7 +188,8 @@
   min-height: 100vh;
   min-height: min(100svh, 1100px);
   padding-top: var(--site-header-height);
-  padding-bottom: calc(var(--hero-search-overlap) + clamp(14px, 3vh, 32px));
+  /* Réserve la place de la carte de recherche et de l’espace qui la suit dans le hero */
+  padding-bottom: calc(var(--hero-search-overlap) + var(--hero-search-gap) + clamp(14px, 3vh, 32px));
   overflow: hidden;
   background: var(--site-navy-dark);
   color: #fff;
@@ -471,7 +473,8 @@
 .home-search {
   position: relative;
   z-index: 3;
-  margin-top: -92px;
+  /* Remonte dans le hero en laissant une bande d’image visible sous la carte */
+  margin-top: calc(-1 * (var(--hero-search-overlap) + var(--hero-search-gap)));
 }
 
 .home-search-card {
@@ -1371,6 +1374,11 @@
 ===================================================================== */
 
 @media (max-width: 1199.98px) {
+  /* La carte de recherche passe sur deux lignes : elle est plus haute */
+  .home {
+    --hero-search-overlap: 168px;
+  }
+
   .home-search-card {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -1437,9 +1445,12 @@
 }
 
 @media (max-width: 767.98px) {
-  .home-hero {
+  .home {
     --hero-search-overlap: 0px;
+    --hero-search-gap: 0px;
+  }
 
+  .home-hero {
     padding-bottom: 28px;
   }
 

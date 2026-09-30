@@ -1,131 +1,73 @@
-<section class="residence-list-section">
+<section class="listing-results" aria-labelledby="listingResultsTitle">
 
-    <div class="container">
-
-        <div class="residence-topbar">
-
-            <h2>
-                9 résidences trouvées
+    <div class="listing-toolbar">
+        <div class="listing-toolbar-title">
+            <h2 id="listingResultsTitle">
+                {{ $residences->total() }} {{ $residences->total() > 1 ? 'résidences disponibles' : 'résidence disponible' }}
             </h2>
+            <p>
+                @if ($nights)
+                    Du {{ $filters['arrivee']->translatedFormat('j F') }} au {{ $filters['depart']->translatedFormat('j F Y') }}
+                    · {{ $nights }} nuit{{ $nights > 1 ? 's' : '' }}
+                @else
+                    Ajoutez vos dates pour voir les disponibilités et le prix de votre séjour.
+                @endif
+            </p>
+        </div>
 
-            <div class="sort-box">
+        <div class="listing-toolbar-actions">
+            <button type="button" class="listing-filters-toggle" data-bs-toggle="offcanvas" data-bs-target="#listingFilters" aria-controls="listingFilters">
+                <i class="fa-solid fa-sliders"></i>
+                Filtres
+                @if (count($activeFilters) > 0)
+                    <span class="listing-count">{{ count($activeFilters) }}</span>
+                @endif
+            </button>
 
-                <label>Trier par</label>
-
-                <select>
-                    <option>Popularité</option>
-                    <option>Prix croissant</option>
-                    <option>Prix décroissant</option>
-                    <option>Note</option>
+            <label class="listing-sort">
+                <span>Trier par</span>
+                <select name="tri" data-auto-submit data-auto-submit-always>
+                    @foreach (App\Services\ResidenceSearch::SORTS as $value => $label)
+                        <option value="{{ $value }}" @selected($filters['tri'] === $value)>{{ $label }}</option>
+                    @endforeach
                 </select>
-
-            </div>
-
+            </label>
         </div>
-
-        <div class="residence-card-parent">
-            <div class="residence-card">
-
-                <div class="residence-image">
-
-                    <span class="badge-popular">
-
-                        Populaire
-
-                    </span>
-
-                    <button class="favorite-btn">
-
-                        <i class="fa-regular fa-heart"></i>
-
-                    </button>
-
-                    <img
-                        src="{{ asset('assets/images/residences/residence-1.png') }}"
-                        alt="DS Palace">
-
-                </div>
-
-                <div class="residence-content">
-
-                    <div class="rating">
-
-                        ⭐ 4.8
-
-                        <span>(124 avis)</span>
-
-                    </div>
-
-                    <span class="location">
-
-                        <i class="fa-solid fa-location-dot"></i>
-
-                        Cocody, Abidjan
-
-                    </span>
-
-                    <h3>
-
-                        DS Palace
-
-                    </h3>
-
-                    <p>
-
-                        Résidence meublée haut standing
-                        avec vue panoramique.
-
-                    </p>
-
-                    <div class="features">
-
-                        <span><i class="fa-solid fa-wifi"></i> WiFi</span>
-
-                        <span><i class="fa-solid fa-water-ladder"></i> Piscine</span>
-
-                        <span><i class="fa-solid fa-car"></i> Parking</span>
-
-                        <span><i class="fa-solid fa-snowflake"></i> Climatisation</span>
-
-                    </div>
-
-                    <div class="price-row">
-
-                        <div class="price">
-
-                            <strong>35 000 FCFA / nuit </strong>
-
-                        </div>
-
-                        <a href="{{ route('residences.show') }}" class="btn-details">
-
-                            Voir les détails
-
-                            <i class="fa-solid fa-arrow-right"></i>
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-        </div>
-
-        <div class="pagination">
-
-            <a href="#" class="active">1</a>
-
-            <a href="#">2</a>
-
-            <a href="#">3</a>
-
-            <a href="#">
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-
-        </div>
-
     </div>
+
+    @if ($activeFilters !== [])
+        <ul class="listing-chips" aria-label="Filtres appliqués">
+            @foreach ($activeFilters as $chip)
+                <li>
+                    <a href="{{ $chip['url'] }}" class="listing-chip" aria-label="Retirer le filtre {{ $chip['label'] }}">
+                        {{ $chip['label'] }}
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                </li>
+            @endforeach
+            <li>
+                <a href="{{ route('residences.index') }}" class="listing-link">Tout effacer</a>
+            </li>
+        </ul>
+    @endif
+
+    @if ($residences->isEmpty())
+        <div class="listing-empty">
+            <span class="listing-empty-icon"><i class="fa-solid fa-house-circle-xmark"></i></span>
+            <h3>Aucune résidence ne correspond à votre recherche</h3>
+            <p>Essayez d’autres dates, élargissez votre budget ou retirez quelques filtres.</p>
+            <a href="{{ route('residences.index') }}" class="listing-btn listing-btn-primary">
+                Voir toutes les résidences
+            </a>
+        </div>
+    @else
+        <div class="listing-grid">
+            @foreach ($residences as $residence)
+                @include('site.partials.residences.residence-card', ['residence' => $residence, 'index' => $loop->index])
+            @endforeach
+        </div>
+
+        @include('site.partials.residences.pagination', ['paginator' => $residences])
+    @endif
 
 </section>
