@@ -44,7 +44,7 @@
                     <th>Ville</th>
                     <th>Commune</th>
                     <th>Unités</th>
-                    <th>Status</th>
+                    <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -52,9 +52,9 @@
             <tbody>
                 @forelse ($etablissements as $etablissement)
                     <tr>
-                        <td>#{{ $etablissement->id }}</td>
+                        <td class="cell-muted cell-id">#{{ $etablissement->id }}</td>
                         <td>{{ $etablissement->propertyType->name }}</td>
-                        <td>{{ $etablissement->name }}</td>
+                        <td class="cell-main">{{ $etablissement->name }}</td>
                         <td>{{ $etablissement->city->name }}</td>
                         <td>{{ $etablissement->district }}</td>
                         <td>{{ $etablissement->units_count }}</td>
@@ -62,7 +62,7 @@
                             @if ($etablissement->isPublished())
                                 <span class="badge-success">Actif</span>
                             @else
-                                <span class="badge-danger">{{ $etablissement->status === App\Enums\PropertyStatus::Draft ? 'Inactif' : $etablissement->status->label() }}</span>
+                                <span class="badge-neutral">{{ $etablissement->status === App\Enums\PropertyStatus::Draft ? 'Brouillon' : $etablissement->status->label() }}</span>
                             @endif
                         </td>
                         <td>

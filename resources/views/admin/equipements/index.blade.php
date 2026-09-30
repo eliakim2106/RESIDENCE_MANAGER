@@ -40,7 +40,7 @@
                     <th>Icône</th>
                     <th>Nom</th>
                     <th>Catégorie</th>
-                    <th>Status</th>
+                    <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -48,9 +48,9 @@
             <tbody>
                 @forelse ($equipements as $equipement)
                     <tr>
-                        <td>#{{ $equipement->id }}</td>
+                        <td class="cell-muted cell-id">#{{ $equipement->id }}</td>
                         <td><i class="fa-solid {{ $equipement->fa_icon }}"></i></td>
-                        <td>{{ $equipement->name }}</td>
+                        <td class="cell-main">{{ $equipement->name }}</td>
                         <td>
                             {{ $equipement->category->label() }}
                             @if ($equipement->is_popular)

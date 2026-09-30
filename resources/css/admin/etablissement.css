@@ -43,51 +43,6 @@
   width: 100%;
 }
 
-/*==================================================
-    HEADER
-==================================================*/
-
-.page-card {
-  background: #fff;
-
-  border-radius: 22px;
-
-  padding: 30px 40px;
-
-  margin-bottom: 30px;
-
-  border: 1px solid var(--etab-border);
-
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.05);
-}
-
-.page-card-header {
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  gap: 20px;
-}
-
-.page-card-header h2 {
-  margin: 0;
-
-  color: var(--etab-text);
-
-  font-size: 2rem;
-
-  font-weight: 700;
-}
-
-.page-card-header p {
-  margin-top: 8px;
-
-  color: var(--etab-muted);
-
-  font-size: 0.97rem;
-}
 
 /*==================================================
     STEPPER
@@ -693,52 +648,6 @@ TYPE ETABLISSEMENT
   border-top: 1px solid var(--etab-border);
 }
 
-.btn-primary,
-.btn-secondary {
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  padding: 14px 24px;
-
-  border: none;
-
-  border-radius: 12px;
-
-  cursor: pointer;
-
-  font-size: 0.95rem;
-
-  font-weight: 600;
-
-  transition: 0.3s;
-}
-
-.btn-primary {
-  background: var(--etab-primary);
-
-  color: #fff;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-
-  box-shadow: 0 10px 15px rgba(21, 101, 192, 0.25);
-}
-
-.btn-secondary {
-  background: #ffcc00;
-
-  color: var(--etab-text);
-}
-
-.btn-secondary:hover {
-  transform: translateY(-2px);
-
-  box-shadow: 0 10px 15px rgba(255, 200, 0, 0.25);
-}
 
 #btnPrecedent {
   visibility: hidden;
@@ -2468,5 +2377,177 @@ TIME INPUT
   .form-row {
     grid-template-columns: 1fr;
     gap: 15px;
+  }
+}
+
+/*==================================================
+    RESPONSIVE DE L'ASSISTANT (établissements et unités)
+    Complète les règles ci-dessus : cartes, grilles et étapes s'adaptent jusqu'à 320 px.
+==================================================*/
+
+.carte-header {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.carte-titre {
+  min-width: 0;
+}
+
+.carte-titre h3 {
+  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.5rem);
+  font-weight: 700;
+}
+
+.carte-formulaire {
+  border-radius: var(--ds-radius-lg, 20px);
+  box-shadow: var(--ds-shadow-sm, none);
+}
+
+.types-etablissements {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.wizard-footer {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.logo-card {
+  max-width: 100%;
+}
+
+@media (max-width: 991.98px) {
+  .carte-header {
+    padding: 22px 24px;
+  }
+
+  .carte-body {
+    padding: 24px;
+  }
+
+  .grille-formulaire {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Étapes : 6 pastilles tiennent dans la largeur, seul l'intitulé de l'étape en cours reste affiché */
+  .wizard-stepper {
+    overflow: visible;
+    margin-bottom: 24px;
+  }
+
+  .stepper-items {
+    min-width: 0;
+  }
+
+  .etape-cercle {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .stepper-track,
+  .stepper-progress {
+    top: 29px;
+  }
+
+  .etape span {
+    display: none;
+  }
+
+  .etape.active span {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .wizard-stepper {
+    padding-bottom: 28px;
+  }
+
+  .carte-header {
+    padding: 18px;
+  }
+
+  .carte-titre {
+    gap: 12px;
+  }
+
+  .carte-icone {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 18px;
+  }
+
+  .carte-titre p {
+    font-size: 0.85rem;
+  }
+
+  .badge-etape {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+
+  .carte-body {
+    padding: 18px;
+  }
+
+  .grille-formulaire,
+  .form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .types-etablissements {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .wizard-footer > * {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .types-etablissements {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.types-etablissements .carte-type,
+.equipements-section .carte-type {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .equipements-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .equipements-section .carte-type-body {
+    padding: 12px;
+  }
+
+  .equipements-section .type-icone {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .equipements-section .carte-type-body h4,
+  .equipements-section .carte-type-body strong {
+    font-size: 0.8rem;
   }
 }

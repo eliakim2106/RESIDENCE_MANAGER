@@ -40,7 +40,7 @@
                     <th>Icône</th>
                     <th>Nom</th>
                     <th>Description</th>
-                    <th>Status</th>
+                    <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -48,10 +48,10 @@
             <tbody>
                 @forelse ($types as $type)
                     <tr>
-                        <td>#{{ $type->id }}</td>
+                        <td class="cell-muted cell-id">#{{ $type->id }}</td>
                         <td><i class="fa-solid {{ $type->fa_icon }}"></i></td>
-                        <td>{{ $type->name }}</td>
-                        <td>{{ $type->description }}</td>
+                        <td class="cell-main">{{ $type->name }}</td>
+                        <td><span class="cell-clamp">{{ $type->description }}</span></td>
                         <td>
                             @if ($type->is_active)
                                 <span class="badge-success">Actif</span>

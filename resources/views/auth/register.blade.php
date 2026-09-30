@@ -12,7 +12,7 @@
 
         <div class="auth-banner">
 
-            <div class="overlay"></div>
+            <div class="auth-overlay"></div>
 
             <div class="banner-content">
 
@@ -32,7 +32,7 @@
 
                 </p>
 
-                <div class="stats">
+                <div class="auth-stats">
 
                     <div class="stat-box">
 
@@ -110,7 +110,7 @@
 
                                 <h3>Client</h3>
 
-                                <p style="text-align:left;">
+                                <p>
                                     suivre vos réservations et retrouver facilement votre historique de séjour
                                 </p>
 
@@ -136,7 +136,7 @@
 
                                 <h3>Propriétaire</h3>
 
-                                <p style="text-align:left;">
+                                <p>
                                     Gérez vos établissements, réservations et revenus.
                                 </p>
 

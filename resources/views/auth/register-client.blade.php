@@ -10,7 +10,7 @@
 
         <div class="auth-banner">
 
-            <div class="overlay"></div>
+            <div class="auth-overlay"></div>
 
             <div class="banner-content">
 
@@ -65,9 +65,9 @@
 
                     @csrf
 
-                    <div class="form-row">
+                    <div class="auth-row">
 
-                        <div class="input-group">
+                        <div class="auth-field">
 
                             <label>Nom</label>
 
@@ -75,7 +75,7 @@
 
                         </div>
 
-                        <div class="input-group">
+                        <div class="auth-field">
 
                             <label>Prénoms</label>
 
@@ -160,7 +160,7 @@
 
                     </div>
 
-                    <div class="input-group">
+                    <div class="auth-field">
 
                         <label>Email</label>
 
@@ -168,9 +168,9 @@
 
                     </div>
 
-                    <div class="form-row">
+                    <div class="auth-row">
 
-                        <div class="input-group">
+                        <div class="auth-field">
 
                             <label>Pays</label>
 
@@ -212,7 +212,7 @@
 
                         </div>
 
-                        <div class="input-group">
+                        <div class="auth-field">
 
                             <label>Ville</label>
 
@@ -223,9 +223,9 @@
 
                     </div>
 
-                    <div class="form-row">
+                    <div class="auth-row">
 
-                        <div class="input-group">
+                        <div class="auth-field">
 
                             <label>Mot de passe</label>
 
@@ -243,7 +243,7 @@
 
                         </div>
 
-                        <div class="input-group">
+                        <div class="auth-field">
 
                             <label>Confirmer le mot de passe</label>
 
@@ -275,7 +275,7 @@
 
                     </label>
 
-                    <div class="form-actions">
+                    <div class="auth-actions">
 
                         <a href="{{ route('register') }}" class="btn-back">
 

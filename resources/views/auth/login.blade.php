@@ -8,7 +8,7 @@
 
         <div class="auth-banner">
 
-            <div class="overlay"></div>
+            <div class="auth-overlay"></div>
 
             <div class="banner-content">
 
@@ -24,7 +24,7 @@
                     réservations et revenus.
                 </p>
 
-                <div class="stats">
+                <div class="auth-stats">
 
                     <div class="stat-box">
                         <h3>5000+</h3>
@@ -65,7 +65,7 @@
 
                     @csrf
 
-                    <div class="input-group">
+                    <div class="auth-field">
 
                         <label>Email</label>
 
@@ -74,11 +74,11 @@
 
                     </div>
 
-                    <div class="input-group">
+                    <div class="auth-field">
 
                         <label>Mot de passe</label>
 
-                        <div class="password-wrapper" style="width: 100%;">
+                        <div class="password-wrapper">
 
                             <input type="password" id="password" name="password" placeholder="********" required>
 

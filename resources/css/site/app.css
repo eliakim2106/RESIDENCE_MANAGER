@@ -3094,3 +3094,412 @@ PAGE FILTER SECTION
   background: #b1842f;
   transform: translateY(-2px);
 }
+/* =====================================================================
+   COUCHE RESPONSIVE DU SITE PUBLIC
+   Typographie fluide, grilles adaptatives et mises en page mobiles.
+   Points de rupture : 1200, 992 (menu repliable), 768, 576.
+===================================================================== */
+
+img {
+  max-width: 100%;
+}
+
+/* Typographie fluide */
+.hero-title {
+  font-size: clamp(2.25rem, 1.1rem + 4.6vw, 4.5rem);
+  letter-spacing: -0.02em;
+}
+
+.hero-description {
+  font-size: clamp(1rem, 0.9rem + 0.6vw, 1.375rem);
+}
+
+.section-header h2 {
+  font-size: clamp(1.75rem, 1.1rem + 2.4vw, 3rem);
+  letter-spacing: -0.01em;
+}
+
+.residences-hero h1 {
+  font-size: clamp(2rem, 1.1rem + 3.6vw, 3.75rem);
+}
+
+.residence-cta-card h2 {
+  font-size: clamp(1.6rem, 1rem + 2.4vw, 3rem);
+}
+
+.details-title {
+  font-size: clamp(1.75rem, 1rem + 3vw, 3.25rem);
+  line-height: 1.15;
+}
+
+.residence-topbar h2 {
+  font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+}
+
+.stat-item h3 {
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.6rem);
+}
+
+.stat-item i {
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.8rem);
+}
+
+/* Rythme vertical des sections */
+.testimonials-section,
+.contact-section,
+.stats-section {
+  padding-block: clamp(64px, 9vw, 120px);
+}
+
+/* Grilles adaptatives */
+.testimonials-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  margin-top: clamp(32px, 5vw, 60px);
+}
+
+.similar-residences-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+}
+
+.search-item {
+  min-width: 0;
+}
+
+.search-btn {
+  min-width: 0;
+}
+
+.equipment-card {
+  min-width: 0;
+}
+
+.equipments-grid .equipment-card > div {
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+.details-actions .action-btn {
+  white-space: nowrap;
+}
+
+.equipment-card strong {
+  overflow-wrap: anywhere;
+}
+
+/* Menu */
+@media (max-width: 991.98px) {
+  .navbar {
+    padding: 10px 0;
+    background: rgba(10, 31, 68, 0.96);
+  }
+
+  .logo {
+    height: 46px;
+  }
+
+  .navbar-toggler {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.35);
+  }
+
+  .navbar-collapse {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .navbar-nav {
+    gap: 4px;
+    align-items: stretch !important;
+  }
+
+  .navbar-nav .nav-item.ms-3 {
+    margin-left: 0 !important;
+    margin-top: 8px;
+  }
+
+  .nav-link {
+    padding: 12px 14px !important;
+    border-radius: 10px;
+  }
+
+  .nav-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: none;
+  }
+
+  .nav-link::after {
+    display: none;
+  }
+
+  .btn-login {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Recherche */
+  .search-card {
+    align-items: stretch;
+    animation: none;
+  }
+
+  /* Contact */
+  .contact-wrapper {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  /* Fiche résidence : une seule colonne, la réservation passe sous la galerie */
+  .details-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .details-sidebar {
+    position: static;
+  }
+
+  .gallery-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery-main {
+    height: clamp(260px, 56vw, 520px);
+  }
+
+  .gallery-side {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    height: clamp(80px, 16vw, 150px);
+  }
+
+  .property-meta,
+  .quick-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .equipments-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .residence-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1199.98px) and (min-width: 992px) {
+  .details-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Accueil */
+  .hero {
+    height: auto;
+    min-height: 100svh;
+    padding: 110px 0 140px;
+  }
+
+  .hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-book,
+  .btn-discover {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .search-section {
+    margin-top: -100px;
+  }
+
+  .search-card {
+    padding: 20px;
+    gap: 14px;
+  }
+
+  .search-item input,
+  .search-item select {
+    font-size: 16px;
+  }
+
+  .search-btn {
+    height: 54px;
+    font-size: 17px;
+  }
+
+  .stats-section {
+    background-attachment: scroll;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 16px;
+    padding: 24px 0;
+  }
+
+  .testimonial-card {
+    padding: 24px;
+  }
+
+  .quote {
+    font-size: 44px;
+  }
+
+  .contact-form-card {
+    padding: 24px;
+  }
+
+  .form-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .info-card {
+    padding: 18px;
+  }
+
+  .info-card i {
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .cta-box {
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  .cta-box .text-end {
+    text-align: center !important;
+    margin-top: 20px;
+  }
+
+  /* Résidences */
+  .filter-section {
+    margin-top: -50px;
+  }
+
+  .filter-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+    gap: 14px;
+  }
+
+  .filter-btn {
+    width: 100%;
+  }
+
+  .residence-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  /* Fiche résidence */
+  .details-page {
+    padding-top: 90px;
+    padding-bottom: 80px;
+  }
+
+  .details-container {
+    width: 100%;
+    margin: 0;
+    padding: 0 16px;
+  }
+
+  .gallery-container {
+    padding: 0;
+  }
+
+  .gallery-main {
+    border-radius: 18px;
+  }
+
+  .gallery-thumb,
+  .gallery-last {
+    border-radius: 12px;
+  }
+
+  .gallery-overlay strong {
+    font-size: 16px;
+  }
+
+  .gallery-overlay span {
+    display: none;
+  }
+
+  .details-header {
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .details-location-row,
+  .details-actions {
+    flex-wrap: wrap;
+  }
+
+  .details-actions .action-btn {
+    padding: 10px 16px;
+  }
+
+  .booking-card,
+  .reviews-card,
+  .map-card {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .equipments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .equipment-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .equipment-card strong {
+    font-size: 13px;
+    overflow-wrap: normal;
+    hyphens: auto;
+  }
+
+  .details-info-section {
+    padding: 20px;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .property-meta,
+  .quick-features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section-header p {
+    font-size: 0.95rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-card,
+  .hero-content {
+    animation: none !important;
+  }
+}

@@ -47,7 +47,7 @@
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="btn btn-login">
-                            Login
+                            Connexion
                         </a>
                     @endauth
 

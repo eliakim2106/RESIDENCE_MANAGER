@@ -42,7 +42,7 @@
                     <th>Nom</th>
                     <th>Quantité</th>
                     <th>Prix / nuit</th>
-                    <th>Status</th>
+                    <th>Statut</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -50,14 +50,14 @@
             <tbody>
                 @forelse ($unites as $unite)
                     <tr>
-                        <td>#{{ $unite->id }}</td>
+                        <td class="cell-muted cell-id">#{{ $unite->id }}</td>
                         <td>{{ $unite->property->name }}</td>
                         <td>{{ $unite->unitType->name }}</td>
-                        <td>{{ $unite->name }}</td>
+                        <td class="cell-main">{{ $unite->name }}</td>
                         <td>{{ $unite->quantity }}</td>
                         <td>
                             @if ($unite->promo_price)
-                                <del class="text-muted">{{ number_format($unite->base_price, 0, ',', ' ') }}</del>
+                                <del class="cell-muted me-1">{{ number_format($unite->base_price, 0, ',', ' ') }}</del>
                                 {{ number_format($unite->promo_price, 0, ',', ' ') }} FCFA
                             @else
                                 {{ number_format($unite->base_price, 0, ',', ' ') }} FCFA
