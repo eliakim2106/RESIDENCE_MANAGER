@@ -31,9 +31,9 @@
 
                     <li><a href="{{ route('residences.index') }}">Résidences</a></li>
 
-                    <li><a href="{{ route('home') }}#why-section">Services</a></li>
+                    <li><a href="{{ route('home') }}#services">Services</a></li>
 
-                    <li><a href="{{ route('home') }}#contact-section">Contact</a></li>
+                    <li><a href="{{ route('home') }}#contact">Contact</a></li>
 
                 </ul>
 

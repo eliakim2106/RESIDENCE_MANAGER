@@ -1,140 +1,59 @@
-<section class="testimonials-section">
+@php
+    $testimonials = [
+        ['client-1.png', 'Jean Koffi', 'Entrepreneur', 5, 'Séjour exceptionnel ! Résidence moderne, propre et parfaitement sécurisée. L’équipe a été aux petits soins du début à la fin.'],
+        ['client-2.png', 'Marie-Camille', 'Consultante', 5, 'Une expérience incroyable. Le personnel est très professionnel et l’appartement correspondait exactement aux photos.'],
+        ['client-3.png', 'Michael T.', 'Manager', 5, 'Un vrai havre de paix pour mes déplacements professionnels. Je recommande fortement DS HOLDING.'],
+    ];
+@endphp
 
+<section class="home-section home-testimonials" id="avis">
     <div class="container">
 
-        <div class="section-header">
+        <div class="home-testimonials-layout">
 
-            <h2>
-                Ce que nos clients disent de nous
-            </h2>
+            <div class="home-testimonials-intro" data-reveal>
+                <span class="home-kicker">Avis clients</span>
+                <h2 class="home-title">Ils ont séjourné <span>chez nous</span></h2>
+                <p class="home-lead">La satisfaction de nos clients est notre plus belle récompense.</p>
 
-            <p>
-                La satisfaction de nos clients est notre plus belle récompense.
-            </p>
-
-        </div>
-
-        <div class="testimonials-grid">
-
-            <!-- Témoignage 1 -->
-
-            <div class="testimonial-card">
-
-                <div class="testimonial-top">
-
-                    <span class="quote">❝</span>
-
-                    <div class="stars">
-                        ★★★★★ <span>5.0</span>
-                    </div>
-
-                </div>
-
-                <p class="testimonial-text">
-
-                    Séjour exceptionnel !
-                    Résidence moderne, propre et sécurisée.
-
-                </p>
-
-                <div class="testimonial-user">
-
-                    <img
-                        src="{{ asset('assets/images/testimonials/client-1.png') }}"
-                        alt="Jean Koffi">
-
+                <div class="home-rating-summary">
+                    <strong>4,8</strong>
                     <div>
-
-                        <h4>Jean Koffi</h4>
-
-                        <span>Entrepreneur</span>
-
+                        <span class="home-stars" aria-label="Note de 4,8 sur 5">
+                            @for ($i = 0; $i < 5; $i++)
+                                <i class="fa-solid fa-star"></i>
+                            @endfor
+                        </span>
+                        <span>Note moyenne de nos clients</span>
                     </div>
-
                 </div>
-
             </div>
 
-            <!-- Témoignage 2 -->
+            <div class="home-testimonials-track" tabindex="0" aria-label="Témoignages de clients">
+                @foreach ($testimonials as $index => [$photo, $name, $role, $stars, $text])
+                    <figure class="home-testimonial" data-reveal style="--reveal-delay: {{ $index * 120 }}ms">
+                        <i class="fa-solid fa-quote-left home-testimonial-quote"></i>
 
-            <div class="testimonial-card">
+                        <span class="home-stars" aria-label="Note de {{ $stars }} sur 5">
+                            @for ($i = 0; $i < $stars; $i++)
+                                <i class="fa-solid fa-star"></i>
+                            @endfor
+                        </span>
 
-                <div class="testimonial-top">
+                        <blockquote>{{ $text }}</blockquote>
 
-                    <span class="quote">❝</span>
-
-                    <div class="stars">
-                        ★★★★★ <span>4.8</span>
-                    </div>
-
-                </div>
-
-                <p class="testimonial-text">
-
-                    Une expérience incroyable.
-                    Le personnel est très professionnel.
-
-                </p>
-
-                <div class="testimonial-user">
-
-                    <img
-                        src="{{ asset('assets/images/testimonials/client-2.png') }}"
-                        alt="Marie">
-
-                    <div>
-
-                        <h4>Marie-Camille</h4>
-
-                        <span>Consultante</span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- Témoignage 3 -->
-
-            <div class="testimonial-card">
-
-                <div class="testimonial-top">
-
-                    <span class="quote">❝</span>
-
-                    <div class="stars">
-                        ★★★★★ <span>4.9</span>
-                    </div>
-
-                </div>
-
-                <p class="testimonial-text">
-
-                    Un vrai havre de paix.
-                    Je recommande fortement DS HOLDING.
-
-                </p>
-
-                <div class="testimonial-user">
-
-                    <img
-                        src="{{ asset('assets/images/testimonials/client-3.png') }}"
-                        alt="Michael">
-
-                    <div>
-
-                        <h4>Michael T.</h4>
-
-                        <span>Manager</span>
-
-                    </div>
-
-                </div>
-
+                        <figcaption>
+                            <img src="{{ asset('assets/images/testimonials/'.$photo) }}" alt="" loading="lazy">
+                            <span>
+                                <strong>{{ $name }}</strong>
+                                <small>{{ $role }}</small>
+                            </span>
+                        </figcaption>
+                    </figure>
+                @endforeach
             </div>
 
         </div>
 
     </div>
-
 </section>

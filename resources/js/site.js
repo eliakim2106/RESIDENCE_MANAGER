@@ -8,8 +8,12 @@ import { initAlerts } from "./alerts";
 import { initNavigation } from "./site/navigation";
 import { initResidenceDetails } from "./site/residence-details";
 import { initAuthForms } from "./site/auth";
+import { initHome } from "./site/home";
 
 window.bootstrap = bootstrap;
+
+// Le JavaScript est disponible : les animations d’apparition peuvent masquer les éléments avant leur entrée
+document.documentElement.classList.remove("no-js");
 
 // Les images du marqueur Leaflet sont servies par Vite
 L.Icon.Default.mergeOptions({
@@ -22,3 +26,4 @@ initAlerts();
 initNavigation();
 initResidenceDetails(L);
 initAuthForms();
+initHome();
