@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Models\PropertyType;
 use App\Services\GalleryManager;
 use App\Services\PropertyModeration;
+use App\Services\SubscriptionManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,11 @@ class PropertyController extends Controller
 {
     use FiltersByStatus;
 
-    public function __construct(private GalleryManager $gallery, private PropertyModeration $moderation) {}
+    public function __construct(
+        private GalleryManager $gallery,
+        private PropertyModeration $moderation,
+        private SubscriptionManager $subscriptions,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -49,9 +54,13 @@ class PropertyController extends Controller
         return view('admin.etablissements.index', compact('etablissements', 'search', 'counts', 'statut'));
     }
 
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
         Gate::authorize('create', Property::class);
+
+        if ($blocker = $this->subscriptions->propertyBlocker($request->user())) {
+            return redirect()->route('admin.abonnement.show')->with('error', $blocker);
+        }
 
         return view('admin.etablissements.create', [
             'etablissement' => new Property,
@@ -62,6 +71,10 @@ class PropertyController extends Controller
     public function store(PropertyRequest $request): RedirectResponse
     {
         Gate::authorize('create', Property::class);
+
+        if ($blocker = $this->subscriptions->propertyBlocker($request->user())) {
+            return redirect()->route('admin.abonnement.show')->with('error', $blocker);
+        }
 
         $property = DB::transaction(function () use ($request): Property {
             $property = Property::create([

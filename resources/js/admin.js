@@ -269,6 +269,35 @@ function initOccupancyGrid() {
 }
 
 /* =====================================
+   FORMULES D'ABONNEMENT
+   La bascule mensuel / annuel change les prix affichés et le cycle envoyé à la souscription.
+===================================== */
+
+function initCycleToggle() {
+  const grid = document.querySelector("[data-plans]");
+  const toggles = document.querySelectorAll("[data-cycle-toggle]");
+
+  if (!grid || toggles.length === 0) {
+    return;
+  }
+
+  const apply = (cycle) => {
+    grid.dataset.cycle = cycle;
+    grid.querySelectorAll("[data-cycle-input]").forEach((input) => {
+      input.value = cycle;
+    });
+  };
+
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("change", () => apply(toggle.value));
+
+    if (toggle.checked) {
+      apply(toggle.value);
+    }
+  });
+}
+
+/* =====================================
    PRÉCHARGEMENT
 ===================================== */
 
@@ -339,5 +368,6 @@ initDeleteModal();
 initActionModals();
 initAvatarField();
 initOccupancyGrid();
+initCycleToggle();
 initAlerts();
 initDatepickers();

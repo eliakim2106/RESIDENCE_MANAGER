@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\CancellationPolicy;
 use App\Enums\PropertyStatus;
 use App\Enums\ReviewStatus;
+use App\Enums\SubscriptionStatus;
+use App\Services\SubscriptionManager;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -251,6 +253,19 @@ class Property extends Model
     protected function published(Builder $query): void
     {
         $query->where('statut', PropertyStatus::Published);
+    }
+
+    /**
+     * Visible sur le site : publié, et propriétaire en règle quand l'abonnement est obligatoire.
+     */
+    #[Scope]
+    protected function onSite(Builder $query): void
+    {
+        $query->where('statut', PropertyStatus::Published)
+            ->when(SubscriptionManager::required(), fn (Builder $query) => $query->whereHas(
+                'owner.currentSubscription',
+                fn (Builder $query) => $query->whereIn('statut', SubscriptionStatus::goodStanding()),
+            ));
     }
 
     #[Scope]

@@ -1,0 +1,238 @@
+/* =====================================================================
+   PAIEMENTS
+   Synthèse, graphiques (encaissements, moyens de paiement), fiche d'un paiement
+   Les filtres et le tableau réutilisent les styles de la page Réservations.
+===================================================================== */
+
+/* Montants dans les cartes de synthèse */
+.resa-today-text strong.is-amount {
+  overflow: hidden;
+  font-size: 1.2rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Graphiques ---------- */
+
+.pay-charts {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Vue par jour : barres plus fines, une étiquette sur cinq */
+.rev-chart.is-dense .rev-bar {
+  width: 70%;
+  border-radius: 3px 3px 0 0;
+}
+
+.rev-label.is-hidden {
+  visibility: hidden;
+}
+
+/* Répartition par moyen de paiement : une seule teinte, la part en toutes lettres */
+.method-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.method-bars-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 0.86rem;
+}
+
+.method-bars-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ds-text);
+  font-weight: 500;
+}
+
+.method-bars-head i {
+  width: 16px;
+  color: var(--ds-muted);
+  text-align: center;
+}
+
+.method-bars-head strong {
+  color: var(--ds-navy);
+  font-weight: 700;
+}
+
+.method-bars-track {
+  display: block;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+
+.method-bars-track span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ds-blue);
+}
+
+.method-bars small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ds-muted);
+  font-size: 0.76rem;
+}
+
+/* ---------- Filtres et tableau ---------- */
+
+.filter-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.method-icon {
+  display: inline-flex;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-muted);
+}
+
+/* ---------- Fiche d'un paiement ---------- */
+
+.pay-amount-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.pay-amount-hero > strong {
+  color: var(--ds-navy);
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.pay-amount-hero p {
+  margin: 4px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.88rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+}
+
+.detail-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detail-grid dt {
+  color: var(--ds-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.detail-grid dd {
+  margin: 0;
+  color: var(--ds-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.linked-info {
+  margin-top: 16px;
+}
+
+.linked-amount {
+  margin: 18px 0 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ds-border);
+}
+
+.linked-amount-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ds-muted);
+  font-size: 0.84rem;
+}
+
+.linked-amount-line strong {
+  color: var(--ds-navy);
+  font-size: 0.9rem;
+}
+
+.linked-btn {
+  width: 100%;
+}
+
+/* Lien vers le reçu dans la liste des paiements d'une réservation */
+.receipt-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ds-blue);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.receipt-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1199.98px) {
+  .pay-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 991.98px) {
+  .filter-selects {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .filter-selects,
+  .filter-selects .list-filter,
+  .filter-selects select {
+    width: 100%;
+  }
+
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pay-amount-hero > strong {
+    font-size: 1.8rem;
+  }
+}

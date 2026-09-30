@@ -170,7 +170,12 @@ class ReservationWorkflow
         DB::transaction(function () use ($reservation): void {
             $reservation->payments()
                 ->where('statut', TransactionStatus::Accepted)
-                ->update(['statut' => TransactionStatus::Refunded, 'refunded_at' => now()]);
+                ->update([
+                    'statut' => TransactionStatus::Refunded,
+                    'refunded_amount' => DB::raw('amount'),
+                    'refunded_at' => now(),
+                    'refund_reason' => 'Réservation '.($reservation->statut === ReservationStatus::NoShow ? 'non honorée' : 'annulée'),
+                ]);
 
             $reservation->update([
                 'amount_paid' => 0,
@@ -181,6 +186,49 @@ class ReservationWorkflow
         $this->notifyGuest($reservation, ReservationUpdated::REFUNDED, $amount);
 
         return $amount;
+    }
+
+    /**
+     * Rembourse tout ou partie d'un paiement encaissé (geste commercial, erreur de saisie, séjour écourté…).
+     * Le solde de la réservation est recalculé ; le client est prévenu.
+     */
+    public function refundPayment(Payment $payment, int $amount, ?string $reason): void
+    {
+        if (! $payment->isAccepted()) {
+            throw new WorkflowException('Seul un paiement encaissé peut être remboursé.');
+        }
+
+        $refundable = $payment->refundableAmount();
+
+        if ($amount < 1 || $amount > $refundable) {
+            throw new WorkflowException('Le montant doit être compris entre 1 et '.number_format($refundable, 0, ',', ' ').' FCFA.');
+        }
+
+        $reservation = $payment->reservation;
+
+        DB::transaction(function () use ($payment, $amount, $reason, $reservation): void {
+            $refunded = $payment->refunded_amount + $amount;
+
+            $payment->update([
+                'refunded_amount' => $refunded,
+                'statut' => $refunded >= $payment->amount ? TransactionStatus::Refunded : TransactionStatus::Accepted,
+                'refunded_at' => now(),
+                'refund_reason' => $reason,
+            ]);
+
+            $paid = max(0, $reservation->amount_paid - $amount);
+
+            $reservation->update([
+                'amount_paid' => $paid,
+                'payment_state' => match (true) {
+                    $paid === 0 => PaymentState::Refunded,
+                    $paid >= $reservation->total_amount => PaymentState::Paid,
+                    default => PaymentState::Partial,
+                },
+            ]);
+        });
+
+        $this->notifyGuest($reservation, ReservationUpdated::REFUNDED, $amount);
     }
 
     /*

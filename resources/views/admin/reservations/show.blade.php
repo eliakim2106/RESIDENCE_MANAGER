@@ -313,7 +313,11 @@
                             <li>
                                 <span class="cell-icon"><i class="fa-solid {{ $methodIcon($payment->method) }}"></i></span>
                                 <span class="resa-unit-text">
-                                    <strong>{{ $payment->method?->label() ?? 'Paiement' }}{{ $payment->operator ? ' · '.$payment->operator : '' }}</strong>
+                                    @if ($canManage)
+                                        <a href="{{ route('admin.paiements.show', $payment) }}" class="cell-title-link"><strong>{{ $payment->method?->label() ?? 'Paiement' }}{{ $payment->operator ? ' · '.$payment->operator : '' }}</strong></a>
+                                    @else
+                                        <strong>{{ $payment->method?->label() ?? 'Paiement' }}{{ $payment->operator ? ' · '.$payment->operator : '' }}</strong>
+                                    @endif
                                     <small>
                                         {{ ($payment->paid_at ?? $payment->created_at)->translatedFormat('d M Y à H:i') }} · {{ $payment->operator_reference ?: $payment->transaction_id }}
                                         @if ($payment->refunded_at)
@@ -324,6 +328,9 @@
                                 <span class="resa-payment-end">
                                     <span class="resa-unit-amount">{{ $money($payment->amount) }}</span>
                                     <span class="status-pill status-{{ $payment->statut->tone() }}">{{ $payment->statut->label() }}</span>
+                                    @if (in_array($payment->statut, [App\Enums\TransactionStatus::Accepted, App\Enums\TransactionStatus::Refunded], true))
+                                        <a href="{{ route('admin.paiements.receipt', $payment) }}" class="receipt-link" target="_blank" rel="noopener"><i class="fa-solid fa-receipt"></i> Reçu</a>
+                                    @endif
                                 </span>
                             </li>
                         @endforeach

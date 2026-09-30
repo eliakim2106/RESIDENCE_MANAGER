@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\ActiveStatus;
 use App\Enums\MaintenanceStatus;
-use App\Enums\PropertyStatus;
 use App\Models\Availability;
 use App\Models\City;
 use App\Models\Equipment;
@@ -110,7 +109,7 @@ class ResidenceSearch
         $matchingUnits = fn (Builder $units) => $this->constrainUnits($units);
 
         $query = Property::query()
-            ->published()
+            ->onSite()
             ->select('properties.*')
             ->addSelect([
                 // Prix de la nuit le plus bas parmi les unités qui répondent à la recherche
@@ -246,7 +245,7 @@ class ResidenceSearch
     public function cities(): Collection
     {
         return City::active()
-            ->withCount(['properties' => fn (Builder $query) => $query->where('statut', PropertyStatus::Published)])
+            ->withCount(['properties' => fn (Builder $query) => $query->onSite()])
             ->orderBy('name')
             ->get()
             ->filter(fn (City $city): bool => $city->properties_count > 0)
@@ -260,7 +259,7 @@ class ResidenceSearch
     public function propertyTypes(): Collection
     {
         return PropertyType::active()
-            ->withCount(['properties' => fn (Builder $query) => $query->where('statut', PropertyStatus::Published)])
+            ->withCount(['properties' => fn (Builder $query) => $query->onSite()])
             ->orderBy('name')
             ->get()
             ->filter(fn (PropertyType $type): bool => $type->properties_count > 0)
@@ -284,7 +283,7 @@ class ResidenceSearch
     {
         $bounds = Unit::query()
             ->where('statut', ActiveStatus::Active)
-            ->whereHas('property', fn (Builder $query) => $query->published())
+            ->whereHas('property', fn (Builder $query) => $query->onSite())
             ->selectRaw('MIN(COALESCE(promo_price, base_price)) AS min_price, MAX(COALESCE(promo_price, base_price)) AS max_price')
             ->first();
 

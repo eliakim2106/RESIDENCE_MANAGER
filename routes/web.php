@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OwnerSubscriptionController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PropertyController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyValidationController;
 use App\Http\Controllers\Admin\ReservationCalendarController;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypeController;
 use App\Http\Controllers\Admin\UserController;
@@ -256,13 +259,90 @@ Route::prefix('admin/reservations')
             ->name('payments.store');
     });
 
-// Paiements
+// Paiements : un paiement est désigné par son identifiant de transaction.
+// Le reçu est aussi accessible au client, pour ses propres paiements (PaymentPolicy).
 Route::prefix('admin/paiements')
     ->name('admin.paiements.')
-    ->middleware(['auth', 'verified', 'role:super_admin,admin,owner'])
+    ->middleware(['auth', 'verified'])
     ->group(function () {
-        Route::get('/', [PaymentController::class, 'index'])
+        Route::get('/{paiement}/recu', [PaymentController::class, 'receipt'])
+            ->name('receipt');
+
+        Route::middleware('role:super_admin,admin,owner')->group(function () {
+            Route::get('/', [PaymentController::class, 'index'])
+                ->name('index');
+            Route::get('/export', [PaymentController::class, 'export'])
+                ->name('export');
+            Route::get('/{paiement}', [PaymentController::class, 'show'])
+                ->name('show');
+            Route::patch('/{paiement}/rembourser', [PaymentController::class, 'refund'])
+                ->name('refund');
+        });
+    });
+
+// =========================
+// ABONNEMENTS DES PROPRIÉTAIRES
+// =========================
+// Formules et suivi : administrateurs. « Mon abonnement » : propriétaire.
+
+// Formules d'abonnement et réglages
+Route::prefix('admin/formules')
+    ->name('admin.formules.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
+    ->group(function () {
+        Route::get('/', [SubscriptionPlanController::class, 'index'])
             ->name('index');
+        Route::get('/creer', [SubscriptionPlanController::class, 'create'])
+            ->name('create');
+        Route::post('/', [SubscriptionPlanController::class, 'store'])
+            ->name('store');
+        Route::put('/reglages', [SubscriptionPlanController::class, 'updateSettings'])
+            ->name('settings');
+        Route::get('/{formule}/modifier', [SubscriptionPlanController::class, 'edit'])
+            ->name('edit');
+        Route::put('/{formule}', [SubscriptionPlanController::class, 'update'])
+            ->name('update');
+        Route::delete('/{formule}', [SubscriptionPlanController::class, 'destroy'])
+            ->name('destroy');
+    });
+
+// Abonnements des propriétaires et factures
+Route::prefix('admin/abonnements')
+    ->name('admin.abonnements.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
+    ->group(function () {
+        Route::get('/', [SubscriptionController::class, 'index'])
+            ->name('index');
+        Route::post('/', [SubscriptionController::class, 'store'])
+            ->name('store');
+        Route::get('/{abonnement}', [SubscriptionController::class, 'show'])
+            ->name('show');
+        Route::patch('/{abonnement}/formule', [SubscriptionController::class, 'changePlan'])
+            ->name('plan');
+        Route::patch('/{abonnement}/prolonger-essai', [SubscriptionController::class, 'extendTrial'])
+            ->name('extend');
+        Route::patch('/{abonnement}/resilier', [SubscriptionController::class, 'cancel'])
+            ->name('cancel');
+        Route::patch('/factures/{facture}/payer', [SubscriptionController::class, 'markPaid'])
+            ->name('invoices.pay');
+        Route::patch('/factures/{facture}/annuler', [SubscriptionController::class, 'cancelInvoice'])
+            ->name('invoices.cancel');
+    });
+
+// Mon abonnement (propriétaire) ; la facture imprimable est aussi ouverte aux administrateurs
+Route::prefix('admin/mon-abonnement')
+    ->name('admin.abonnement.')
+    ->middleware(['auth', 'verified'])
+    ->group(function () {
+        Route::get('/factures/{facture}', [OwnerSubscriptionController::class, 'invoice'])
+            ->name('invoice');
+
+        Route::middleware('role:owner')->group(function () {
+            Route::get('/', [OwnerSubscriptionController::class, 'show'])
+                ->name('show');
+            Route::post('/', [OwnerSubscriptionController::class, 'subscribe'])
+                ->name('subscribe');
+        });
     });
 
 // =========================

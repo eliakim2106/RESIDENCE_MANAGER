@@ -19,6 +19,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Indicateurs du tableau de bord.
@@ -147,7 +148,7 @@ class DashboardStats
 
         $payments = $this->acceptedPayments()
             ->whereBetween('paid_at', [$start, now()->endOfMonth()])
-            ->get(['amount', 'paid_at'])
+            ->get(['amount', 'refunded_amount', 'paid_at'])
             ->groupBy(fn (Payment $payment) => $payment->paid_at->format('Y-m'));
 
         return collect(range(0, $months - 1))
@@ -157,7 +158,7 @@ class DashboardStats
                 return [
                     'label' => $month->translatedFormat('M'),
                     'long' => $month->translatedFormat('F Y'),
-                    'value' => (int) ($payments->get($month->format('Y-m'))?->sum('amount') ?? 0),
+                    'value' => (int) ($payments->get($month->format('Y-m'))?->sum(fn (Payment $payment) => $payment->netAmount()) ?? 0),
                     'current' => $month->isSameMonth(now()),
                 ];
             })
@@ -266,7 +267,7 @@ class DashboardStats
     public function propertyPerformance(?int $limit = 5): Collection
     {
         $revenue = Payment::query()
-            ->selectRaw('COALESCE(SUM(payments.amount), 0)')
+            ->selectRaw('COALESCE(SUM(payments.amount - payments.refunded_amount), 0)')
             ->join('reservations', 'reservations.id', '=', 'payments.reservation_id')
             ->whereColumn('reservations.property_id', 'properties.id')
             ->where('payments.statut', TransactionStatus::Accepted);
@@ -307,7 +308,7 @@ class DashboardStats
         $paid = (int) Payment::query()
             ->where('statut', TransactionStatus::Accepted)
             ->whereIn('reservation_id', (clone $reservations)->select('id'))
-            ->sum('amount');
+            ->sum(DB::raw('amount - refunded_amount'));
 
         return [
             ['label' => 'Séjours effectués', 'value' => (string) (clone $reservations)->where('statut', ReservationStatus::Completed)->count(), 'icon' => 'fa-suitcase-rolling'],
@@ -338,7 +339,7 @@ class DashboardStats
 
     private function revenueBetween(Carbon $from, Carbon $to): int
     {
-        return (int) $this->acceptedPayments()->whereBetween('paid_at', [$from, $to])->sum('amount');
+        return (int) $this->acceptedPayments()->whereBetween('paid_at', [$from, $to])->sum(DB::raw('amount - refunded_amount'));
     }
 
     private function staysStartingIn(Carbon $month): int

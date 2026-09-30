@@ -20,11 +20,17 @@
         ? App\Models\Property::query()->where('statut', App\Enums\PropertyStatus::Pending)->count()
         : 0;
 
+    // Factures d'abonnement à encaisser (administrateurs)
+    $unpaidInvoices = $user->isAdmin()
+        ? App\Models\SubscriptionInvoice::query()->where('statut', App\Enums\InvoiceStatus::Unpaid)->count()
+        : 0;
+
     // Chaque lien : titre, icône, route, préfixe de route pour l'état actif, rôles autorisés, compteur (facultatif)
     $sections = [
         'Activité' => [
             [$user->hasRole(...$management) ? 'Réservations' : 'Mes réservations', 'fa-solid fa-calendar-check', 'admin.reservations.index', 'admin.reservations.', $everyone, $pendingReservations],
             ['Paiements', 'fa-solid fa-wallet', 'admin.paiements.index', 'admin.paiements.', $management],
+            ['Mon abonnement', 'fa-solid fa-id-card', 'admin.abonnement.show', 'admin.abonnement.', [UserRole::Owner]],
         ],
         'Hébergements' => [
             ['Établissements', 'fa-solid fa-building', 'admin.etablissements.index', 'admin.etablissements.', $management],
@@ -38,6 +44,8 @@
         ],
         'Administration' => [
             ['Utilisateurs', 'fa-solid fa-users', 'admin.utilisateurs.index', 'admin.utilisateurs.', $backOffice],
+            ['Abonnements', 'fa-solid fa-id-card', 'admin.abonnements.index', 'admin.abonnements.', $backOffice, $unpaidInvoices],
+            ['Formules', 'fa-solid fa-layer-group', 'admin.formules.index', 'admin.formules.', $backOffice],
         ],
     ];
 @endphp

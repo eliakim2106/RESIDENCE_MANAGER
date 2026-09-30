@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ActiveStatus;
+use App\Enums\BillingCycle;
 use App\Enums\CancellationPolicy;
 use App\Models\City;
 use App\Models\Equipment;
@@ -12,11 +14,13 @@ use App\Models\PropertyType;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Review;
+use App\Models\SubscriptionPlan;
 use App\Models\Unit;
 use App\Models\UnitImage;
 use App\Models\UnitRate;
 use App\Models\UnitType;
 use App\Models\User;
+use App\Services\SubscriptionManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -46,6 +50,10 @@ class DemoSeeder extends Seeder
         $clients = collect([
             User::factory()->create(['name' => 'Client Démo', 'email' => 'client@dsholding.ci']),
         ])->merge(User::factory()->count(12)->create());
+
+        // Formules d'exemple (prix fictifs, à ajuster dans Administration > Formules) ; essai pour chaque propriétaire
+        $plans = $this->demoPlans();
+        $owners->each(fn (User $owner) => app(SubscriptionManager::class)->subscribe($owner, $plans['pro'], BillingCycle::Monthly));
 
         $cities = City::all();
         $propertyTypes = PropertyType::all();
@@ -165,6 +173,54 @@ class DemoSeeder extends Seeder
         }
 
         $property->refreshRating();
+    }
+
+    /**
+     * Formules d'exemple pour la démonstration : les prix sont fictifs.
+     *
+     * @return array<string, SubscriptionPlan>
+     */
+    private function demoPlans(): array
+    {
+        return [
+            'essentiel' => SubscriptionPlan::create([
+                'name' => 'Essentiel',
+                'description' => 'Pour démarrer avec une villa ou quelques appartements.',
+                'monthly_price' => 10000,
+                'yearly_price' => 100000,
+                'max_properties' => 1,
+                'max_units' => 5,
+                'trial_days' => 30,
+                'features' => ['Réservations et paiements en ligne', 'Calendrier d’occupation'],
+                'position' => 1,
+                'statut' => ActiveStatus::Active,
+            ]),
+            'pro' => SubscriptionPlan::create([
+                'name' => 'Pro',
+                'description' => 'Pour les résidences et les petits hôtels.',
+                'monthly_price' => 25000,
+                'yearly_price' => 250000,
+                'max_properties' => 3,
+                'max_units' => 30,
+                'trial_days' => 30,
+                'features' => ['Réservations et paiements en ligne', 'Calendrier d’occupation', 'Export des réservations et paiements'],
+                'is_featured' => true,
+                'position' => 2,
+                'statut' => ActiveStatus::Active,
+            ]),
+            'entreprise' => SubscriptionPlan::create([
+                'name' => 'Entreprise',
+                'description' => 'Pour les groupes hôteliers et les gestionnaires de plusieurs établissements.',
+                'monthly_price' => 60000,
+                'yearly_price' => 600000,
+                'max_properties' => null,
+                'max_units' => null,
+                'trial_days' => 30,
+                'features' => ['Réservations et paiements en ligne', 'Calendrier d’occupation', 'Export des réservations et paiements', 'Accompagnement prioritaire'],
+                'position' => 3,
+                'statut' => ActiveStatus::Active,
+            ]),
+        ];
     }
 
     /**

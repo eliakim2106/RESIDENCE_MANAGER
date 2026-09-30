@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Models\Unit;
 use App\Models\UnitType;
 use App\Services\GalleryManager;
+use App\Services\SubscriptionManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class UnitController extends Controller
 {
     use FiltersByStatus;
 
-    public function __construct(private GalleryManager $gallery) {}
+    public function __construct(private GalleryManager $gallery, private SubscriptionManager $subscriptions) {}
 
     public function index(Request $request): View
     {
@@ -48,9 +49,13 @@ class UnitController extends Controller
         return view('admin.unites.index', compact('unites', 'search', 'counts', 'statut'));
     }
 
-    public function create(Property $etablissement): View
+    public function create(Request $request, Property $etablissement): View|RedirectResponse
     {
         Gate::authorize('update', $etablissement);
+
+        if ($request->user()->isOwner() && ($blocker = $this->subscriptions->unitBlocker($request->user()))) {
+            return redirect()->route('admin.abonnement.show')->with('error', $blocker);
+        }
 
         return view('admin.unites.create', [
             'etablissement' => $etablissement,
@@ -62,6 +67,10 @@ class UnitController extends Controller
     public function store(UnitRequest $request, Property $etablissement): RedirectResponse
     {
         Gate::authorize('update', $etablissement);
+
+        if ($request->user()->isOwner() && ($blocker = $this->subscriptions->unitBlocker($request->user()))) {
+            return redirect()->route('admin.abonnement.show')->with('error', $blocker);
+        }
 
         DB::transaction(function () use ($request, $etablissement): void {
             $unit = $etablissement->units()->create($request->unitAttributes());
