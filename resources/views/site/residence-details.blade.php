@@ -37,5 +37,24 @@
 
     </div>
 
+    {{-- Mobile et tablette : barre de réservation flottante, mène à la carte de réservation --}}
+    <div class="booking-bar" id="bookingBar">
+        <div class="booking-bar-price">
+            <span class="booking-bar-amount">
+                <strong>35 000 FCFA</strong>
+                <span>/ nuit</span>
+            </span>
+            <small>
+                <i class="fa-solid fa-star"></i>
+                4.8 · 124 avis
+            </small>
+        </div>
+
+        <a href="#reservation" class="booking-bar-btn" data-scroll-to-booking>
+            <i class="fa-regular fa-calendar-check"></i>
+            <span>Réserver <span class="booking-bar-btn-extra">maintenant</span></span>
+        </a>
+    </div>
+
     @include('site.partials.footer')
 @endsection

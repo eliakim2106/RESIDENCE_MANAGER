@@ -73,7 +73,48 @@ function initGallery() {
   updateImage();
 }
 
+/* =====================================
+   BARRE DE RÉSERVATION MOBILE
+   Le bouton mène à la carte de réservation ; la barre s'efface quand cette carte est à l'écran.
+===================================== */
+
+function initBookingBar() {
+  const bar = document.getElementById("bookingBar");
+  const bookingCard = document.getElementById("reservation");
+
+  if (!bar || !bookingCard) {
+    return;
+  }
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  bar.querySelector("[data-scroll-to-booking]")?.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    bookingCard.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+
+    // Mise en évidence puis focus sur la date d'arrivée, une fois le défilement terminé
+    setTimeout(() => {
+      bookingCard.classList.remove("is-highlighted");
+      void bookingCard.offsetWidth;
+      bookingCard.classList.add("is-highlighted");
+
+      document.getElementById("booking-check-in")?.focus({ preventScroll: true });
+    }, reduceMotion ? 0 : 450);
+
+    history.replaceState(null, "", "#reservation");
+  });
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(
+      ([entry]) => bar.classList.toggle("is-hidden", entry.isIntersecting),
+      { threshold: 0.25 },
+    ).observe(bookingCard);
+  }
+}
+
 export function initResidenceDetails(L) {
   initMap(L);
   initGallery();
+  initBookingBar();
 }

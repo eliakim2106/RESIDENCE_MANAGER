@@ -1,4 +1,4 @@
-<section class="reviews-card">
+<section class="reviews-card" id="reviews">
 
     <div class="reviews-header">
 

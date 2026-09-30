@@ -1,32 +1,43 @@
-<section class="booking-card">
+<section class="booking-card" id="reservation" tabindex="-1" aria-labelledby="booking-title">
 
-    <h3>
-        Réserver votre séjour
-    </h3>
+    <div class="booking-card-header">
+        <h3 id="booking-title">
+            Réserver votre séjour
+        </h3>
+
+        <span class="booking-card-rating">
+            <i class="fa-solid fa-star"></i>
+            4.8
+        </span>
+    </div>
 
     <div class="booking-form">
 
-        <div class="form-group">
+        <div class="booking-dates">
 
-            <label>Date d'arrivée</label>
+            <div class="form-group">
 
-            <input type="date">
+                <label for="booking-check-in">Date d'arrivée</label>
+
+                <input type="date" id="booking-check-in">
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="booking-check-out">Date de départ</label>
+
+                <input type="date" id="booking-check-out">
+
+            </div>
 
         </div>
 
         <div class="form-group">
 
-            <label>Date de départ</label>
+            <label for="booking-guests">Voyageurs</label>
 
-            <input type="date">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>Voyageurs</label>
-
-            <select>
+            <select id="booking-guests">
 
                 <option>1 voyageur</option>
                 <option>2 voyageurs</option>
@@ -45,7 +56,7 @@
 
         </div>
 
-        <button class="btn-booking">
+        <button type="button" class="btn-booking">
 
             Vérifier la disponibilité
 

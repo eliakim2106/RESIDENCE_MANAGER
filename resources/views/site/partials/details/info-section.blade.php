@@ -43,7 +43,7 @@
                 <i class="fa-regular fa-heart"></i>
 
                 <span>
-                    Ajouter aux favoris
+                    <span class="action-btn-extra">Ajouter aux </span>favoris
                 </span>
 
             </button>

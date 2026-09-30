@@ -3503,3 +3503,277 @@ img {
     animation: none !important;
   }
 }
+
+/* =====================================================================
+   FICHE RÉSIDENCE : CARTE DE RÉSERVATION ET BARRE FLOTTANTE MOBILE
+===================================================================== */
+
+.booking-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.booking-card .booking-card-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  text-align: left;
+  color: #0a1f44;
+}
+
+.booking-card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fdf6e3;
+  color: #0a1f44;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.booking-card-rating i {
+  color: #d4af37;
+  font-size: 0.8rem;
+}
+
+.booking-dates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+/* Arrivée par le bouton flottant : décalage sous la barre de navigation fixe et mise en évidence */
+#reservation,
+#reviews,
+#map {
+  scroll-margin-top: 96px;
+}
+
+.booking-card:focus {
+  outline: none;
+}
+
+.booking-card.is-highlighted {
+  animation: bookingHighlight 1.6s ease;
+}
+
+@keyframes bookingHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55);
+  }
+
+  40% {
+    box-shadow: 0 0 0 10px rgba(212, 175, 55, 0.25);
+  }
+
+  100% {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.booking-bar {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  /* Ordre de lecture mobile : galerie, informations, réservation, avis, carte, résidences similaires */
+  .details-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .details-main,
+  .details-sidebar {
+    display: contents;
+  }
+
+  .details-main > *,
+  .details-sidebar > * {
+    margin-bottom: 0 !important;
+  }
+
+  .gallery-section {
+    order: 1;
+  }
+
+  .details-info-section {
+    order: 2;
+  }
+
+  .booking-card {
+    order: 3;
+  }
+
+  .reviews-card {
+    order: 4;
+  }
+
+  .map-card {
+    order: 5;
+  }
+
+  .similar-residences-section {
+    order: 6;
+  }
+
+  .booking-dates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  /* Barre flottante */
+  .booking-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e6eaf2;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 -10px 30px rgba(10, 31, 68, 0.12);
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .booking-bar.is-hidden {
+    transform: translateY(110%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .booking-bar-price {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .booking-bar-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .booking-bar-amount strong {
+    color: #0a1f44;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+
+  .booking-bar-amount span {
+    color: #64748b;
+    font-size: 0.8rem;
+  }
+
+  .booking-bar-price small {
+    color: #64748b;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .booking-bar-price small i {
+    color: #d4af37;
+  }
+
+  .booking-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #c89b3c 0%, #e5c05a 100%);
+    color: #0a1f44;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(200, 155, 60, 0.35);
+    transition: transform 0.2s ease;
+  }
+
+  .booking-bar-btn:hover,
+  .booking-bar-btn:focus-visible {
+    color: #0a1f44;
+    transform: translateY(-1px);
+  }
+
+  /* La barre ne doit masquer ni le pied de page ni le bouton « retour en haut » */
+  body:has(.booking-bar) {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  body:has(.booking-bar) #backToTop {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .details-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .details-actions .action-btn {
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+  }
+
+  #backToTop {
+    right: 16px;
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (max-width: 430px) {
+  .booking-bar-btn i {
+    display: none;
+  }
+
+  .booking-bar-btn {
+    padding: 0 16px;
+    font-size: 0.9rem;
+  }
+
+  .booking-bar-amount strong {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .booking-bar-btn-extra {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .details-actions .action-btn-extra {
+    display: none;
+  }
+
+  .details-actions .action-btn span {
+    text-transform: none;
+  }
+
+  .details-actions .action-btn > span::first-letter {
+    text-transform: uppercase;
+  }
+}

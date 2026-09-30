@@ -1,4 +1,4 @@
-<section class="map-card">
+<section class="map-card" id="map">
 
     <div class="map-header">
 
