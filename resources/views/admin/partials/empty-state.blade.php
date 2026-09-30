@@ -1,7 +1,7 @@
 {{-- Liste vide. Paramètres : $icon, $search (recherche en cours, facultative) --}}
 <div class="empty-state">
     <i class="fa-solid {{ $icon }}"></i>
-    @if (($search ?? '') !== '' || request()->filled('statut'))
+    @if (($search ?? '') !== '' || collect(request()->except('page'))->filter()->isNotEmpty())
         <strong>Aucun résultat</strong>
         <span>Aucun élément ne correspond à ces critères.</span>
         <a href="{{ url()->current() }}" class="btn-secondary">Réinitialiser la liste</a>

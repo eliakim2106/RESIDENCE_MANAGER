@@ -1,16 +1,4 @@
 {{-- Tableau de bord d'un client : prochain séjour, chiffres clés, historique des réservations --}}
-@php
-    use App\Enums\ReservationStatus;
-
-    $statusTone = fn (ReservationStatus $status): string => match ($status) {
-        ReservationStatus::Confirmed => 'good',
-        ReservationStatus::Completed => 'info',
-        ReservationStatus::Pending => 'warning',
-        ReservationStatus::Cancelled => 'critical',
-        default => 'neutral',
-    };
-@endphp
-
 {{-- ========== Prochain séjour ========== --}}
 @if ($nextStay)
     @php
@@ -43,7 +31,7 @@
                 <div><dt>Arrivée</dt><dd>{{ Str::ucfirst($nextStay->check_in->translatedFormat('D j M')) }} · dès {{ substr((string) $property?->check_in_from, 0, 5) }}</dd></div>
                 <div><dt>Départ</dt><dd>{{ Str::ucfirst($nextStay->check_out->translatedFormat('D j M')) }}</dd></div>
                 <div><dt>Durée</dt><dd>{{ $nextStay->nights }} nuit{{ $nextStay->nights > 1 ? 's' : '' }}</dd></div>
-                <div><dt>Référence</dt><dd>{{ $nextStay->reference }}</dd></div>
+                <div><dt>Référence</dt><dd><a href="{{ route('admin.reservations.show', $nextStay) }}">{{ $nextStay->reference }}</a></dd></div>
             </dl>
         </div>
     </section>
@@ -81,6 +69,7 @@
             <h2>Mes réservations</h2>
             <p>Vos séjours passés et à venir</p>
         </div>
+        <a href="{{ route('admin.reservations.index') }}" class="dash-link">Tout voir <i class="fa-solid fa-arrow-right"></i></a>
     </header>
 
     @if ($reservations->isEmpty())
@@ -107,7 +96,7 @@
                             <td class="cell-main">
                                 <span class="cell-entity-text">
                                     <strong>{{ $reservation->property?->name }}</strong>
-                                    <small>{{ $reservation->reference }} · {{ $reservation->property?->city?->name }}</small>
+                                    <small><a href="{{ route('admin.reservations.show', $reservation) }}" class="cell-link">{{ $reservation->reference }}</a> · {{ $reservation->property?->city?->name }}</small>
                                 </span>
                             </td>
                             <td class="text-nowrap">
@@ -117,7 +106,7 @@
                                 </span>
                             </td>
                             <td class="text-nowrap"><strong>{{ number_format($reservation->total_amount, 0, ',', ' ') }} FCFA</strong></td>
-                            <td><span class="status-pill status-{{ $statusTone($reservation->status) }}">{{ $reservation->status->label() }}</span></td>
+                            <td><span class="status-pill status-{{ $reservation->status->tone() }}">{{ $reservation->status->label() }}</span></td>
                         </tr>
                     @endforeach
                 </tbody>

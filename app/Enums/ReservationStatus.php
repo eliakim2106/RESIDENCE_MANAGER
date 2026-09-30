@@ -39,6 +39,20 @@ enum ReservationStatus: string
     }
 
     /**
+     * Ton de la pastille de statut (status-good, status-info…) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Confirmed => 'good',
+            self::Completed => 'info',
+            self::Pending => 'warning',
+            self::Cancelled => 'critical',
+            self::NoShow => 'neutral',
+        };
+    }
+
+    /**
      * Options pour les listes déroulantes.
      *
      * @return array<string, string>

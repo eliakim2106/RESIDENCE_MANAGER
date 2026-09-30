@@ -6,7 +6,8 @@
     <div class="admin-page-header">
         <div class="admin-page-heading">
             <div>
-                <h1>Bonjour, {{ auth()->user()->name }}</h1>
+                <h1 class="dash-greeting-title">Bonjour, {{ auth()->user()->name }}</h1>
+
                 @if ($role === 'admin')
                     <p>Voici l’activité de la plateforme ce mois-ci.</p>
                 @elseif ($role === 'owner')
@@ -17,25 +18,19 @@
             </div>
         </div>
 
+        {{-- Date tout à droite de l'en-tête --}}
         <div class="admin-page-actions">
-            <span class="date-btn">
-                <i class="fa-regular fa-calendar"></i>
-                {{ Str::ucfirst(now()->translatedFormat('l j F Y')) }}
-            </span>
-
-            @if ($role !== 'client')
-                @can('create', App\Models\Property::class)
-                    <a href="{{ route('admin.etablissements.create') }}" class="btn-primary">
-                        <i class="fa-solid fa-plus"></i>
-                        Nouvel établissement
-                    </a>
-                @endcan
-            @else
+            @if ($role === 'client')
                 <a href="{{ route('residences.index') }}" class="btn-primary">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     Trouver une résidence
                 </a>
             @endif
+
+            <span class="date-btn dash-date">
+                <i class="fa-regular fa-calendar"></i>
+                {{ Str::ucfirst(now()->translatedFormat('l j F Y')) }}
+            </span>
         </div>
     </div>
 

@@ -997,3 +997,34 @@ a.task-count i {
     min-width: 130px;
   }
 }
+
+/* En-tête : salutation à gauche, date tout à droite */
+.dash-greeting-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-page-heading > div {
+  min-width: 0;
+}
+
+.dash-date {
+  cursor: default;
+}
+
+.dash-date:hover {
+  border-color: var(--ds-border);
+  background: var(--ds-surface);
+}
+
+.dash-date i {
+  color: var(--ds-blue);
+}
+
+/* Sur mobile, la date reste alignée à droite, sous la salutation */
+@media (max-width: 575.98px) {
+  .admin-page-actions > .dash-date {
+    width: auto;
+    margin-left: auto;
+  }
+}

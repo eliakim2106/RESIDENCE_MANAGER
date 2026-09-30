@@ -310,6 +310,26 @@ img {
   color: #fff;
 }
 
+.menu-link .menu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--ds-gold);
+  color: var(--ds-navy);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.menu-link.active .menu-badge {
+  background: var(--ds-navy);
+  color: #fff;
+}
+
 .menu-link.active {
   background: linear-gradient(135deg, var(--ds-gold) 0%, var(--ds-gold-light) 100%);
   color: var(--ds-navy);
@@ -1622,14 +1642,23 @@ a.nav-icon {
 .status-tabs {
   display: inline-flex;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
   padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
   border: 1px solid var(--ds-border);
   border-radius: 12px;
   background: var(--ds-surface);
 }
 
+.status-tabs::-webkit-scrollbar {
+  display: none;
+}
+
 .status-tab {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
   padding: 8px 14px;

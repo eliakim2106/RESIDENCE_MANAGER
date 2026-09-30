@@ -1,11 +1,26 @@
 @php
     use App\Enums\UserRole;
 
+    $user = auth()->user();
+
     $backOffice = [UserRole::SuperAdmin, UserRole::Admin];
     $management = [UserRole::SuperAdmin, UserRole::Admin, UserRole::Owner];
+    $everyone = UserRole::cases();
 
-    // Chaque lien : titre, icône, route, préfixe de route pour l'état actif, rôles autorisés
+    // Réservations en attente de confirmation (établissements du propriétaire, ou toute la plateforme)
+    $pendingReservations = $user->hasRole(...$management)
+        ? App\Models\Reservation::query()
+            ->where('status', App\Enums\ReservationStatus::Pending)
+            ->unless($user->isAdmin(), fn ($query) => $query->whereHas('property', fn ($query) => $query->ownedBy($user)))
+            ->count()
+        : 0;
+
+    // Chaque lien : titre, icône, route, préfixe de route pour l'état actif, rôles autorisés, compteur (facultatif)
     $sections = [
+        'Activité' => [
+            [$user->hasRole(...$management) ? 'Réservations' : 'Mes réservations', 'fa-solid fa-calendar-check', 'admin.reservations.index', 'admin.reservations.', $everyone, $pendingReservations],
+            ['Paiements', 'fa-solid fa-wallet', 'admin.paiements.index', 'admin.paiements.', $management],
+        ],
         'Hébergements' => [
             ['Établissements', 'fa-solid fa-building', 'admin.etablissements.index', 'admin.etablissements.', $management],
             ['Unités', 'fa-solid fa-door-open', 'admin.unites.index', 'admin.unites.', $management],
@@ -16,8 +31,6 @@
             ['Équipements', 'fa-solid fa-wifi', 'admin.equipements.index', 'admin.equipements.', $backOffice],
         ],
     ];
-
-    $user = auth()->user();
 @endphp
 
 <aside class="sidebar" id="sidebar" aria-label="Menu principal">
@@ -48,10 +61,17 @@
                 <div class="menu-section">
                     <h4>{{ $title }}</h4>
 
-                    @foreach ($visibleItems as [$label, $icon, $route, $prefix])
+                    @foreach ($visibleItems as $item)
+                        @php
+                            [$label, $icon, $route, $prefix] = $item;
+                            $badge = $item[5] ?? 0;
+                        @endphp
                         <a href="{{ route($route) }}" class="menu-link {{ request()->routeIs($prefix.'*') ? 'active' : '' }}" title="{{ $label }}">
                             <i class="{{ $icon }}"></i>
                             <span>{{ $label }}</span>
+                            @if ($badge > 0)
+                                <span class="menu-badge" aria-label="{{ $badge }} en attente">{{ $badge }}</span>
+                            @endif
                         </a>
                     @endforeach
                 </div>

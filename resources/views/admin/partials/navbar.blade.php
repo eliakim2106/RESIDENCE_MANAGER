@@ -7,6 +7,8 @@
 
     // Fil d'Ariane : section d'après le nom de la route, puis la page en cours (section « title »)
     $sections = [
+        'admin.reservations.' => [$user->isAdmin() || $user->isOwner() ? 'Réservations' : 'Mes réservations', 'admin.reservations.index'],
+        'admin.paiements.' => ['Paiements', 'admin.paiements.index'],
         'admin.etablissements.unites.' => ['Établissements', 'admin.etablissements.index'],
         'admin.etablissements.' => ['Établissements', 'admin.etablissements.index'],
         'admin.unites.' => ['Unités', 'admin.unites.index'],

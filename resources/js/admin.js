@@ -137,6 +137,63 @@ function initDeleteModal() {
 }
 
 /* =====================================
+   MODALES D'ACTION, CONFIRMATIONS, FILTRES
+   [data-modal-open="id"] ouvre la modale #id, [data-modal-close] la ferme.
+   form[data-confirm] demande une confirmation avant l'envoi.
+   select[data-auto-submit] envoie son formulaire dès qu'on change la valeur.
+===================================== */
+
+function initActionModals() {
+  const close = (modal) => modal.classList.remove("show");
+
+  document.querySelectorAll("[data-modal-open]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const modal = document.getElementById(btn.dataset.modalOpen);
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.add("show");
+      modal.querySelector("input:not([type=hidden]), select, textarea")?.focus();
+    });
+  });
+
+  document.querySelectorAll(".modal-overlay[data-action-modal]").forEach((modal) => {
+    modal.querySelectorAll("[data-modal-close]").forEach((btn) => btn.addEventListener("click", () => close(modal)));
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        close(modal);
+      }
+    });
+
+    // Rouvre la modale après une erreur de validation
+    if (modal.dataset.openOnLoad !== undefined) {
+      modal.classList.add("show");
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      document.querySelectorAll(".modal-overlay[data-action-modal].show").forEach(close);
+    }
+  });
+
+  document.querySelectorAll("form[data-confirm]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      if (!window.confirm(form.dataset.confirm)) {
+        event.preventDefault();
+      }
+    });
+  });
+
+  document.querySelectorAll("select[data-auto-submit]").forEach((select) => {
+    select.addEventListener("change", () => select.form?.requestSubmit());
+  });
+}
+
+/* =====================================
    PRÉCHARGEMENT
 ===================================== */
 
@@ -204,5 +261,6 @@ initSidebar();
 initResponsiveTables();
 initLivePreview();
 initDeleteModal();
+initActionModals();
 initAlerts();
 initDatepickers();

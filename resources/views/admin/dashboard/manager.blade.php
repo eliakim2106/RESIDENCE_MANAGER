@@ -1,7 +1,5 @@
 {{-- Tableau de bord d'un administrateur (toute la plateforme) ou d'un propriétaire (ses établissements) --}}
 @php
-    use App\Enums\ReservationStatus;
-
     // Montant court : 8,6 M · 897 k · 4 500
     $short = function (int $amount): string {
         return match (true) {
@@ -11,15 +9,6 @@
         };
     };
     $money = fn (int $amount): string => number_format($amount, 0, ',', ' ').' FCFA';
-
-    // Couleur de statut : toujours accompagnée du libellé
-    $statusTone = fn (ReservationStatus $status): string => match ($status) {
-        ReservationStatus::Confirmed => 'good',
-        ReservationStatus::Completed => 'info',
-        ReservationStatus::Pending => 'warning',
-        ReservationStatus::Cancelled => 'critical',
-        default => 'neutral',
-    };
 
     $previousMonth = Str::ucfirst(now()->subMonth()->translatedFormat('F'));
 
@@ -195,7 +184,7 @@
                             <small>{{ $arrival->check_in->translatedFormat('M') }}</small>
                         </span>
                         <span class="arrival-body">
-                            <strong>{{ $arrival->user?->name ?? $arrival->guest_name }}</strong>
+                            <a href="{{ route('admin.reservations.show', $arrival) }}" class="arrival-link"><strong>{{ $arrival->user?->name ?? $arrival->guest_name }}</strong></a>
                             <small>{{ $arrival->property?->name }} · {{ $arrival->nights }} nuit{{ $arrival->nights > 1 ? 's' : '' }}</small>
                         </span>
                         @if ($arrival->check_in->isToday())
@@ -216,6 +205,7 @@
                 <h2>Dernières réservations</h2>
                 <p>Les 6 réservations les plus récentes</p>
             </div>
+            <a href="{{ route('admin.reservations.index') }}" class="dash-link">Voir toutes les réservations <i class="fa-solid fa-arrow-right"></i></a>
         </header>
 
         @if ($latestReservations->isEmpty())
@@ -241,7 +231,7 @@
                                 <td class="cell-main">
                                     <span class="cell-entity-text">
                                         <strong>{{ $reservation->user?->name ?? $reservation->guest_name }}</strong>
-                                        <small>{{ $reservation->reference }} · {{ $reservation->property?->name }}</small>
+                                        <small><a href="{{ route('admin.reservations.show', $reservation) }}" class="cell-link">{{ $reservation->reference }}</a> · {{ $reservation->property?->name }}</small>
                                     </span>
                                 </td>
                                 <td class="text-nowrap">
@@ -251,7 +241,7 @@
                                     </span>
                                 </td>
                                 <td class="text-nowrap"><strong>{{ $money($reservation->total_amount) }}</strong></td>
-                                <td><span class="status-pill status-{{ $statusTone($reservation->status) }}">{{ $reservation->status->label() }}</span></td>
+                                <td><span class="status-pill status-{{ $reservation->status->tone() }}">{{ $reservation->status->label() }}</span></td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -276,13 +266,13 @@
                 @foreach ($byStatus as $row)
                     <li>
                         <div class="status-breakdown-label">
-                            <span class="status-dot status-{{ $statusTone($row['status']) }}"></span>
+                            <span class="status-dot status-{{ $row['status']->tone() }}"></span>
                             <span>{{ $row['status']->label() }}</span>
                             <strong>{{ $row['count'] }}</strong>
                             <small>{{ round($row['count'] / $totalStatus * 100) }} %</small>
                         </div>
                         <div class="status-breakdown-track">
-                            <span class="status-{{ $statusTone($row['status']) }}" style="width: {{ round($row['count'] / $totalStatus * 100, 1) }}%"></span>
+                            <span class="status-{{ $row['status']->tone() }}" style="width: {{ round($row['count'] / $totalStatus * 100, 1) }}%"></span>
                         </div>
                     </li>
                 @endforeach

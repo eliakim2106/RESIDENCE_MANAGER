@@ -36,6 +36,19 @@ enum PaymentState: string
     }
 
     /**
+     * Ton de la pastille de statut (status-good, status-info…) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Paid => 'good',
+            self::Refunded => 'info',
+            self::Partial => 'warning',
+            self::Unpaid => 'critical',
+        };
+    }
+
+    /**
      * Options pour les listes déroulantes.
      *
      * @return array<string, string>

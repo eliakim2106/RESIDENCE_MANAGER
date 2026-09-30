@@ -196,7 +196,7 @@ class DashboardStats
                 'count' => $this->reservations()->where('status', ReservationStatus::Pending)->count(),
                 'icon' => 'fa-hourglass-half',
                 'tone' => 'warning',
-                'url' => null,
+                'url' => route('admin.reservations.index', ['statut' => 'en-attente']),
             ],
             [
                 'label' => $this->scoped ? 'Établissements à publier' : 'Établissements non publiés',

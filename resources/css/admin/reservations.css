@@ -1,0 +1,653 @@
+/* =====================================================================
+   RÉSERVATIONS ET PAIEMENTS
+   Listes (filtres, montants), détail d'une réservation, modales d'action
+===================================================================== */
+
+/* ---------- Listes ---------- */
+
+.list-filter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.list-filter > i {
+  position: absolute;
+  left: 14px;
+  color: var(--ds-muted);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.list-filter select {
+  min-width: 230px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 40px 10px 38px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right 14px center / 12px;
+  color: var(--ds-text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  appearance: none;
+  cursor: pointer;
+}
+
+.list-filter select:focus {
+  border-color: var(--ds-blue);
+  box-shadow: var(--ds-ring);
+  outline: none;
+}
+
+.cell-title-link {
+  color: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.cell-title-link:hover strong {
+  color: var(--ds-blue);
+  text-decoration: underline;
+}
+
+.cell-amount {
+  color: var(--ds-navy);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cell-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.text-tone-good { color: var(--ds-success) !important; }
+.text-tone-info { color: var(--ds-blue) !important; }
+.text-tone-warning { color: #b45309 !important; }
+.text-tone-critical { color: var(--ds-danger) !important; }
+.text-tone-neutral { color: var(--ds-muted) !important; }
+
+.status-pill-lg {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+/* Totaux des paiements */
+.payment-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.payment-total {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.payment-total > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.payment-total span {
+  color: var(--ds-muted);
+  font-size: 0.82rem;
+}
+
+.payment-total strong {
+  overflow: hidden;
+  color: var(--ds-navy);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-total-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+}
+
+.payment-total-icon.tone-good { background: var(--ds-success-soft); color: var(--ds-success) !important; }
+.payment-total-icon.tone-info { background: var(--ds-blue-soft); color: var(--ds-blue) !important; }
+.payment-total-icon.tone-warning { background: var(--ds-warning-soft); color: #b45309 !important; }
+
+/* ---------- Détail d'une réservation ---------- */
+
+.resa-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: start;
+  gap: 20px;
+}
+
+.resa-main,
+.resa-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.resa-contacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Dates d'arrivée et de départ */
+.resa-dates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--ds-radius);
+  background: var(--ds-surface-muted);
+}
+
+.resa-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resa-date-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ds-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resa-date strong {
+  color: var(--ds-navy);
+  font-size: 1rem;
+}
+
+.resa-date small {
+  color: var(--ds-muted);
+  font-size: 0.82rem;
+}
+
+.resa-date-sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ds-surface);
+  color: var(--ds-gold);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+/* Unités réservées et paiements */
+.resa-units,
+.resa-payments {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resa-payments {
+  margin-top: 0;
+}
+
+.resa-units li,
+.resa-payments li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.resa-units li:last-child,
+.resa-payments li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.resa-payments li:first-child {
+  padding-top: 0;
+}
+
+.resa-unit-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.resa-unit-text strong {
+  color: var(--ds-navy);
+  font-size: 0.92rem;
+}
+
+.resa-unit-text small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.resa-unit-amount {
+  color: var(--ds-navy);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.resa-payment-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.resa-units .cell-icon i,
+.resa-payments .cell-icon i {
+  color: #b7860b;
+}
+
+/* Fiches voyageur et établissement */
+.resa-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.resa-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resa-info dt {
+  color: var(--ds-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resa-info dd {
+  margin: 0;
+  color: var(--ds-text);
+  font-size: 0.88rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.resa-info a {
+  color: var(--ds-blue);
+  text-decoration: none;
+}
+
+.resa-info a:hover {
+  text-decoration: underline;
+}
+
+.resa-subtitle {
+  margin: 20px 0 10px;
+  color: var(--ds-navy);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.resa-guests {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+}
+
+.resa-guests i {
+  width: 18px;
+  color: var(--ds-muted);
+}
+
+.resa-guests small {
+  color: var(--ds-muted);
+}
+
+.resa-note {
+  margin: 0;
+  color: var(--ds-muted);
+  font-size: 0.88rem;
+  white-space: pre-line;
+}
+
+/* Montants */
+.resa-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.resa-amounts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+
+.resa-amounts dt {
+  color: var(--ds-muted);
+  font-weight: 500;
+}
+
+.resa-amounts dd {
+  margin: 0;
+  color: var(--ds-text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.resa-amounts .resa-amount-total {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--ds-border);
+}
+
+.resa-amount-total dt,
+.resa-amount-total dd {
+  color: var(--ds-navy);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.resa-amounts .resa-amount-due {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: var(--ds-radius-sm);
+}
+
+.resa-amount-due.is-due {
+  background: var(--ds-warning-soft);
+}
+
+.resa-amount-due.is-due dt,
+.resa-amount-due.is-due dd {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.resa-amount-due.is-clear {
+  background: var(--ds-success-soft);
+}
+
+.resa-amount-due.is-clear dt,
+.resa-amount-due.is-clear dd {
+  color: var(--ds-success);
+  font-weight: 700;
+}
+
+/* Actions */
+.resa-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resa-actions form {
+  margin: 0;
+}
+
+.resa-actions .btn-primary,
+.resa-actions .btn-secondary,
+.resa-actions .btn-outline-danger {
+  width: 100%;
+}
+
+.btn-outline-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid #f5c2c2;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  color: var(--ds-danger);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-outline-danger:hover {
+  border-color: var(--ds-danger);
+  background: var(--ds-danger-soft);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+}
+
+.resa-hint {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.resa-hint i {
+  margin-top: 3px;
+}
+
+/* Historique */
+.resa-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0 0 0 22px;
+  list-style: none;
+}
+
+.resa-timeline::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 5px;
+  width: 2px;
+  background: var(--ds-border);
+}
+
+.resa-timeline li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resa-timeline li::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: -22px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--ds-surface);
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 0 1px var(--ds-border);
+}
+
+.resa-timeline li.is-good::before { background: var(--ds-success); }
+.resa-timeline li.is-info::before { background: var(--ds-blue); }
+.resa-timeline li.is-warning::before { background: var(--ds-warning); }
+.resa-timeline li.is-critical::before { background: var(--ds-danger); }
+
+.resa-timeline strong {
+  color: var(--ds-navy);
+  font-size: 0.88rem;
+}
+
+.resa-timeline small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.resa-timeline p {
+  margin: 4px 0 0;
+  color: var(--ds-text);
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+/* Notes internes */
+.resa-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resa-notes textarea {
+  min-height: 110px;
+}
+
+/* ---------- Modales avec formulaire ---------- */
+
+.modal-card.modal-form {
+  max-width: 480px;
+}
+
+.modal-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.modal-form .modal-actions {
+  margin-top: 4px;
+}
+
+.modal-icon.modal-icon-info {
+  background: var(--ds-blue-soft);
+  color: var(--ds-blue);
+}
+
+.field-optional {
+  color: var(--ds-muted);
+  font-weight: 400;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1199.98px) {
+  .resa-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resa-aside {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .admin-page-actions > .status-pill {
+    width: auto;
+  }
+
+  .payment-totals,
+  .resa-contacts,
+  .resa-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .payment-totals {
+    gap: 12px;
+  }
+
+  .list-filter,
+  .list-filter select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .resa-dates {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .resa-date-sep {
+    transform: rotate(90deg);
+  }
+
+  .resa-units li,
+  .resa-payments li {
+    flex-wrap: wrap;
+  }
+
+  .resa-payment-end {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 54px;
+  }
+}
+
+/* ---------- Liens vers les réservations depuis le tableau de bord ---------- */
+
+.stay-hero-facts dd a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+  text-underline-offset: 3px;
+}
+
+.arrival-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.arrival-link:hover strong {
+  color: var(--ds-blue);
+  text-decoration: underline;
+}

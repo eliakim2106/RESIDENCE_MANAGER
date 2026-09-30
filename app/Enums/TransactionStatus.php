@@ -39,6 +39,20 @@ enum TransactionStatus: string
     }
 
     /**
+     * Ton de la pastille de statut (status-good, status-info…) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Accepted => 'good',
+            self::Refunded => 'info',
+            self::Pending => 'warning',
+            self::Refused => 'critical',
+            self::Cancelled => 'neutral',
+        };
+    }
+
+    /**
      * Options pour les listes déroulantes.
      *
      * @return array<string, string>

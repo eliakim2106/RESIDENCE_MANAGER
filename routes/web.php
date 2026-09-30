@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyTypeController;
+use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypeController;
 use App\Http\Controllers\Auth\EmailVerificationController;
@@ -191,6 +193,44 @@ Route::prefix('admin/unites')
             ->name('update');
         Route::delete('/{unite}', [UnitController::class, 'destroy'])
             ->name('destroy');
+    });
+
+// =========================
+// RÉSERVATIONS ET PAIEMENTS
+// =========================
+// Tous les rôles : un administrateur voit tout, un propriétaire les réservations de ses établissements,
+// un client les siennes (ReservationPolicy). Une réservation est désignée par sa référence.
+
+// Réservations
+Route::prefix('admin/reservations')
+    ->name('admin.reservations.')
+    ->middleware(['auth', 'verified'])
+    ->group(function () {
+        Route::get('/', [ReservationController::class, 'index'])
+            ->name('index');
+        Route::get('/{reservation}', [ReservationController::class, 'show'])
+            ->name('show');
+        Route::patch('/{reservation}/confirmer', [ReservationController::class, 'confirm'])
+            ->name('confirm');
+        Route::patch('/{reservation}/annuler', [ReservationController::class, 'cancel'])
+            ->name('cancel');
+        Route::patch('/{reservation}/terminer', [ReservationController::class, 'complete'])
+            ->name('complete');
+        Route::patch('/{reservation}/non-presente', [ReservationController::class, 'noShow'])
+            ->name('no-show');
+        Route::patch('/{reservation}/notes', [ReservationController::class, 'updateNotes'])
+            ->name('notes');
+        Route::post('/{reservation}/paiements', [ReservationController::class, 'storePayment'])
+            ->name('payments.store');
+    });
+
+// Paiements
+Route::prefix('admin/paiements')
+    ->name('admin.paiements.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin,owner'])
+    ->group(function () {
+        Route::get('/', [PaymentController::class, 'index'])
+            ->name('index');
     });
 
 // =========================
