@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PropertyStatus;
+use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PropertyRequest;
 use App\Models\City;
@@ -16,6 +18,8 @@ use Illuminate\View\View;
 
 class PropertyController extends Controller
 {
+    use FiltersByStatus;
+
     public function __construct(private GalleryManager $gallery) {}
 
     public function index(Request $request): View
@@ -23,19 +27,25 @@ class PropertyController extends Controller
         $search = trim((string) $request->query('search'));
         $user = $request->user();
 
-        $etablissements = Property::query()
-            ->with(['propertyType', 'city'])
-            ->withCount('units')
+        $query = Property::query()
             ->unless($user->isAdmin(), fn ($query) => $query->ownedBy($user))
             ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('district', 'like', "%{$search}%")
-                ->orWhere('neighborhood', 'like', "%{$search}%")))
+                ->orWhere('neighborhood', 'like', "%{$search}%")
+                ->orWhereHas('city', fn ($query) => $query->where('name', 'like', "%{$search}%"))));
+
+        // Actif = publié sur le site
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('status', PropertyStatus::Published));
+
+        $etablissements = $query
+            ->with(['propertyType', 'city', 'coverImage'])
+            ->withCount('units')
             ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.etablissements.index', compact('etablissements', 'search'));
+        return view('admin.etablissements.index', compact('etablissements', 'search', 'counts', 'statut'));
     }
 
     public function create(): View

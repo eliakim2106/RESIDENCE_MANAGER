@@ -4,40 +4,26 @@
 
 <div class="etablissement-page">
 
-    <!-- En-tête -->
-
-    <div class="page-card">
-
-        <div class="page-card-header">
-
+    <div class="admin-page-header">
+        <div class="admin-page-heading">
+            <span class="admin-page-icon"><i class="fa-solid fa-door-open"></i></span>
             <div>
-
-                <h2>
-
-                    {{ $unite->exists ? 'Modifier l\'unité' : 'Ajouter une unité' }}
-
-                </h2>
-
-                <p>
-
-                    {{ $unite->exists ? 'Unité de l\'établissement' : 'Ajoutez une nouvelle unité à l\'établissement' }} <strong>{{ $etablissement->name }}</strong>.
-
-                </p>
-
+                @if ($unite->exists)
+                    <h1>Modifier l’unité</h1>
+                    <p>Unité de l’établissement {{ $etablissement->name }}.</p>
+                @else
+                    <h1>Ajouter une unité</h1>
+                    <p>Nouvelle unité pour l’établissement {{ $etablissement->name }}.</p>
+                @endif
             </div>
-
-            <a
-                href="{{ route('admin.unites.index') }}"
-                class="btn-secondary">
-
-                <i class="fa-solid fa-arrow-left"></i>
-
-                Retour
-
-            </a>
-
         </div>
 
+        <div class="admin-page-actions">
+            <a href="{{ route('admin.unites.index') }}" class="btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Retour à la liste
+            </a>
+        </div>
     </div>
 
     <!-- les alertes -->

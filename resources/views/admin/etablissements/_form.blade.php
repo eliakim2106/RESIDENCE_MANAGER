@@ -8,16 +8,19 @@
             @method('PUT')
         @endif
 
-        <div class="page-card">
-            <div class="page-card-header">
+        <div class="admin-page-header">
+            <div class="admin-page-heading">
+                <span class="admin-page-icon"><i class="fa-solid fa-building"></i></span>
                 <div>
-                    <h2>{{ $title }}</h2>
+                    <h1>{{ $title }}</h1>
                     <p>{{ $subtitle }}</p>
                 </div>
+            </div>
 
+            <div class="admin-page-actions">
                 <a href="{{ route('admin.etablissements.index') }}" class="btn-secondary">
                     <i class="fa-solid fa-arrow-left"></i>
-                    Retour
+                    Retour à la liste
                 </a>
             </div>
         </div>

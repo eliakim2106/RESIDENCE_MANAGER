@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\EquipmentRequest;
 use App\Models\Equipment;
@@ -11,17 +12,24 @@ use Illuminate\View\View;
 
 class EquipmentController extends Controller
 {
+    use FiltersByStatus;
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search'));
 
-        $equipements = Equipment::query()
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+        $query = Equipment::query()
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"));
+
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('is_active', true));
+
+        $equipements = $query
+            ->withCount(['units', 'properties'])
             ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.equipements.index', compact('equipements', 'search'));
+        return view('admin.equipements.index', compact('equipements', 'search', 'counts', 'statut'));
     }
 
     public function create(): View

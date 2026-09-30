@@ -1,10 +1,12 @@
 {{--
-    Formulaire commun création / modification.
+    Formulaire commun création / modification d'un type (établissement ou unité).
     Paramètres : $type (modèle, vide en création), $presets (« etablissement » ou « unite »), $choices (noms proposés), $label.
+    Le choix d'un nom remplit l'icône et la description (resources/js/admin/types.js) ; l'aperçu suit en direct (admin.js).
 --}}
 @php
     $currentName = old('nom', $type->name);
     $currentIcon = old('icon', $type->exists ? $type->fa_icon : '');
+    $active = old('status', $type->exists && ! $type->is_active ? 'inactif' : 'actif') === 'actif';
 
     // Un type créé hors de la liste proposée (données existantes) reste sélectionnable
     if ($currentName && ! in_array($currentName, $choices, true)) {
@@ -12,49 +14,69 @@
     }
 @endphp
 
-<div class="form-grid">
+<div class="form-layout">
 
-    <div class="form-group">
-        <label for="type-name">{{ $label }}</label>
+    <section class="form-section">
+        <header class="form-section-header">
+            <h2>Informations</h2>
+            <p>Choisissez un type : son icône et sa description sont proposées automatiquement.</p>
+        </header>
 
-        <select id="type-name" name="nom" data-presets="{{ $presets }}">
-            <option value="">Sélectionner un type</option>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label for="type-name">{{ $label }} <span class="required">*</span></label>
+                <select id="type-name" name="nom" data-presets="{{ $presets }}" data-preview-source="name" required>
+                    <option value="">Sélectionner un type</option>
+                    @foreach ($choices as $choice)
+                        <option value="{{ $choice }}" @selected($currentName === $choice)>{{ $choice }}</option>
+                    @endforeach
+                </select>
+                @error('nom') <p class="field-error">{{ $message }}</p> @enderror
+            </div>
 
-            @foreach ($choices as $choice)
-                <option value="{{ $choice }}" @selected($currentName === $choice)>{{ $choice }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Icône associée</label>
-
-        <div class="icon-preview-card">
-            <i id="type-icon-preview" class="fa-solid {{ $currentIcon ?: 'fa-question' }}"></i>
+            <div class="form-group full-width">
+                <label for="type-description">Description</label>
+                <textarea id="type-description" name="description" rows="4" readonly data-preview-source="description">{{ old('description', $type->description) }}</textarea>
+                <p class="field-help">Rédigée automatiquement d'après le type choisi.</p>
+                @error('description') <p class="field-error">{{ $message }}</p> @enderror
+            </div>
         </div>
 
         <input type="hidden" id="type-icon" name="icon" value="{{ $currentIcon }}">
-    </div>
+    </section>
 
-    <div class="form-group full-width">
-        <label for="type-description">Description</label>
+    <aside class="form-aside">
+        <section class="form-section">
+            <header class="form-section-header">
+                <h2>Aperçu</h2>
+                <p>Tel qu'il apparaîtra dans les listes.</p>
+            </header>
 
-        <textarea id="type-description" name="description" rows="5" readonly>{{ old('description', $type->description) }}</textarea>
-    </div>
+            <div class="preview-card">
+                <span class="preview-icon"><i id="type-icon-preview" class="fa-solid {{ $currentIcon ?: 'fa-question' }}"></i></span>
+                <div class="preview-body">
+                    <strong data-preview="name" data-preview-empty="Nom du type">{{ $currentName ?: 'Nom du type' }}</strong>
+                    <p data-preview="description" data-preview-empty="La description apparaîtra ici.">{{ old('description', $type->description) ?: 'La description apparaîtra ici.' }}</p>
+                    <span class="{{ $active ? 'badge-success' : 'badge-neutral' }}" data-preview-status>{{ $active ? 'Actif' : 'Inactif' }}</span>
+                </div>
+            </div>
+        </section>
 
-    <div class="form-group">
-        <label for="type-status">Statut</label>
+        <section class="form-section">
+            <header class="form-section-header">
+                <h2>Publication</h2>
+            </header>
 
-        @php
-
-            $status = old('status', $type->exists && ! $type->is_active ? 'inactif' : 'actif');
-
-        @endphp
-
-        <select id="type-status" name="status">
-            <option value="actif" @selected($status === 'actif')>Actif</option>
-            <option value="inactif" @selected($status === 'inactif')>Inactif</option>
-        </select>
-    </div>
+            <input type="hidden" name="status" value="inactif">
+            <label class="switch-field">
+                <input type="checkbox" name="status" value="actif" @checked($active) data-status-toggle>
+                <span class="switch-ui" aria-hidden="true"></span>
+                <span class="switch-text">
+                    <strong>Type actif</strong>
+                    <small>Proposé lors de la création des établissements et des unités.</small>
+                </span>
+            </label>
+        </section>
+    </aside>
 
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UnitTypeRequest;
 use App\Models\UnitType;
@@ -11,19 +12,26 @@ use Illuminate\View\View;
 
 class UnitTypeController extends Controller
 {
+    use FiltersByStatus;
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search'));
 
-        $types = UnitType::query()
+        $query = UnitType::query()
             ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")))
+                ->orWhere('description', 'like', "%{$search}%")));
+
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('is_active', true));
+
+        $types = $query
+            ->withCount('units')
             ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.types-unite.index', compact('types', 'search'));
+        return view('admin.types-unite.index', compact('types', 'search', 'counts', 'statut'));
     }
 
     public function create(): View

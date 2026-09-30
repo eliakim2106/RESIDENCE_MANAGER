@@ -3,14 +3,17 @@
 @section('title', 'Unités')
 
 @section('content')
-    <div class="page-card">
-        <div class="page-card-header">
+    <div class="admin-page-header">
+        <div class="admin-page-heading">
+            <span class="admin-page-icon"><i class="fa-solid fa-door-open"></i></span>
             <div>
-                <h2>Unités</h2>
-                <p>Chambres, suites, studios et appartements de vos établissements. Pour ajouter une unité, utilisez le bouton <i class="fa-solid fa-plus"></i> d'un établissement.</p>
+                <h1>Unités</h1>
+                <p>Chambres, studios et logements réservables. Une unité s'ajoute depuis son établissement.</p>
             </div>
+        </div>
 
-            <a href="{{ route('admin.etablissements.index') }}" class="btn-primary">
+        <div class="admin-page-actions">
+            <a href="{{ route('admin.etablissements.index') }}" class="btn-secondary">
                 <i class="fa-solid fa-building"></i>
                 Établissements
             </a>
@@ -19,63 +22,66 @@
 
     @include('partials.flash')
 
-    <div class="table-toolbar">
-        <form method="GET" class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" name="search" value="{{ $search }}" placeholder="Rechercher une unité ou un établissement...">
-        </form>
-
-        <div class="table-counter">
-            <i class="fa-solid fa-layer-group"></i>
-            <span>{{ $unites->total() }}</span>
-            unité(s)
-        </div>
-    </div>
+    @include('admin.partials.list-toolbar', ['counts' => $counts, 'statut' => $statut, 'search' => $search, 'placeholder' => 'Unité ou établissement…'])
 
     <div class="table-card">
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>Id</th>
+                    <th>Unité</th>
                     <th>Établissement</th>
-                    <th>Type</th>
-                    <th>Nom</th>
-                    <th>Quantité</th>
+                    <th>Capacité</th>
                     <th>Prix / nuit</th>
                     <th>Statut</th>
-                    <th>Actions</th>
+                    <th><span class="visually-hidden">Actions</span></th>
                 </tr>
             </thead>
 
             <tbody>
                 @forelse ($unites as $unite)
                     <tr>
-                        <td class="cell-muted cell-id">#{{ $unite->id }}</td>
-                        <td>{{ $unite->property->name }}</td>
-                        <td>{{ $unite->unitType->name }}</td>
-                        <td class="cell-main">{{ $unite->name }}</td>
-                        <td>{{ $unite->quantity }}</td>
+                        <td class="cell-main">
+                            <div class="cell-entity">
+                                @if ($unite->images->first())
+                                    <img src="{{ $unite->images->first()->url }}" alt="" class="cell-thumb" loading="lazy">
+                                @else
+                                    <span class="cell-icon"><i class="fa-solid fa-door-open"></i></span>
+                                @endif
+                                <span class="cell-entity-text">
+                                    <strong>{{ $unite->name }}</strong>
+                                    <small>{{ $unite->unitType->name }}</small>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="cell-muted">{{ $unite->property->name }}</td>
                         <td>
+                            <span class="cell-stack">
+                                <span><i class="fa-solid fa-user-group cell-inline-icon"></i> {{ $unite->capacity }} pers.</span>
+                                <small>{{ $unite->quantity }} unité{{ $unite->quantity > 1 ? 's' : '' }} identique{{ $unite->quantity > 1 ? 's' : '' }}</small>
+                            </span>
+                        </td>
+                        <td class="text-nowrap">
                             @if ($unite->promo_price)
-                                <del class="cell-muted me-1">{{ number_format($unite->base_price, 0, ',', ' ') }}</del>
-                                {{ number_format($unite->promo_price, 0, ',', ' ') }} FCFA
+                                <span class="cell-stack">
+                                    <strong>{{ number_format($unite->promo_price, 0, ',', ' ') }} FCFA</strong>
+                                    <small><del>{{ number_format($unite->base_price, 0, ',', ' ') }}</del> · promo</small>
+                                </span>
                             @else
-                                {{ number_format($unite->base_price, 0, ',', ' ') }} FCFA
+                                <strong>{{ number_format($unite->base_price, 0, ',', ' ') }} FCFA</strong>
                             @endif
                         </td>
                         <td>
                             @if ($unite->status === App\Enums\UnitStatus::Active)
-                                <span class="badge-success">Actif</span>
+                                <span class="badge-success">Active</span>
                             @else
-                                <span class="badge-danger">Inactif</span>
+                                <span class="badge-neutral">Inactive</span>
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.unites.edit', $unite) }}" class="action-btn edit" title="Modifier">
+                            <a href="{{ route('admin.unites.edit', $unite) }}" class="action-btn edit" title="Modifier" aria-label="Modifier {{ $unite->name }}">
                                 <i class="fa-solid fa-pen"></i>
                             </a>
-
-                            <button type="button" class="action-btn delete delete-btn" title="Supprimer"
+                            <button type="button" class="action-btn delete delete-btn" title="Supprimer" aria-label="Supprimer {{ $unite->name }}"
                                 data-url="{{ route('admin.unites.destroy', $unite) }}"
                                 data-name="{{ $unite->name }}">
                                 <i class="fa-solid fa-trash"></i>
@@ -84,7 +90,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="empty-table">Aucune unité trouvée</td>
+                        <td colspan="6" class="empty-table">
+                            @include('admin.partials.empty-state', ['icon' => 'fa-door-open', 'search' => $search])
+                        </td>
                     </tr>
                 @endforelse
             </tbody>

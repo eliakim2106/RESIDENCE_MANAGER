@@ -25,16 +25,22 @@
 @endphp
 
 @section('content')
-    <div class="page-header">
-        <div>
-            <h1>Tableau de bord</h1>
-            <div class="title-line"></div>
+    <div class="admin-page-header">
+        <div class="admin-page-heading">
+            <div>
+                <h1>Bonjour, {{ auth()->user()->name }}</h1>
+                @if (auth()->user()->isAdmin())
+                    <p>Voici l’activité de la plateforme aujourd’hui.</p>
+                @else
+                    <p>Voici l’activité de vos établissements aujourd’hui.</p>
+                @endif
+            </div>
         </div>
 
-        <div class="header-actions">
+        <div class="admin-page-actions">
             <span class="date-btn">
                 <i class="fa-regular fa-calendar"></i>
-                {{ now()->translatedFormat('l j F Y') }}
+                {{ Str::ucfirst(now()->translatedFormat('l j F Y')) }}
             </span>
         </div>
     </div>

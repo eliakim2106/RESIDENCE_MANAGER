@@ -151,8 +151,58 @@ window.addEventListener("load", () => {
   setTimeout(() => (loader.style.display = "none"), 800);
 });
 
+/* =====================================
+   APERÇU EN DIRECT DES FORMULAIRES (types, équipements)
+   [data-preview-source="x"] alimente [data-preview="x"] ; l'interrupteur de statut met à jour le badge.
+===================================== */
+
+function initLivePreview() {
+  const form = document.querySelector(".admin-form");
+
+  if (!form || !form.querySelector("[data-preview]")) {
+    return;
+  }
+
+  const render = () => {
+    form.querySelectorAll("[data-preview]").forEach((target) => {
+      const source = form.querySelector(`[data-preview-source="${target.dataset.preview}"]`);
+
+      if (!source) {
+        return;
+      }
+
+      // Pour une liste : le libellé de l'option choisie, sauf l'option vide « Sélectionner… »
+      const value = source.tagName === "SELECT"
+        ? (source.value === "" ? "" : source.options[source.selectedIndex]?.text ?? "")
+        : source.value;
+
+      target.textContent = value.trim() || target.dataset.previewEmpty || "";
+    });
+
+    const status = form.querySelector("[data-status-toggle]");
+    const badge = form.querySelector("[data-preview-status]");
+
+    if (status && badge) {
+      badge.textContent = status.checked ? "Actif" : "Inactif";
+      badge.className = status.checked ? "badge-success" : "badge-neutral";
+    }
+
+    const popular = form.querySelector("[data-popular-toggle]");
+    const star = form.querySelector("[data-preview-popular]");
+
+    if (popular && star) {
+      star.hidden = !popular.checked;
+    }
+  };
+
+  // Les scripts des types remplissent la description au changement de type : on lit les champs juste après
+  ["input", "change"].forEach((type) => form.addEventListener(type, () => setTimeout(render, 0)));
+  render();
+}
+
 initSidebar();
 initResponsiveTables();
+initLivePreview();
 initDeleteModal();
 initAlerts();
 initDatepickers();

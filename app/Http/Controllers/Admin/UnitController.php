@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\UnitStatus;
+use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UnitRequest;
 use App\Models\Equipment;
@@ -20,6 +22,8 @@ use Illuminate\View\View;
  */
 class UnitController extends Controller
 {
+    use FiltersByStatus;
+
     public function __construct(private GalleryManager $gallery) {}
 
     public function index(Request $request): View
@@ -27,17 +31,21 @@ class UnitController extends Controller
         $search = trim((string) $request->query('search'));
         $user = $request->user();
 
-        $unites = Unit::query()
-            ->with(['unitType', 'property'])
+        $query = Unit::query()
             ->whereHas('property', fn ($query) => $query->unless($user->isAdmin(), fn ($query) => $query->ownedBy($user)))
             ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
                 ->where('name', 'like', "%{$search}%")
-                ->orWhereHas('property', fn ($query) => $query->where('name', 'like', "%{$search}%"))))
+                ->orWhereHas('property', fn ($query) => $query->where('name', 'like', "%{$search}%"))));
+
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('status', UnitStatus::Active));
+
+        $unites = $query
+            ->with(['unitType', 'property', 'images' => fn ($query) => $query->limit(1)])
             ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.unites.index', compact('unites', 'search'));
+        return view('admin.unites.index', compact('unites', 'search', 'counts', 'statut'));
     }
 
     public function create(Property $etablissement): View

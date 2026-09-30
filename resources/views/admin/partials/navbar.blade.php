@@ -4,6 +4,36 @@
         ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->avatar_path)
         : 'https://ui-avatars.com/api/?background=1565c0&color=fff&bold=true&name='.urlencode($user->name);
     $notifications = $user->unreadNotifications()->count();
+
+    // Fil d'Ariane : section d'après le nom de la route, puis la page en cours (section « title »)
+    $sections = [
+        'admin.etablissements.unites.' => ['Établissements', 'admin.etablissements.index'],
+        'admin.etablissements.' => ['Établissements', 'admin.etablissements.index'],
+        'admin.unites.' => ['Unités', 'admin.unites.index'],
+        'admin.types-etablissement.' => ["Types d'établissement", 'admin.types-etablissement.index'],
+        'admin.types-unite.' => ["Types d'unité", 'admin.types-unite.index'],
+        'admin.equipements.' => ['Équipements', 'admin.equipements.index'],
+    ];
+
+    $routeName = (string) request()->route()?->getName();
+    $crumbs = [['Tableau de bord', route('dashboard')]];
+
+    foreach ($sections as $prefix => [$label, $indexRoute]) {
+        if (str_starts_with($routeName, $prefix)) {
+            $crumbs[] = [$label, $routeName === $indexRoute ? null : route($indexRoute)];
+
+            if ($routeName !== $indexRoute) {
+                // Le titre de la section est déjà échappé : on le décode pour ne pas l'échapper deux fois
+                $crumbs[] = [html_entity_decode(trim($__env->yieldContent('title')), ENT_QUOTES | ENT_HTML5), null];
+            }
+
+            break;
+        }
+    }
+
+    if (count($crumbs) === 1) {
+        $crumbs[0][1] = null;
+    }
 @endphp
 
 <header class="navbar">
@@ -14,21 +44,53 @@
             <i class="fa-solid fa-bars"></i>
         </button>
 
-        <div class="welcome-box">
-            <h3>Bonjour, {{ Str::before($user->name, ' ') ?: $user->name }} 👋</h3>
-            <span>Bon retour sur DS HOLDING</span>
-        </div>
+        <nav aria-label="Fil d’Ariane" class="admin-breadcrumb">
+            <ol>
+                @foreach ($crumbs as [$label, $url])
+                    <li @if ($loop->last) aria-current="page" @endif>
+                        @if ($url)
+                            <a href="{{ $url }}">{{ $label }}</a>
+                        @else
+                            <span>{{ $label }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </nav>
 
     </div>
 
     <div class="navbar-right">
 
-        <button type="button" class="nav-icon" aria-label="Notifications">
-            <i class="fa-regular fa-bell"></i>
-            @if ($notifications > 0)
-                <span class="nav-badge">{{ $notifications > 9 ? '9+' : $notifications }}</span>
-            @endif
-        </button>
+        <a href="{{ route('home') }}" class="nav-icon" target="_blank" rel="noopener" title="Voir le site" aria-label="Voir le site dans un nouvel onglet">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+
+        <div class="dropdown">
+            <button type="button" class="nav-icon" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                <i class="fa-regular fa-bell"></i>
+                @if ($notifications > 0)
+                    <span class="nav-badge">{{ $notifications > 9 ? '9+' : $notifications }}</span>
+                @endif
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-end admin-dropdown">
+                <div class="admin-dropdown-header">
+                    <strong>Notifications</strong>
+                </div>
+                @forelse ($user->unreadNotifications()->latest()->limit(5)->get() as $notification)
+                    <div class="admin-dropdown-item">
+                        <i class="fa-regular fa-bell"></i>
+                        <span>{{ $notification->data['message'] ?? 'Nouvelle notification' }}</span>
+                    </div>
+                @empty
+                    <div class="admin-dropdown-empty">
+                        <i class="fa-regular fa-bell-slash"></i>
+                        <span>Aucune nouvelle notification</span>
+                    </div>
+                @endforelse
+            </div>
+        </div>
 
         <div class="dropdown">
             <button type="button" class="user-profile" data-bs-toggle="dropdown" aria-expanded="false">
@@ -42,14 +104,17 @@
                 <i class="fa-solid fa-chevron-down"></i>
             </button>
 
-            <ul class="dropdown-menu dropdown-menu-end user-menu">
+            <ul class="dropdown-menu dropdown-menu-end admin-dropdown user-menu">
                 <li class="user-menu-header">
-                    <strong>{{ $user->name }}</strong>
-                    <span>{{ $user->email }}</span>
+                    <img src="{{ $photo }}" alt="">
+                    <span>
+                        <strong>{{ $user->name }}</strong>
+                        <small>{{ $user->email }}</small>
+                    </span>
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <a class="dropdown-item" href="{{ route('home') }}">
+                    <a class="dropdown-item" href="{{ route('home') }}" target="_blank" rel="noopener">
                         <i class="fa-solid fa-globe"></i> Voir le site
                     </a>
                 </li>

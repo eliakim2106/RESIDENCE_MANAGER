@@ -60,14 +60,23 @@
 
     </nav>
 
+    {{-- Carte du compte connecté (la déconnexion se trouve dans le menu du profil, en haut à droite) --}}
+    @php
+        $avatarFallback = 'https://ui-avatars.com/api/?background=d4a72c&color=0a1f44&bold=true&name='.urlencode($user->name);
+        $avatar = $user->avatar_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->avatar_path)
+            : $avatarFallback;
+    @endphp
+
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="logout-btn" title="Déconnexion">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                <span>Déconnexion</span>
-            </button>
-        </form>
+        <div class="sidebar-profile" title="{{ $user->name }} · {{ $user->email }}">
+            <img src="{{ $avatar }}" alt="{{ $user->name }}" class="sidebar-profile-avatar"
+                onerror="this.onerror=null;this.src='{{ $avatarFallback }}'">
+            <div class="sidebar-profile-info">
+                <div class="sidebar-profile-name">{{ $user->role->label() }}</div>
+                <div class="sidebar-profile-email">{{ $user->email }}</div>
+            </div>
+        </div>
     </div>
 
 </aside>
