@@ -36,6 +36,9 @@
             ["Types d'unité", 'fa-solid fa-bed', 'admin.types-unite.index', 'admin.types-unite.', $backOffice],
             ['Équipements', 'fa-solid fa-wifi', 'admin.equipements.index', 'admin.equipements.', $backOffice],
         ],
+        'Administration' => [
+            ['Utilisateurs', 'fa-solid fa-users', 'admin.utilisateurs.index', 'admin.utilisateurs.', $backOffice],
+        ],
     ];
 @endphp
 
@@ -86,23 +89,15 @@
 
     </nav>
 
-    {{-- Carte du compte connecté (la déconnexion se trouve dans le menu du profil, en haut à droite) --}}
-    @php
-        $avatarFallback = 'https://ui-avatars.com/api/?background=d4a72c&color=0a1f44&bold=true&name='.urlencode($user->name);
-        $avatar = $user->avatar_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->avatar_path)
-            : $avatarFallback;
-    @endphp
-
+    {{-- Carte du compte connecté : ouvre « Mon profil » (la déconnexion se trouve dans le menu du profil, en haut à droite) --}}
     <div class="sidebar-footer">
-        <div class="sidebar-profile" title="{{ $user->name }} · {{ $user->email }}">
-            <img src="{{ $avatar }}" alt="{{ $user->name }}" class="sidebar-profile-avatar"
-                onerror="this.onerror=null;this.src='{{ $avatarFallback }}'">
+        <a href="{{ route('admin.profil.edit') }}" class="sidebar-profile {{ request()->routeIs('admin.profil.*') ? 'active' : '' }}" title="Mon profil · {{ $user->email }}">
+            <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }}" class="sidebar-profile-avatar">
             <div class="sidebar-profile-info">
                 <div class="sidebar-profile-name">{{ $user->role->label() }}</div>
                 <div class="sidebar-profile-email">{{ $user->email }}</div>
             </div>
-        </div>
+        </a>
     </div>
 
 </aside>

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Override;
 
 /**
@@ -123,6 +124,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isActive(): bool
     {
         return $this->status === UserStatus::Active;
+    }
+
+    /**
+     * Photo de profil, ou initiales sur fond doré à défaut.
+     */
+    public function avatarUrl(): string
+    {
+        if ($this->avatar_path) {
+            return Storage::disk('public')->url($this->avatar_path);
+        }
+
+        return 'https://ui-avatars.com/api/?background=d4a72c&color=0a1f44&bold=true&name='.urlencode($this->name);
     }
 
     /*

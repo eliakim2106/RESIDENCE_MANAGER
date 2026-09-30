@@ -2,14 +2,17 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
+use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyValidationController;
 use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypeController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -250,6 +253,46 @@ Route::prefix('admin/paiements')
     ->group(function () {
         Route::get('/', [PaymentController::class, 'index'])
             ->name('index');
+    });
+
+// =========================
+// UTILISATEURS (administrateurs)
+// =========================
+// Personne n'agit sur son propre compte ; seul un super administrateur agit sur un administrateur (UserPolicy)
+
+Route::prefix('admin/utilisateurs')
+    ->name('admin.utilisateurs.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
+    ->group(function () {
+        Route::get('/', [UserController::class, 'index'])
+            ->name('index');
+        Route::get('/connexions', [LoginLogController::class, 'index'])
+            ->name('connexions');
+        Route::get('/{utilisateur}', [UserController::class, 'show'])
+            ->name('show');
+        Route::patch('/{utilisateur}/suspendre', [UserController::class, 'suspend'])
+            ->name('suspend');
+        Route::patch('/{utilisateur}/reactiver', [UserController::class, 'reactivate'])
+            ->name('reactivate');
+        Route::patch('/{utilisateur}/role', [UserController::class, 'updateRole'])
+            ->name('role');
+    });
+
+// =========================
+// MON PROFIL (tous les rôles)
+// =========================
+// Sans « verified » : après un changement d'adresse, la page reste accessible le temps de la confirmer
+
+Route::prefix('admin/profil')
+    ->name('admin.profil.')
+    ->middleware(['auth'])
+    ->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])
+            ->name('edit');
+        Route::put('/', [ProfileController::class, 'update'])
+            ->name('update');
+        Route::put('/mot-de-passe', [ProfileController::class, 'updatePassword'])
+            ->name('password');
     });
 
 // =========================

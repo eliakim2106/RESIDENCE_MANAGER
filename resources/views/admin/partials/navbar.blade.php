@@ -1,8 +1,6 @@
 @php
     $user = auth()->user();
-    $photo = $user->avatar_path
-        ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->avatar_path)
-        : 'https://ui-avatars.com/api/?background=1565c0&color=fff&bold=true&name='.urlencode($user->name);
+    $photo = $user->avatarUrl();
     $notifications = $user->unreadNotifications()->count();
 
     // Fil d'Ariane : section d'après le nom de la route, puis la page en cours (section « title »)
@@ -10,6 +8,8 @@
         'admin.reservations.' => [$user->isAdmin() || $user->isOwner() ? 'Réservations' : 'Mes réservations', 'admin.reservations.index'],
         'admin.paiements.' => ['Paiements', 'admin.paiements.index'],
         'admin.validations.' => ['Validations', 'admin.validations.index'],
+        'admin.utilisateurs.' => ['Utilisateurs', 'admin.utilisateurs.index'],
+        'admin.profil.' => ['Mon profil', 'admin.profil.edit'],
         'admin.etablissements.unites.' => ['Établissements', 'admin.etablissements.index'],
         'admin.etablissements.' => ['Établissements', 'admin.etablissements.index'],
         'admin.unites.' => ['Unités', 'admin.unites.index'],
@@ -125,6 +125,11 @@
                     </span>
                 </li>
                 <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('admin.profil.edit') }}">
+                        <i class="fa-solid fa-user"></i> Mon profil
+                    </a>
+                </li>
                 <li>
                     <a class="dropdown-item" href="{{ route('home') }}" target="_blank" rel="noopener">
                         <i class="fa-solid fa-globe"></i> Voir le site

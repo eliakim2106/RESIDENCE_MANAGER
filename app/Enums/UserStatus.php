@@ -33,6 +33,18 @@ enum UserStatus: string
     }
 
     /**
+     * Ton de la pastille (status-good, status-info…) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Active => 'good',
+            self::Pending => 'warning',
+            self::Suspended => 'critical',
+        };
+    }
+
+    /**
      * Options pour les listes déroulantes.
      *
      * @return array<string, string>

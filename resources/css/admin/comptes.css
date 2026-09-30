@@ -1,0 +1,164 @@
+/* =====================================================================
+   COMPTES : utilisateurs, journal des connexions, « Mon profil »
+===================================================================== */
+
+/* ---------- Listes ---------- */
+
+.cell-avatar {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px var(--ds-surface), 0 0 0 3px var(--ds-border);
+}
+
+.cell-hint {
+  display: block;
+  margin-top: 4px;
+  color: #b45309;
+  font-size: 0.75rem;
+}
+
+/* ---------- Fiche utilisateur ---------- */
+
+.profile-hero-avatar {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px var(--ds-surface), 0 0 0 4px var(--ds-gold);
+}
+
+.resa-info dd .text-tone-good,
+.resa-info dd .text-tone-warning {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.role-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+/* Connexions */
+.login-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.login-list li:first-child {
+  padding-top: 0;
+}
+
+.login-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.login-icon {
+  display: inline-flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-muted);
+}
+
+.login-list .is-failed .login-icon {
+  background: var(--ds-danger-soft);
+  color: var(--ds-danger);
+}
+
+/* ---------- Mon profil ---------- */
+
+.avatar-field {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-preview {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 4px var(--ds-surface), 0 0 0 5px var(--ds-gold);
+}
+
+.avatar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.avatar-actions label.btn-secondary {
+  margin: 0;
+}
+
+.avatar-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ds-danger);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.avatar-remove input {
+  accent-color: var(--ds-danger);
+}
+
+.profile-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ds-border);
+}
+
+/* Carte du profil dans le menu : lien vers « Mon profil » */
+a.sidebar-profile {
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+a.sidebar-profile:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 575.98px) {
+  .avatar-field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-form-actions .btn-primary {
+    width: 100%;
+  }
+}

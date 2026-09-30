@@ -212,6 +212,46 @@ function initActionModals() {
 }
 
 /* =====================================
+   PHOTO DE PROFIL
+   Aperçu immédiat de l'image choisie ; « Retirer la photo » affiche les initiales.
+===================================== */
+
+function initAvatarField() {
+  const field = document.querySelector("[data-avatar-field]");
+
+  if (!field) {
+    return;
+  }
+
+  const preview = field.querySelector("[data-avatar-preview]");
+  const input = field.querySelector("[data-avatar-input]");
+  const remove = field.querySelector("[data-avatar-remove]");
+  const original = preview.src;
+
+  input?.addEventListener("change", () => {
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    preview.src = URL.createObjectURL(file);
+
+    if (remove) {
+      remove.checked = false;
+    }
+  });
+
+  remove?.addEventListener("change", () => {
+    if (remove.checked && input) {
+      input.value = "";
+    }
+
+    preview.src = remove.checked ? preview.dataset.fallback : original;
+  });
+}
+
+/* =====================================
    PRÉCHARGEMENT
 ===================================== */
 
@@ -280,5 +320,6 @@ initResponsiveTables();
 initLivePreview();
 initDeleteModal();
 initActionModals();
+initAvatarField();
 initAlerts();
 initDatepickers();

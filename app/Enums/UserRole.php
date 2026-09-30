@@ -36,6 +36,18 @@ enum UserRole: string
     }
 
     /**
+     * Ton de la pastille (status-good, status-info…) dans l'administration.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::SuperAdmin, self::Admin => 'info',
+            self::Owner => 'warning',
+            self::Client => 'neutral',
+        };
+    }
+
+    /**
      * Options pour les listes déroulantes.
      *
      * @return array<string, string>
