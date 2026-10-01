@@ -16,13 +16,13 @@
 
                 <h3>
 
-                    Contact & Accueil
+                    Accueil & conditions
 
                 </h3>
 
                 <p>
 
-                    Configurez les informations de contact et les horaires de votre établissement.
+                    Contact, horaires et conditions de séjour : elles s’appliquent à toutes les réservations.
 
                 </p>
 
@@ -76,7 +76,7 @@
                             name="telephone"
                             maxlength="10"
                             placeholder="0701020304"
-                            value="{{ old('telephone', $etablissement->phone) }}">
+                            value="{{ old('telephone', $etablissement->phone ? App\Http\Requests\Admin\PropertyRequest::nationalPhone($etablissement->phone) : '') }}">
 
                     </div>
 
@@ -185,6 +185,35 @@
 
                 <div class="groupe-formulaire">
 
+                    <label for="arrivee_jusqua">
+
+                        Arrivée jusqu’à
+
+                        <em class="label-optional">(facultatif)</em>
+
+                    </label>
+
+                    <div class="time-input">
+
+                        <i class="fa-regular fa-moon"></i>
+
+                        <input
+                            id="arrivee_jusqua"
+                            type="time"
+                            name="arrivee_jusqua"
+                            value="{{ old('arrivee_jusqua', $etablissement->check_in_until ? substr($etablissement->check_in_until, 0, 5) : '') }}">
+
+                    </div>
+
+                    <small
+                        id="error-arrivee_jusqua"
+                        class="field-error">
+                    </small>
+
+                </div>
+
+                <div class="groupe-formulaire">
+
                     <label>
 
                         Heure de départ
@@ -209,7 +238,127 @@
 
                     </small>
 
+                    <small>Le jour du départ.</small>
+
                 </div>
+
+            </div>
+
+        </div>
+
+        <!-- CONDITIONS DE SÉJOUR -->
+
+        @php
+            $policy = old('politique_annulation', ($etablissement->cancellation_policy ?? App\Enums\CancellationPolicy::Flexible)->value);
+            $policyDetails = [
+                'flexible' => ['Flexible', 'Annulation gratuite jusqu’à 24 h avant l’arrivée.', 'fa-feather', 'good'],
+                'moderate' => ['Modérée', 'Annulation gratuite jusqu’à 5 jours avant l’arrivée.', 'fa-scale-balanced', 'warning'],
+                'strict' => ['Stricte', 'Non remboursable une fois la réservation confirmée.', 'fa-lock', 'critical'],
+            ];
+        @endphp
+
+        <div class="section-formulaire">
+
+            <h4>
+
+                <i class="fa-solid fa-file-contract"></i>
+
+                Politique d’annulation
+
+                <span class="required-star">*</span>
+
+            </h4>
+
+            <p class="section-intro">
+                Elle est rappelée au client au moment de réserver et fixe la date limite d’annulation gratuite (et donc les remboursements).
+            </p>
+
+            <div class="policy-grid" role="radiogroup" aria-label="Politique d’annulation">
+
+                @foreach ($policyDetails as $value => [$label, $text, $icon, $tone])
+
+                    <label class="policy-card">
+
+                        <input type="radio" name="politique_annulation" value="{{ $value }}" @checked($policy === $value)>
+
+                        <span class="policy-card-body">
+
+                            <span class="policy-card-icon tone-{{ $tone }}"><i class="fa-solid {{ $icon }}"></i></span>
+
+                            <strong>{{ $label }}</strong>
+
+                            <small>{{ $text }}</small>
+
+                            <span class="policy-card-check"><i class="fa-solid fa-check"></i></span>
+
+                        </span>
+
+                    </label>
+
+                @endforeach
+
+            </div>
+
+            <small id="error-politique_annulation" class="field-error"></small>
+
+        </div>
+
+        <div class="section-formulaire">
+
+            <h4>
+
+                <i class="fa-solid fa-list-check"></i>
+
+                Règles de la maison
+
+            </h4>
+
+            <div class="house-toggles">
+
+                @foreach (['animaux' => ['allows_pets', 'Animaux acceptés', 'fa-paw'], 'fumeurs' => ['allows_smoking', 'Fumeurs autorisés', 'fa-smoking'], 'fetes' => ['allows_parties', 'Fêtes et événements', 'fa-champagne-glasses']] as $name => [$column, $label, $icon])
+
+                    <input type="hidden" name="{{ $name }}" value="0">
+
+                    <label class="house-toggle">
+
+                        <input type="checkbox" name="{{ $name }}" value="1" @checked(old($name, $etablissement->{$column}))>
+
+                        <span class="house-toggle-body">
+
+                            <i class="fa-solid {{ $icon }}"></i>
+
+                            <span>{{ $label }}</span>
+
+                            <span class="house-toggle-state" aria-hidden="true"></span>
+
+                        </span>
+
+                    </label>
+
+                @endforeach
+
+            </div>
+
+            <div class="groupe-formulaire large house-rules">
+
+                <label for="reglement">
+
+                    Règlement intérieur
+
+                    <em class="label-optional">(facultatif)</em>
+
+                </label>
+
+                <textarea
+                    id="reglement"
+                    name="reglement"
+                    rows="4"
+                    maxlength="3000"
+                    placeholder="Ex : Pièce d’identité exigée à l’arrivée. Pas de bruit après 22 h. Visiteurs non autorisés après 20 h.">{{ old('reglement', $etablissement->house_rules) }}</textarea>
+
+                <small>Affiché sur la fiche de l’établissement et rappelé sur le bon de réservation.</small>
+
+                <small id="error-reglement" class="field-error"></small>
 
             </div>
 

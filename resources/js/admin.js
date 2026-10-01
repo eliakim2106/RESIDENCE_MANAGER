@@ -112,6 +112,8 @@ function initDeleteModal() {
         name,
         ".",
         document.createElement("br"),
+        // Précision facultative : ce qui sera retiré en même temps (data-detail)
+        ...(btn.dataset.detail ? [btn.dataset.detail, document.createElement("br")] : []),
         "Cette action est irréversible.",
       );
 

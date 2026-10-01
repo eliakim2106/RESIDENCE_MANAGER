@@ -1,0 +1,510 @@
+/* =====================================================================
+   ÉTABLISSEMENTS
+   Liste (filtres, activité, note) et fiche (en-tête, galerie, unités,
+   arrivées, avis, conditions). Le formulaire a son propre fichier (etablissement.css).
+===================================================================== */
+
+/* ---------- Liste ---------- */
+
+.action-btn.view {
+  background: var(--ds-surface-muted);
+  color: var(--ds-navy);
+}
+
+.action-btn.view:hover {
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+.action-btn.is-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.action-btn.is-disabled:hover {
+  background: var(--ds-danger-soft);
+  color: var(--ds-danger);
+  transform: none;
+}
+
+.etab-filter-row {
+  justify-content: flex-start;
+}
+
+.list-filter-sort {
+  margin-left: auto;
+}
+
+.etab-stars {
+  color: var(--ds-gold);
+  letter-spacing: 1px;
+}
+
+.etab-rating {
+  display: block;
+  color: var(--ds-navy);
+  font-weight: 700;
+}
+
+.etab-rating i {
+  color: var(--ds-gold);
+  font-size: 0.8rem;
+}
+
+.etab-table td small.cell-muted {
+  display: block;
+  font-size: 0.75rem;
+}
+
+/* ---------- Fiche : en-tête ---------- */
+
+.etab-header-cover {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.etab-header-cover.is-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ds-blue-soft);
+  color: var(--ds-blue);
+  font-size: 1.6rem;
+}
+
+.etab-header .resa-header-title p i {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.etab-header .resa-header-title p .etab-stars {
+  margin-left: 4px;
+}
+
+/* ---------- Galerie ---------- */
+
+.etab-gallery-card {
+  padding: 8px;
+  overflow: hidden;
+}
+
+.etab-gallery {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 130px 130px;
+  gap: 8px;
+}
+
+.etab-gallery img {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.etab-gallery img.is-main {
+  grid-row: 1 / 3;
+}
+
+.etab-gallery-more {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(10, 31, 68, 0.78);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(4px);
+}
+
+.etab-gallery-more:hover {
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+/* ---------- Unités ---------- */
+
+.etab-unit-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etab-unit-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.etab-unit-list li:first-child {
+  padding-top: 0;
+}
+
+.etab-unit-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.etab-unit-list li.is-inactive {
+  opacity: 0.6;
+}
+
+.etab-unit-list img,
+.etab-unit-list .cell-icon {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.etab-unit-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.etab-unit-text strong {
+  color: var(--ds-navy);
+  font-size: 0.92rem;
+}
+
+.etab-unit-text small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.etab-unit-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.etab-unit-price strong {
+  color: var(--ds-navy);
+  font-size: 0.9rem;
+}
+
+.etab-unit-price del,
+.etab-unit-price small {
+  color: var(--ds-muted);
+  font-size: 0.74rem;
+}
+
+.etab-unit-list .action-btn {
+  margin-left: 0;
+}
+
+.etab-empty {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--ds-radius);
+  background: var(--ds-surface-muted);
+}
+
+.etab-empty > i {
+  margin-top: 2px;
+  color: var(--ds-blue);
+  font-size: 1.2rem;
+}
+
+.etab-empty strong {
+  color: var(--ds-navy);
+  font-size: 0.92rem;
+}
+
+.etab-empty p {
+  margin: 2px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.84rem;
+}
+
+/* ---------- Arrivées ---------- */
+
+.arrival-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.arrival-text small {
+  overflow: hidden;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Avis ---------- */
+
+.etab-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etab-reviews li {
+  display: flex;
+  gap: 14px;
+}
+
+.etab-review-score {
+  display: inline-flex;
+  flex: 0 0 52px;
+  align-items: baseline;
+  justify-content: center;
+  height: 44px;
+  padding-top: 9px;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--ds-navy);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.etab-review-score small {
+  font-size: 0.65rem;
+  opacity: 0.75;
+}
+
+.etab-reviews strong {
+  color: var(--ds-navy);
+  font-size: 0.9rem;
+}
+
+.etab-reviews p {
+  margin: 4px 0;
+  color: var(--ds-text);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.etab-reviews small {
+  color: var(--ds-muted);
+  font-size: 0.78rem;
+}
+
+/* ---------- Colonne de droite ---------- */
+
+.etab-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+}
+
+.etab-info-list li {
+  display: flex;
+  gap: 12px;
+}
+
+.etab-info-list li > i {
+  flex: 0 0 16px;
+  margin-top: 3px;
+  color: var(--ds-muted);
+  text-align: center;
+}
+
+.etab-info-list li > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.etab-info-list small {
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.etab-info-list a {
+  color: var(--ds-blue);
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.etab-info-list a:hover {
+  text-decoration: underline;
+}
+
+.etab-policy-note {
+  margin: 8px 0 0;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+}
+
+.etab-rules {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etab-rules li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border-radius: 12px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.etab-rules li i {
+  margin-bottom: 2px;
+  font-size: 1rem;
+}
+
+.etab-rules li small {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.etab-rules li.is-allowed {
+  background: var(--ds-success-soft);
+  color: #15803d;
+}
+
+.etab-house-rules {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--ds-gold);
+  border-radius: 0 10px 10px 0;
+  background: var(--ds-gold-soft);
+  color: var(--ds-text);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.etab-aside-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ds-border);
+}
+
+.etab-aside-links a {
+  color: var(--ds-blue);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.etab-aside-links a i {
+  font-size: 0.7rem;
+}
+
+.etab-danger-zone {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ds-border);
+}
+
+.etab-danger-zone p {
+  margin: 0;
+  color: var(--ds-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.etab-danger-zone p i {
+  margin-right: 4px;
+  color: var(--ds-warning);
+}
+
+.etab-danger-zone .btn-outline-danger {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 767.98px) {
+  .etab-gallery {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 160px 90px;
+  }
+
+  .etab-gallery img.is-main {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .etab-gallery img:nth-child(n + 4) {
+    display: none;
+  }
+
+  .etab-unit-list li {
+    flex-wrap: wrap;
+  }
+
+  .etab-unit-text {
+    flex-basis: calc(100% - 66px);
+  }
+
+  .etab-unit-price {
+    align-items: flex-start;
+    margin-left: 66px;
+  }
+
+  .list-filter-sort {
+    margin-left: 0;
+  }
+
+  .etab-header-cover {
+    flex-basis: 56px;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Colonne « Activité » de la liste : une ligne pour les unités et réservations, une pour les revenus */
+.etab-activity > span {
+  white-space: nowrap;
+}
+
+.cell-link-muted {
+  color: var(--ds-text);
+  text-decoration: none;
+}
+
+.cell-link-muted:hover {
+  color: var(--ds-blue);
+  text-decoration: underline;
+}
+
+.etab-table td:nth-child(2) .cell-stack > span {
+  max-width: 180px;
+}

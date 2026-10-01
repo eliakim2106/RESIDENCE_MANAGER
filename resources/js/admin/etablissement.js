@@ -121,8 +121,14 @@ document.addEventListener("DOMContentLoaded", function () {
     |--------------------------------------------------------------------------
     */
 
+  const form = document.getElementById("etablissementForm");
+
   const Wizard = {
-    current: 1,
+    // Étape d'ouverture : celle demandée (?etape=…) ou la première étape en erreur
+    current: Math.min(6, Math.max(1, Number.parseInt(form?.dataset.startStep, 10) || 1)),
+
+    // En modification, toutes les étapes sont accessibles et l'enregistrement est possible partout
+    editMode: form?.dataset.editMode === "1",
 
     total: 6,
 
@@ -266,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (this.btnSave) {
       this.btnSave.style.display =
-        this.current === this.total ? "inline-flex" : "none";
+        this.current === this.total || this.editMode ? "inline-flex" : "none";
     }
   };
 
@@ -321,6 +327,14 @@ document.addEventListener("DOMContentLoaded", function () {
     */
 
   Wizard.goTo = function (step) {
+    if (this.editMode && step !== this.current) {
+      this.current = step;
+
+      this.show();
+
+      return;
+    }
+
     if (step < this.current) {
       this.current = step;
 
@@ -653,18 +667,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const checkOut = document.getElementById("check_out");
 
-    if (checkIn && checkOut && checkIn.value !== "" && checkOut.value !== "") {
-      if (checkIn.value >= checkOut.value) {
+    // Le départ a lieu le lendemain de l'arrivée : seule l'heure limite d'arrivée doit suivre l'heure d'arrivée
+    const checkInUntil = document.getElementById("arrivee_jusqua");
+
+    if (checkIn && checkInUntil && checkIn.value !== "" && checkInUntil.value !== "") {
+      if (checkInUntil.value <= checkIn.value) {
         showError(
-          checkOut,
+          checkInUntil,
 
-          "error-checkout",
+          "error-arrivee_jusqua",
 
-          "L'heure de départ doit être supérieure à l'heure d'arrivée.",
+          "L’heure limite d’arrivée doit être après l’heure d’arrivée.",
         );
 
         valid = false;
+      } else {
+        clearError(checkInUntil, "error-arrivee_jusqua");
       }
+    }
+
+    if (checkOut) {
+      clearError(checkOut, "error-checkout");
+    }
+
+    // Politique d'annulation obligatoire
+    if (!document.querySelector("input[name='politique_annulation']:checked")) {
+      const policyError = document.getElementById("error-politique_annulation");
+
+      if (policyError) {
+        policyError.textContent = "Choisissez une politique d’annulation.";
+      }
+
+      valid = false;
     }
 
     return valid;
@@ -2140,6 +2174,79 @@ document.addEventListener("DOMContentLoaded", function () {
     | AFFICHAGE DU WIZARD AVEC WZARD.SHOW
     |--------------------------------------------------------------------------
     */
+
+  /*
+    |--------------------------------------------------------------------------
+    | ERREURS RENVOYÉES PAR LE SERVEUR
+    |--------------------------------------------------------------------------
+    | Chaque message est placé sous son champ ; le résumé en haut de page
+    | permet d'ouvrir l'étape concernée.
+    */
+
+  const errorSlots = {
+    type_etablissement_id: "error-type",
+    city_id: "error-ville",
+    check_out: "error-checkout",
+  };
+
+  let serverErrors = {};
+
+  try {
+    serverErrors = JSON.parse(form?.dataset.serverErrors || "{}");
+  } catch {
+    serverErrors = {};
+  }
+
+  Object.entries(serverErrors).forEach(([field, messages]) => {
+    const name = field.split(".")[0];
+    const slot = document.getElementById(errorSlots[name] || "error-" + name);
+
+    if (slot && Array.isArray(messages) && messages.length > 0) {
+      slot.textContent = messages[0];
+      slot.closest(".groupe-formulaire")?.classList.add("has-server-error");
+    }
+  });
+
+  document.querySelectorAll("input[name='politique_annulation']").forEach((radio) => {
+    radio.addEventListener("change", () => {
+      const error = document.getElementById("error-politique_annulation");
+
+      if (error) {
+        error.textContent = "";
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-go-step]").forEach((button) => {
+    button.addEventListener("click", () => {
+      Wizard.current = Number(button.dataset.goStep);
+      Wizard.show();
+      document.querySelector(".wizard-stepper")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  /*
+    |--------------------------------------------------------------------------
+    | COMPTEURS DE CARACTÈRES (résumé)
+    |--------------------------------------------------------------------------
+    */
+
+  document.querySelectorAll("[data-char-counter]").forEach((input) => {
+    const counter = input.closest(".groupe-formulaire")?.querySelector("[data-char-count]");
+    const max = Number(input.dataset.charCounter);
+
+    if (!counter) {
+      return;
+    }
+
+    const update = () => {
+      counter.textContent = `${input.value.length} / ${max}`;
+      counter.classList.toggle("is-near-limit", input.value.length > max * 0.9);
+    };
+
+    input.addEventListener("input", update);
+    update();
+  });
 
   Wizard.show();
 });

@@ -15,7 +15,7 @@
 
     <div class="stepper-items">
 
-        @foreach (['Informations', 'Localisation', 'Contact & Accueil', 'Médias', 'Publication', 'SEO'] as $index => $title)
+        @foreach (['Informations', 'Localisation', 'Accueil & conditions', 'Médias', 'Publication', 'SEO'] as $index => $title)
 
             <div
                 class="etape"

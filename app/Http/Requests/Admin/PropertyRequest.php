@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\ActiveStatus;
+use App\Enums\CancellationPolicy;
 use App\Models\Property;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
- * Formulaire d'établissement en 6 étapes : informations, localisation, contact & accueil, médias, publication, SEO.
+ * Formulaire d'établissement en 6 étapes : informations, localisation, accueil & conditions, médias, publication, SEO.
  */
 class PropertyRequest extends FormRequest
 {
@@ -25,9 +26,19 @@ class PropertyRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'telephone' => preg_replace('/\D/', '', (string) $this->input('telephone')),
+            'telephone' => self::nationalPhone((string) $this->input('telephone')),
             'slug' => Str::slug((string) ($this->input('slug') ?: $this->input('nom'))),
         ]);
+    }
+
+    /**
+     * Numéro ivoirien sur 10 chiffres : « +225 07 01 02 03 04 » → « 0701020304 ».
+     */
+    public static function nationalPhone(string $phone): string
+    {
+        $digits = preg_replace('/\D/', '', $phone);
+
+        return strlen($digits) === 13 && str_starts_with($digits, '225') ? substr($digits, 3) : $digits;
     }
 
     /**
@@ -39,6 +50,7 @@ class PropertyRequest extends FormRequest
             // Informations
             'type_etablissement_id' => ['required', Rule::exists('property_types', 'id')->where('statut', ActiveStatus::Active->value)],
             'nom' => ['required', 'string', 'min:3', 'max:255'],
+            'resume' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string', 'max:10000'],
 
             // Localisation
@@ -54,9 +66,17 @@ class PropertyRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'site_web' => ['nullable', 'url', 'max:255'],
             'check_in' => ['nullable', 'date_format:H:i'],
+            'arrivee_jusqua' => ['nullable', 'date_format:H:i', 'after:check_in'],
             'check_out' => ['nullable', 'date_format:H:i'],
             'etoile' => ['nullable', 'integer', 'between:0,5'],
             'gestion_unites' => ['nullable', 'boolean'],
+
+            // Conditions de séjour (utilisées par les réservations : délai d'annulation gratuite, remboursements)
+            'politique_annulation' => ['required', Rule::enum(CancellationPolicy::class)],
+            'reglement' => ['nullable', 'string', 'max:3000'],
+            'animaux' => ['nullable', 'boolean'],
+            'fumeurs' => ['nullable', 'boolean'],
+            'fetes' => ['nullable', 'boolean'],
 
             // Médias
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -113,12 +133,45 @@ class PropertyRequest extends FormRequest
             'adresse.required' => "L'adresse est obligatoire.",
             'telephone.required' => 'Le téléphone est obligatoire.',
             'telephone.digits' => 'Le téléphone doit contenir 10 chiffres.',
+            'arrivee_jusqua.after' => 'L’heure limite d’arrivée doit être après l’heure d’arrivée.',
+            'politique_annulation.required' => 'Choisissez une politique d’annulation.',
+            'resume.max' => 'Le résumé ne doit pas dépasser 500 caractères.',
             'logo.max' => 'Le logo dépasse 2 Mo.',
             'gallery.*.max' => 'Chaque image de la galerie doit faire 5 Mo au maximum.',
             'statut.required' => 'Le statut de publication est obligatoire.',
             'meta_title.required' => 'Le titre méta est obligatoire.',
             'slug.unique' => 'Cette URL est déjà utilisée par un autre établissement.',
         ];
+    }
+
+    /**
+     * Étape (1 à 6) qui contient chaque champ : en cas d'erreur, le formulaire rouvre la bonne étape.
+     *
+     * @var array<int, list<string>>
+     */
+    public const FIELD_STEPS = [
+        1 => ['type_etablissement_id', 'nom', 'resume', 'description'],
+        2 => ['city_id', 'commune', 'quartier', 'adresse', 'latitude', 'longitude'],
+        3 => ['telephone', 'email', 'site_web', 'check_in', 'arrivee_jusqua', 'check_out', 'etoile', 'gestion_unites', 'politique_annulation', 'reglement', 'animaux', 'fumeurs', 'fetes'],
+        4 => ['logo', 'deleted_logo', 'gallery', 'deleted_gallery', 'gallery_cover'],
+        5 => ['statut'],
+        6 => ['meta_title', 'meta_description', 'slug'],
+    ];
+
+    /**
+     * Étape d'un champ (les champs de la galerie « gallery.3 » comptent pour « gallery »).
+     */
+    public static function stepOf(string $field): int
+    {
+        $field = explode('.', $field)[0];
+
+        foreach (self::FIELD_STEPS as $step => $fields) {
+            if (in_array($field, $fields, true)) {
+                return $step;
+            }
+        }
+
+        return 1;
     }
 
     /**
@@ -132,6 +185,7 @@ class PropertyRequest extends FormRequest
             'property_type_id' => $this->integer('type_etablissement_id'),
             'name' => $this->string('nom')->trim()->toString(),
             'slug' => $this->input('slug'),
+            'short_description' => $this->filled('resume') ? $this->string('resume')->trim()->toString() : null,
             'description' => $this->input('description'),
             'city_id' => $this->integer('city_id'),
             'district' => $this->string('commune')->trim()->toString(),
@@ -143,7 +197,13 @@ class PropertyRequest extends FormRequest
             'email' => $this->input('email'),
             'website' => $this->input('site_web'),
             'check_in_from' => $this->input('check_in') ?: '14:00',
+            'check_in_until' => $this->input('arrivee_jusqua') ?: null,
             'check_out_until' => $this->input('check_out') ?: '12:00',
+            'cancellation_policy' => $this->input('politique_annulation'),
+            'house_rules' => $this->filled('reglement') ? $this->string('reglement')->trim()->toString() : null,
+            'allows_pets' => $this->boolean('animaux'),
+            'allows_smoking' => $this->boolean('fumeurs'),
+            'allows_parties' => $this->boolean('fetes'),
             'star_rating' => $this->integer('etoile') ?: null,
             'manages_units' => $this->boolean('gestion_unites'),
             'meta_title' => $this->input('meta_title'),

@@ -136,6 +136,42 @@
 
             </div>
 
+            <!-- Résumé (cartes de la liste des résidences) -->
+
+            <div class="groupe-formulaire large">
+
+                <label for="resume">
+
+                    Résumé
+
+                    <em class="label-optional">(facultatif)</em>
+
+                </label>
+
+                <div class="input-icon">
+
+                    <i class="fa-solid fa-quote-left"></i>
+
+                    <input
+                        type="text"
+                        name="resume"
+                        id="resume"
+                        maxlength="500"
+                        placeholder="Ex : Résidence calme à 5 minutes de la plage, piscine et petit-déjeuner inclus."
+                        value="{{ old('resume', $etablissement->short_description) }}"
+                        data-char-counter="500">
+
+                </div>
+
+                <small class="field-hint-row">
+                    <span>Une phrase d’accroche, affichée sur les cartes des résidences.</span>
+                    <span data-char-count></span>
+                </small>
+
+                <small class="field-error" id="error-resume"></small>
+
+            </div>
+
             <!-- Description -->
 
             <div class="groupe-formulaire large">

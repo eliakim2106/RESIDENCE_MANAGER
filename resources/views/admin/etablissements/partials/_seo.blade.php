@@ -67,7 +67,7 @@
                     name="meta_title"
                     maxlength="60"
                     placeholder="Ex : Hôtel Palm Club Abidjan"
-                    value="{{ old('meta_title', $etablissement->meta_title) }}">
+                    value="{{ old('meta_title', $etablissement->meta_title ?: Str::limit((string) $etablissement->name, 60, '')) }}">
             </div>
 
             <div class="seo-counter">

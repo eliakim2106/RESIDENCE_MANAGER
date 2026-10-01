@@ -47,6 +47,7 @@ class PropertyTest extends TestCase
             'check_out' => '11:00',
             'etoile' => '4',
             'gestion_unites' => '1',
+            'politique_annulation' => 'moderate',
             'gallery' => [
                 UploadedFile::fake()->image('facade.jpg'),
                 UploadedFile::fake()->image('piscine.jpg'),
@@ -68,7 +69,7 @@ class PropertyTest extends TestCase
         $this->actingAs($owner)->get(route('admin.etablissements.create'))->assertOk()->assertSee('Nouvel établissement');
 
         $this->actingAs($owner)->post(route('admin.etablissements.store'), $this->payload())
-            ->assertRedirect(route('admin.etablissements.index'))
+            ->assertRedirect(route('admin.etablissements.show', 'hotel-palm-club'))
             ->assertSessionHasNoErrors();
 
         $property = Property::firstWhere('name', 'Hôtel Palm Club');
@@ -151,7 +152,7 @@ class PropertyTest extends TestCase
             'gallery' => [UploadedFile::fake()->image('terrasse.jpg')],
             'deleted_gallery' => json_encode([(string) $removed->id]),
             'gallery_cover' => 'terrasse.jpg',
-        ]))->assertRedirect(route('admin.etablissements.index'))->assertSessionHasNoErrors();
+        ]))->assertRedirect(route('admin.etablissements.show', $property->slug))->assertSessionHasNoErrors();
 
         $property->refresh();
 

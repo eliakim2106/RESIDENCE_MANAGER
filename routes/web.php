@@ -200,12 +200,20 @@ Route::prefix('admin/etablissements')
             ->name('create');
         Route::post('/', [PropertyController::class, 'store'])
             ->name('store');
+        Route::get('/{etablissement}', [PropertyController::class, 'show'])
+            ->name('show');
         Route::get('/{etablissement}/modifier', [PropertyController::class, 'edit'])
             ->name('edit');
         Route::put('/{etablissement}', [PropertyController::class, 'update'])
             ->name('update');
         Route::delete('/{etablissement}', [PropertyController::class, 'destroy'])
             ->name('destroy');
+        Route::patch('/{etablissement}/soumettre', [PropertyController::class, 'submit'])
+            ->name('submit');
+        Route::patch('/{etablissement}/publier', [PropertyController::class, 'publish'])
+            ->name('publish');
+        Route::patch('/{etablissement}/hors-ligne', [PropertyController::class, 'unpublish'])
+            ->name('unpublish');
 
         // Une unité se crée depuis son établissement
         Route::get('/{etablissement}/unites/creer', [UnitController::class, 'create'])

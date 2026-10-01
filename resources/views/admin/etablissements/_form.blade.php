@@ -1,7 +1,16 @@
 {{-- Formulaire en 6 étapes, commun à la création et à la modification --}}
 <div class="etablissement-page">
 
-    <form id="etablissementForm" class="formulaire-etablissement" method="POST" action="{{ $action }}" enctype="multipart/form-data">
+    @php
+        $serverErrors = $errors->getMessages();
+        $errorStep = collect(array_keys($serverErrors))->map(fn (string $field) => App\Http\Requests\Admin\PropertyRequest::stepOf($field))->min();
+        $stepNames = ['Informations', 'Localisation', 'Accueil & conditions', 'Médias', 'Publication', 'SEO'];
+    @endphp
+
+    <form id="etablissementForm" class="formulaire-etablissement" method="POST" action="{{ $action }}" enctype="multipart/form-data"
+        data-start-step="{{ $errorStep ?? ($startStep ?? 1) }}"
+        data-edit-mode="{{ $etablissement->exists ? '1' : '0' }}"
+        data-server-errors='@json((object) $serverErrors)'>
         @csrf
 
         @if ($etablissement->exists)
@@ -18,14 +27,36 @@
             </div>
 
             <div class="admin-page-actions">
-                <a href="{{ route('admin.etablissements.index') }}" class="btn-secondary">
+                <a href="{{ $etablissement->exists ? route('admin.etablissements.show', $etablissement) : route('admin.etablissements.index') }}" class="btn-secondary">
                     <i class="fa-solid fa-arrow-left"></i>
-                    Retour à la liste
+                    {{ $etablissement->exists ? 'Retour à la fiche' : 'Retour à la liste' }}
                 </a>
             </div>
         </div>
 
-        @include('partials.flash')
+        @include('partials.flash', ['withErrors' => false])
+
+        {{-- Erreurs renvoyées par le serveur : regroupées par étape, l'étape concernée s'ouvre --}}
+        @if ($serverErrors !== [])
+            <div class="moderation-banner tone-critical form-error-summary" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <strong>{{ count($serverErrors) > 1 ? count($serverErrors).' points à corriger' : 'Un point à corriger' }} avant d’enregistrer</strong>
+                    <ul>
+                        @foreach ($serverErrors as $field => $messages)
+                            @php($step = App\Http\Requests\Admin\PropertyRequest::stepOf($field))
+                            <li>
+                                <button type="button" class="link-btn" data-go-step="{{ $step }}">{{ $stepNames[$step - 1] }}</button>
+                                — {{ $messages[0] }}
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if (isset($serverErrors['gallery']) || collect(array_keys($serverErrors))->contains(fn ($field) => str_starts_with($field, 'gallery.')) || ! $etablissement->exists)
+                        <p class="form-error-note">Par sécurité, le navigateur ne conserve pas les nouvelles photos choisies : ajoutez-les de nouveau à l’étape Médias.</p>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         {{-- État de la validation par un administrateur --}}
         @if ($etablissement->exists)

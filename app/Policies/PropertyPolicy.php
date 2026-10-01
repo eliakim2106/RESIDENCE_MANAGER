@@ -21,6 +21,19 @@ class PropertyPolicy
         return $user->isOwner();
     }
 
+    public function view(User $user, Property $property): bool
+    {
+        return $this->owns($user, $property);
+    }
+
+    /**
+     * Publier directement, valider, refuser ou suspendre : administrateurs uniquement (accordé par before()).
+     */
+    public function moderate(User $user, Property $property): bool
+    {
+        return false;
+    }
+
     public function create(User $user): bool
     {
         return $user->isOwner();

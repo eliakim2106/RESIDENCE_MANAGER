@@ -22,10 +22,11 @@
 
     </button>
 
+    {{-- En modification, l'enregistrement est possible depuis n'importe quelle étape --}}
     <button
         type="submit"
         id="btnEnregistrer"
-        class="btn-wizard btn-primary">
+        class="btn-wizard {{ $etablissement->exists ? 'btn-save-anytime' : '' }} btn-primary">
 
         <i class="fa-solid {{ $etablissement->exists ? 'fa-pen-to-square' : 'fa-floppy-disk' }}"></i>
 

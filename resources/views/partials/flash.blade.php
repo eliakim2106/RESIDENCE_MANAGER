@@ -36,7 +36,8 @@
     </div>
 @endif
 
-@if ($errors->any())
+{{-- withErrors = false : la page affiche elle-même les erreurs de validation --}}
+@if (($withErrors ?? true) && $errors->any())
     <div class="alert alert-validation">
         <div class="alert-icon">
             <i class="fa-solid fa-triangle-exclamation"></i>
