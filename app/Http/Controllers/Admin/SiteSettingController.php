@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Rules\PhoneNumberRule;
 use App\Support\PhoneNumber;
 use App\Support\SiteSettings;
@@ -18,7 +19,11 @@ class SiteSettingController extends Controller
 {
     public function edit(SiteSettings $settings): View
     {
-        return view('admin.parametres.edit', ['settings' => $settings]);
+        return view('admin.parametres.edit', [
+            'settings' => $settings,
+            // Dernière modification de l'onglet Général : date et auteur
+            'lastChange' => Setting::query()->where('group', SiteSettings::GROUP)->with('updater')->latest('updated_at')->first(),
+        ]);
     }
 
     public function update(Request $request, SiteSettings $settings): RedirectResponse

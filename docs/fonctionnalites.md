@@ -97,6 +97,13 @@ Onglet **Contenu des pages** (`/admin/parametres/contenu/{page}`) : textes, imag
 - Chaque bloc peut retrouver son **contenu d’origine** ; les images envoyées pour ce bloc sont alors supprimées.
 - Les données calculées (résidences à la une, chiffres, avis) restent automatiques : seuls leurs titres se modifient.
 
+Confort d’utilisation du module :
+
+- **Barre d’enregistrement** : elle apparaît dès qu’un champ change. Quitter la page sans enregistrer demande une confirmation.
+- **Onglet Général** : aperçus en direct du résultat Google, du pied de page et des règles de réservation. Raccourcis vers chaque section, boutons − / + pour les règles.
+- **Onglet Contenu** : blocs repliables avec leur état (personnalisé, contenu d’origine, masqué) et la date de modification. Les éléments de liste se replient en résumé (vignette ou icône, titre) et se déplacent par glisser-déposer ou avec les flèches.
+- **Traçabilité** : chaque réglage garde la date et l’auteur de sa dernière modification, affichés dans l’en-tête et sur chaque bloc.
+
 ## Exports Excel
 
 Chaque liste propose un bouton **Exporter** qui reprend les filtres en cours :

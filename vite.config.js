@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/js/admin/equipement.js',
                 'resources/js/admin/etablissement.js',
                 'resources/js/admin/unite.js',
+                'resources/js/admin/parametres.js',
             ],
             refresh: true,
         }),

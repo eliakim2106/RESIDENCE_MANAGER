@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * Paramètre de la plateforme modifiable depuis le back-office (clé / valeur).
+ * Garde la date et l'auteur de sa dernière modification.
  */
 class Setting extends Model
 {
@@ -29,6 +32,20 @@ class Setting extends Model
 
     /*
     |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Compte qui a modifié ce réglage en dernier.
+     */
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | LECTURE ET ÉCRITURE
     |--------------------------------------------------------------------------
     */
@@ -44,10 +61,16 @@ class Setting extends Model
     }
 
     /**
-     * Écrit un paramètre.
+     * Écrit un paramètre. Une valeur inchangée n'est pas réenregistrée : date et auteur de modification restent exacts.
      */
     public static function set(string $key, mixed $value, string $group = 'general'): void
     {
-        static::updateOrCreate(['key' => $key], ['value' => $value, 'group' => $group]);
+        $setting = static::query()->firstOrNew(['key' => $key]);
+        $setting->fill(['value' => $value, 'group' => $group]);
+
+        if ($setting->isDirty()) {
+            $setting->updated_by = Auth::id();
+            $setting->save();
+        }
     }
 }

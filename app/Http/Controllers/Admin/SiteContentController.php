@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Support\SiteContentEditor;
 use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
@@ -19,13 +20,29 @@ class SiteContentController extends Controller
 
     public function edit(SiteSettings $site, string $page): View
     {
+        // Blocs personnalisés (réglage enregistré) : date et auteur de la dernière modification
+        $changes = Setting::query()->where('group', SiteSettings::CONTENT_GROUP)->with('updater')->get()
+            ->keyBy(fn (Setting $setting): string => substr($setting->key, strlen('content.')));
+
+        $pages = collect(SiteContentEditor::pages())
+            ->map(fn (array $definition): array => [
+                ...$definition,
+                'customized' => collect($definition['blocks'])->filter(fn (string $block): bool => $changes->has($block))->count(),
+            ])
+            ->all();
+
         return view('admin.parametres.contenu', [
-            'pages' => SiteContentEditor::pages(),
+            'pages' => $pages,
             'page' => $page,
             'blocks' => collect($this->editor->blocks($page))
-                ->map(fn (array $definition, string $block): array => [...$definition, 'content' => $site->content($block)])
+                ->map(fn (array $definition, string $block): array => [
+                    ...$definition,
+                    'content' => $site->content($block),
+                    'change' => $changes->get($block),
+                ])
                 ->all(),
             'icons' => config('site-content.icons'),
+            'lastChange' => $changes->sortByDesc('updated_at')->first(),
         ]);
     }
 

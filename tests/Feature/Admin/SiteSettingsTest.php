@@ -103,6 +103,25 @@ class SiteSettingsTest extends TestCase
         app(BookingEngine::class)->assertDates(CarbonImmutable::today()->addDay(), CarbonImmutable::today()->addDays(40));
     }
 
+    public function test_changes_are_traced_with_their_author(): void
+    {
+        $awa = User::factory()->superAdmin()->create(['name' => 'Awa Koné']);
+        $yao = User::factory()->superAdmin()->create(['name' => 'Yao Kouassi']);
+
+        $this->actingAs($awa)->get(route('admin.parametres.edit'))->assertSee('Valeurs d’origine');
+
+        $this->actingAs($awa)->put(route('admin.parametres.update'), $this->payload());
+        $this->assertSame($awa->id, Setting::query()->where('key', 'site_name')->value('updated_by'));
+
+        // Même valeur renvoyée par un autre compte : l'auteur de la modification ne change pas
+        $this->travel(5)->minutes();
+        $this->actingAs($yao)->put(route('admin.parametres.update'), $this->payload(['site_about' => 'Nouvelle présentation du site.']));
+        $this->assertSame($awa->id, Setting::query()->where('key', 'site_name')->value('updated_by'));
+        $this->assertSame($yao->id, Setting::query()->where('key', 'site_about')->value('updated_by'));
+
+        $this->actingAs($awa)->get(route('admin.parametres.edit'))->assertSee('par <strong>Yao Kouassi</strong>', false);
+    }
+
     public function test_invalid_values_are_rejected_and_nothing_is_saved(): void
     {
         $this->actingAs(User::factory()->superAdmin()->create())

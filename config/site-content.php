@@ -8,7 +8,9 @@
 | Chaque bloc décrit ses champs ; ses valeurs par défaut sont le contenu d'origine du site.
 |
 | Types de champ : text, textarea, image, link (adresse https://… ou chemin du site /…, #…), icon.
-| « visible » : le bloc peut être masqué. « list » : liste d'éléments (diapositives, étapes…), réordonnable.
+| « visible » : le bloc peut être masqué. « list » : liste d'éléments (diapositives, étapes…), réordonnable ;
+| son « summary » désigne les champs montrés quand un élément est replié (titre, sous-titre, vignette ou icône).
+| « icon » : icône du bloc dans l'administration.
 | Images par défaut : chemins dans public/ (assets/…) ; images envoyées : disque public, dossier site/.
 */
 
@@ -70,9 +72,10 @@ return [
         /* ---------------- Accueil ---------------- */
 
         'home_slides' => [
+            'icon' => 'fa-images',
             'label' => 'Diaporama d’accueil',
             'help' => 'Grandes images qui défilent en haut de l’accueil. Le bouton « Réserver maintenant » est ajouté à chaque diapositive.',
-            'list' => ['label' => 'Diapositive', 'min' => 1, 'max' => 6, 'fields' => $slideFields],
+            'list' => ['label' => 'Diapositive', 'min' => 1, 'max' => 6, 'fields' => $slideFields, 'summary' => ['title' => 'title', 'subtitle' => 'eyebrow', 'thumb' => 'image']],
             'defaults' => [
                 'items' => [
                     [
@@ -107,6 +110,7 @@ return [
         ],
 
         'home_stats' => [
+            'icon' => 'fa-chart-simple',
             'label' => 'Chiffres de la plateforme',
             'help' => 'Résidences en ligne, villes, logements et note moyenne : calculés automatiquement.',
             'visible' => true,
@@ -115,6 +119,7 @@ return [
         ],
 
         'home_featured' => [
+            'icon' => 'fa-star',
             'label' => 'Résidences à la une',
             'help' => 'Les résidences affichées sont choisies automatiquement (coups de cœur puis mieux notées).',
             'visible' => true,
@@ -123,6 +128,7 @@ return [
         ],
 
         'home_why' => [
+            'icon' => 'fa-medal',
             'label' => 'Pourquoi nous choisir',
             'visible' => true,
             'fields' => [
@@ -132,7 +138,7 @@ return [
                 'image_title' => ['type' => 'text', 'label' => 'Titre sur l’image', 'max' => 80],
                 'image_text' => ['type' => 'textarea', 'label' => 'Texte sur l’image', 'max' => 200],
             ],
-            'list' => ['label' => 'Atout', 'min' => 2, 'max' => 6, 'fields' => $cardFields],
+            'list' => ['label' => 'Atout', 'min' => 2, 'max' => 6, 'fields' => $cardFields, 'summary' => ['title' => 'title', 'subtitle' => 'text', 'icon' => 'icon']],
             'defaults' => [
                 ...$heading('Pourquoi DS HOLDING', 'Tout est prévu pour', 'un séjour sans souci', 'Des résidences modernes et sécurisées, et une équipe qui s’occupe de chaque détail pour rendre votre séjour exceptionnel.'),
                 'image' => 'assets/images/home/interieur.webp',
@@ -151,10 +157,11 @@ return [
         ],
 
         'home_steps' => [
+            'icon' => 'fa-list-ol',
             'label' => 'Étapes de réservation',
             'visible' => true,
             'fields' => $headingFields(false),
-            'list' => ['label' => 'Étape', 'min' => 2, 'max' => 4, 'fields' => $cardFields],
+            'list' => ['label' => 'Étape', 'min' => 2, 'max' => 4, 'fields' => $cardFields, 'summary' => ['title' => 'title', 'subtitle' => 'text', 'icon' => 'icon']],
             'defaults' => [
                 ...$heading('Simple et rapide', 'Réservez en', 'trois étapes'),
                 'items' => [
@@ -166,6 +173,7 @@ return [
         ],
 
         'home_reviews' => [
+            'icon' => 'fa-comments',
             'label' => 'Avis clients',
             'help' => 'Les avis affichés sont les avis vérifiés des voyageurs, choisis automatiquement.',
             'visible' => true,
@@ -174,6 +182,7 @@ return [
         ],
 
         'home_cta' => [
+            'icon' => 'fa-bullhorn',
             'label' => 'Bandeau de réservation',
             'visible' => true,
             'fields' => [
@@ -199,6 +208,7 @@ return [
         ],
 
         'home_contact' => [
+            'icon' => 'fa-envelope',
             'label' => 'Section contact',
             'help' => 'Les coordonnées se règlent dans l’onglet Général.',
             'visible' => true,
@@ -209,6 +219,7 @@ return [
         /* ---------------- Résidences ---------------- */
 
         'listing_hero' => [
+            'icon' => 'fa-panorama',
             'label' => 'En-tête de la liste des résidences',
             'help' => 'La phrase qui suit le titre (nombre d’établissements et de villes) est calculée automatiquement.',
             'fields' => [
@@ -224,6 +235,7 @@ return [
         ],
 
         'listing_cta' => [
+            'icon' => 'fa-building-circle-check',
             'label' => 'Bandeau propriétaires',
             'help' => 'Affiché sous la liste des résidences.',
             'visible' => true,
@@ -244,6 +256,7 @@ return [
         /* ---------------- Pages d'information ---------------- */
 
         'faq_hero' => [
+            'icon' => 'fa-heading',
             'label' => 'Questions fréquentes : en-tête',
             'fields' => [
                 'kicker' => ['type' => 'text', 'label' => 'Surtitre', 'max' => 60],
@@ -254,12 +267,14 @@ return [
         ],
 
         'faq_questions' => [
+            'icon' => 'fa-circle-question',
             'label' => 'Questions fréquentes : questions',
             'help' => 'Les questions sont regroupées par thème, dans l’ordre de la liste.',
             'list' => [
                 'label' => 'Question',
                 'min' => 1,
                 'max' => 60,
+                'summary' => ['title' => 'question', 'subtitle' => 'theme'],
                 'fields' => [
                     'theme' => ['type' => 'text', 'label' => 'Thème', 'max' => 40, 'required' => true],
                     'question' => ['type' => 'text', 'label' => 'Question', 'max' => 160, 'required' => true],
@@ -287,6 +302,7 @@ return [
         ],
 
         'contact_hero' => [
+            'icon' => 'fa-heading',
             'label' => 'Page Contact : en-tête',
             'fields' => [
                 'kicker' => ['type' => 'text', 'label' => 'Surtitre', 'max' => 60],
@@ -297,6 +313,7 @@ return [
         ],
 
         'owners_hero' => [
+            'icon' => 'fa-heading',
             'label' => 'Page Propriétaires : en-tête',
             'fields' => [
                 'kicker' => ['type' => 'text', 'label' => 'Surtitre', 'max' => 60],
