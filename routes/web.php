@@ -458,10 +458,20 @@ Route::prefix('admin/notifications')
     ->name('admin.notifications.')
     ->middleware(['auth', 'verified'])
     ->group(function () {
-        Route::get('/{notification}', [NotificationController::class, 'open'])
-            ->name('open');
+        Route::get('/', [NotificationController::class, 'index'])
+            ->name('index');
+        Route::get('/flux', [NotificationController::class, 'feed'])
+            ->name('feed');
         Route::post('/tout-lire', [NotificationController::class, 'readAll'])
             ->name('read-all');
+        Route::delete('/lues', [NotificationController::class, 'destroyRead'])
+            ->name('destroy-read');
+        Route::get('/{notification}', [NotificationController::class, 'open'])
+            ->name('open');
+        Route::patch('/{notification}/lue', [NotificationController::class, 'markRead'])
+            ->name('read');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])
+            ->name('destroy');
     });
 
 // =========================

@@ -12,5 +12,6 @@
 @import "./admin/paiements.css";
 @import "./admin/abonnements.css";
 @import "./admin/reversements.css";
+@import "./admin/notifications.css";
 @import "./admin/validations.css";
 @import "./admin/comptes.css";

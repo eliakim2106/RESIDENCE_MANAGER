@@ -5,9 +5,15 @@
 
     // Fil d'Ariane : section d'après le nom de la route, puis la page en cours (section « title »)
     $sections = [
-        'admin.reservations.' => [$user->isAdmin() || $user->isOwner() ? 'Réservations' : 'Mes réservations', 'admin.reservations.index'],
+        'admin.reservations.' => [
+            $user->isAdmin() || $user->isOwner() ? 'Réservations' : 'Mes réservations',
+            'admin.reservations.index',
+        ],
         'admin.paiements.' => ['Paiements', 'admin.paiements.index'],
-        'admin.reversements.' => [$user->isAdmin() ? 'Reversements' : 'Mes reversements', $user->isAdmin() ? 'admin.reversements.index' : 'admin.mes-reversements.index'],
+        'admin.reversements.' => [
+            $user->isAdmin() ? 'Reversements' : 'Mes reversements',
+            $user->isAdmin() ? 'admin.reversements.index' : 'admin.mes-reversements.index',
+        ],
         'admin.mes-reversements.' => ['Mes reversements', 'admin.mes-reversements.index'],
         'admin.validations.' => ['Validations', 'admin.validations.index'],
         'admin.utilisateurs.' => ['Utilisateurs', 'admin.utilisateurs.index'],
@@ -15,6 +21,7 @@
         'admin.formules.' => ['Formules', 'admin.formules.index'],
         'admin.abonnement.' => ['Mon abonnement', 'admin.abonnement.show'],
         'admin.profil.' => ['Mon profil', 'admin.profil.edit'],
+        'admin.notifications.' => ['Notifications', 'admin.notifications.index'],
         'admin.etablissements.unites.' => ['Établissements', 'admin.etablissements.index'],
         'admin.etablissements.' => ['Établissements', 'admin.etablissements.index'],
         'admin.unites.' => ['Unités', 'admin.unites.index'],
@@ -32,7 +39,7 @@
 
             if ($routeName !== $indexRoute) {
                 // Le titre de la section est déjà échappé : on le décode pour ne pas l'échapper deux fois
-                $crumbs[] = [html_entity_decode(trim($__env->yieldContent('title')), ENT_QUOTES | ENT_HTML5), null];
+            $crumbs[] = [html_entity_decode(trim($__env->yieldContent('title')), ENT_QUOTES | ENT_HTML5), null];
             }
 
             break;
@@ -70,42 +77,31 @@
 
     <div class="navbar-right">
 
-        <a href="{{ route('home') }}" class="nav-icon" target="_blank" rel="noopener" title="Voir le site" aria-label="Voir le site dans un nouvel onglet">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>
-
-        <div class="dropdown">
-            <button type="button" class="nav-icon" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+        {{-- Menu cloche : badge et liste mis à jour en direct (flux interrogé régulièrement, voir initNotifications) --}}
+        <div class="dropdown" data-notifications data-feed-url="{{ route('admin.notifications.feed') }}">
+            <button type="button" class="nav-icon" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications" data-notifications-toggle>
                 <i class="fa-regular fa-bell"></i>
-                @if ($notifications > 0)
-                    <span class="nav-badge">{{ $notifications > 9 ? '9+' : $notifications }}</span>
-                @endif
+                <span class="nav-badge" data-notifications-badge @if ($notifications === 0) hidden @endif>{{ $notifications > 9 ? '9+' : $notifications }}</span>
             </button>
 
-            <div class="dropdown-menu dropdown-menu-end admin-dropdown">
+            <div class="dropdown-menu dropdown-menu-end admin-dropdown notification-menu">
                 <div class="admin-dropdown-header">
                     <strong>Notifications</strong>
-                    @if ($notifications > 0)
-                        <form method="POST" action="{{ route('admin.notifications.read-all') }}">
-                            @csrf
-                            <button type="submit" class="dropdown-link-btn">Tout marquer comme lu</button>
-                        </form>
-                    @endif
+                    <form method="POST" action="{{ route('admin.notifications.read-all') }}" data-notifications-read-all @if ($notifications === 0) hidden @endif>
+                        @csrf
+                        <button type="submit" class="dropdown-link-btn">Tout marquer comme lu</button>
+                    </form>
                 </div>
-                @forelse ($user->unreadNotifications()->latest()->limit(5)->get() as $notification)
-                    <a href="{{ route('admin.notifications.open', $notification->id) }}" class="admin-dropdown-item notification-item">
-                        <i class="fa-solid {{ $notification->data['icon'] ?? 'fa-bell' }} tone-{{ $notification->data['tone'] ?? 'info' }}"></i>
-                        <span>
-                            {{ $notification->data['message'] ?? 'Nouvelle notification' }}
-                            <small>{{ $notification->created_at->diffForHumans() }}</small>
-                        </span>
-                    </a>
-                @empty
-                    <div class="admin-dropdown-empty">
-                        <i class="fa-regular fa-bell-slash"></i>
-                        <span>Aucune nouvelle notification</span>
-                    </div>
-                @endforelse
+
+                <div class="notification-list" data-notifications-list>
+                    @include('admin.partials.notification-items', [
+                        'items' => $user->unreadNotifications()->latest()->limit(App\Http\Controllers\Admin\NotificationController::MENU_LIMIT)->get(),
+                    ])
+                </div>
+
+                <a href="{{ route('admin.notifications.index') }}" class="admin-dropdown-footer">
+                    Voir toutes les notifications <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
         </div>
 
@@ -129,7 +125,9 @@
                         <small>{{ $user->email }}</small>
                     </span>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
                 <li>
                     <a class="dropdown-item" href="{{ route('admin.profil.edit') }}">
                         <i class="fa-solid fa-user"></i> Mon profil

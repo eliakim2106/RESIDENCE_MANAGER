@@ -2,6 +2,7 @@ import * as bootstrap from "bootstrap";
 
 import { initAlerts } from "./alerts";
 import { initDatepickers } from "./datepicker";
+import { initNotifications } from "./notifications";
 
 window.bootstrap = bootstrap;
 
@@ -391,4 +392,5 @@ initOccupancyGrid();
 initCycleToggle();
 initPayoutAccount();
 initAlerts();
+initNotifications();
 initDatepickers();
