@@ -71,7 +71,7 @@
                     @if ($subscription?->statut === SubscriptionStatus::Suspended)
                         Votre abonnement est suspendu : vos établissements ne sont plus visibles. Ils le redeviennent dès le paiement enregistré.
                     @else
-                        @if (App\Services\Payments\CinetPay::enabled())
+                        @if (App\Services\Payments\PaymentGateways::available())
                             Payez-la en ligne (Mobile Money ou carte) : votre abonnement est mis à jour dès la confirmation du paiement.
                         @else
                             Réglez-la auprès de l’équipe DS Holding (Mobile Money, virement ou espèces) : votre paiement sera enregistré sur votre compte. Le paiement en ligne sera bientôt disponible.
@@ -82,7 +82,7 @@
             <a href="{{ route('admin.abonnement.invoice', $openInvoice) }}" class="btn-secondary btn-sm" target="_blank" rel="noopener">
                 <i class="fa-solid fa-print"></i> Facture
             </a>
-            @if (App\Services\Payments\CinetPay::enabled())
+            @if (App\Services\Payments\PaymentGateways::available())
                 <form method="POST" action="{{ route('admin.abonnement.pay-online', $openInvoice) }}" class="banner-pay">
                     @csrf
                     <button type="submit" class="btn-primary btn-sm"><i class="fa-solid fa-lock"></i> Payer en ligne</button>
@@ -245,7 +245,7 @@
                             <a href="{{ route('admin.abonnement.invoice', $invoice) }}" class="action-btn" target="_blank" rel="noopener" title="Imprimer" aria-label="Imprimer la facture {{ $invoice->number }}">
                                 <i class="fa-solid fa-print"></i>
                             </a>
-                            @if ($invoice->isUnpaid() && App\Services\Payments\CinetPay::enabled())
+                            @if ($invoice->isUnpaid() && App\Services\Payments\PaymentGateways::available())
                                 <form method="POST" action="{{ route('admin.abonnement.pay-online', $invoice) }}" class="inline-action">
                                     @csrf
                                     <button type="submit" class="btn-primary btn-sm"><i class="fa-solid fa-lock"></i> Payer</button>

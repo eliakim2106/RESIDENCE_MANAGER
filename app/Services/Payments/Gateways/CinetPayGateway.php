@@ -1,57 +1,57 @@
 <?php
 
-namespace App\Services\Payments;
+namespace App\Services\Payments\Gateways;
 
 use App\Exceptions\WorkflowException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Client de l'API de paiement CinetPay (v2).
+ * CinetPay (API v2), agrégateur de production.
  *
- * 1. initialize() ouvre un guichet de paiement et renvoie l'adresse où envoyer le client ;
- * 2. après le paiement, CinetPay appelle l'adresse de notification et renvoie le client sur l'adresse de retour ;
- * 3. check() interroge CinetPay : seul ce statut fait foi (une notification ne suffit jamais à valider un paiement).
- *
- * Sans CINETPAY_API_KEY ni CINETPAY_SITE_ID dans .env, le paiement en ligne est désactivé.
+ * L'adresse de notification est transmise avec chaque transaction ; la vérification se fait
+ * avec notre identifiant de transaction. Clés : CINETPAY_API_KEY, CINETPAY_SITE_ID, CINETPAY_SECRET_KEY.
  */
-class CinetPay
+class CinetPayGateway implements PaymentGateway
 {
-    public const ACCEPTED = 'ACCEPTED';
+    public function name(): string
+    {
+        return 'cinetpay';
+    }
 
-    public const REFUSED = 'REFUSED';
+    public function label(): string
+    {
+        return 'CinetPay';
+    }
 
-    /**
-     * Le paiement en ligne est configuré.
-     */
-    public static function enabled(): bool
+    public function enabled(): bool
     {
         return filled(config('services.cinetpay.api_key')) && filled(config('services.cinetpay.site_id'));
+    }
+
+    public function requiredKeys(): array
+    {
+        return ['CINETPAY_API_KEY', 'CINETPAY_SITE_ID', 'CINETPAY_SECRET_KEY'];
     }
 
     /**
      * CinetPay n'accepte en XOF que des montants multiples de 5 : arrondi au multiple supérieur.
      */
-    public static function payableAmount(int $amount): int
+    public function payableAmount(int $amount): int
     {
         return (int) (ceil($amount / 5) * 5);
     }
 
-    /**
-     * Ouvre le guichet de paiement.
-     *
-     * @param  array{transaction_id: string, amount: int, description: string, notify_url: string, return_url: string, customer: array{name: string, email: string, phone?: ?string}, metadata?: string}  $payment
-     * @return array{payment_url: string, payment_token: string}
-     */
     public function initialize(array $payment): array
     {
         [$surname, $name] = $this->splitName($payment['customer']['name']);
 
         $response = $this->request('/payment', [
             'transaction_id' => $payment['transaction_id'],
-            'amount' => self::payableAmount($payment['amount']),
+            'amount' => $this->payableAmount($payment['amount']),
             'currency' => 'XOF',
             'description' => mb_substr(preg_replace('/[^\pL\pN \-.,]/u', ' ', $payment['description']), 0, 150),
             'notify_url' => $payment['notify_url'],
@@ -79,27 +79,37 @@ class CinetPay
 
         return [
             'payment_url' => $response['data']['payment_url'],
-            'payment_token' => (string) ($response['data']['payment_token'] ?? ''),
+            'reference' => (string) ($response['data']['payment_token'] ?? '') ?: null,
+        ];
+    }
+
+    public function check(string $transactionId, ?string $reference): array
+    {
+        $response = $this->request('/payment/check', ['transaction_id' => $transactionId]);
+        $data = $response['data'] ?? [];
+        $status = strtoupper((string) ($data['status'] ?? $response['message'] ?? 'UNKNOWN'));
+
+        return [
+            'status' => match (true) {
+                $status === 'ACCEPTED' => self::ACCEPTED,
+                in_array($status, ['REFUSED', 'CANCELED', 'CANCELLED', 'FAILED'], true) => self::REFUSED,
+                default => self::PENDING,
+            },
+            'amount' => isset($data['amount']) ? (int) $data['amount'] : null,
+            'method' => $data['payment_method'] ?? null,
+            'operator_id' => $data['operator_id'] ?? null,
+            'payload' => $response,
         ];
     }
 
     /**
-     * Statut d'une transaction chez CinetPay.
-     *
-     * @return array{status: string, amount: ?int, method: ?string, operator_id: ?string, paid_at: ?string, payload: array<string, mixed>}
+     * CinetPay envoie notre identifiant de transaction (cpm_trans_id).
      */
-    public function check(string $transactionId): array
+    public function notified(Request $request): array
     {
-        $response = $this->request('/payment/check', ['transaction_id' => $transactionId]);
-        $data = $response['data'] ?? [];
-
         return [
-            'status' => strtoupper((string) ($data['status'] ?? $response['message'] ?? 'UNKNOWN')),
-            'amount' => isset($data['amount']) ? (int) $data['amount'] : null,
-            'method' => $data['payment_method'] ?? null,
-            'operator_id' => $data['operator_id'] ?? null,
-            'paid_at' => $data['payment_date'] ?? null,
-            'payload' => $response,
+            'transaction' => $request->input('cpm_trans_id', $request->input('transaction_id')) ?: null,
+            'reference' => null,
         ];
     }
 
@@ -109,7 +119,7 @@ class CinetPay
      */
     private function request(string $path, array $body): array
     {
-        if (! self::enabled()) {
+        if (! $this->enabled()) {
             throw new WorkflowException('Le paiement en ligne n’est pas encore activé.');
         }
 

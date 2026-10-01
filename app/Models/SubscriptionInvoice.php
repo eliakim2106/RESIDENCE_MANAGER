@@ -33,6 +33,8 @@ class SubscriptionInvoice extends Model
         'payment_method',
         'payment_reference',
         'transaction_id',
+        'gateway',
+        'gateway_reference',
         'recorded_by',
     ];
 

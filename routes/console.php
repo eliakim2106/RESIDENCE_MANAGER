@@ -1,7 +1,7 @@
 <?php
 
-use App\Services\Payments\CinetPay;
 use App\Services\Payments\OnlinePayments;
+use App\Services\Payments\PaymentGateways;
 use App\Services\SubscriptionManager;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -29,14 +29,14 @@ Schedule::command('subscriptions:process')->dailyAt('06:00');
 
 /*
 |--------------------------------------------------------------------------
-| PAIEMENT EN LIGNE (CinetPay)
+| PAIEMENT EN LIGNE (CinetPay, FedaPay)
 |--------------------------------------------------------------------------
 | Toutes les 10 minutes : revérifie les paiements restés en attente (notification perdue, site injoignable).
 */
 
 Artisan::command('payments:sync', function (OnlinePayments $payments) {
-    if (! CinetPay::enabled()) {
-        $this->warn('Paiement en ligne désactivé : renseignez CINETPAY_API_KEY et CINETPAY_SITE_ID dans .env.');
+    if (! PaymentGateways::available()) {
+        $this->warn('Paiement en ligne désactivé : renseignez '.implode(', ', PaymentGateways::configured()->requiredKeys()).' dans .env.');
 
         return;
     }
@@ -44,6 +44,6 @@ Artisan::command('payments:sync', function (OnlinePayments $payments) {
     $result = $payments->syncPending();
 
     $this->info("{$result['accepted']} paiement(s) confirmé(s), {$result['refused']} refusé(s), {$result['abandoned']} abandonné(s).");
-})->purpose('Revérifie auprès de CinetPay les paiements en ligne en attente');
+})->purpose('Revérifie auprès de l’agrégateur les paiements en ligne en attente');
 
-Schedule::command('payments:sync')->everyTenMinutes()->when(fn () => CinetPay::enabled());
+Schedule::command('payments:sync')->everyTenMinutes()->when(fn () => PaymentGateways::available());

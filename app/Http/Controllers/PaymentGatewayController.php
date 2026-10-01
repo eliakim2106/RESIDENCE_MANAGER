@@ -6,35 +6,43 @@ use App\Exceptions\WorkflowException;
 use App\Models\Payment;
 use App\Models\SubscriptionInvoice;
 use App\Services\Payments\OnlinePayments;
+use App\Services\Payments\PaymentGateways;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 /**
- * Adresses appelées par CinetPay.
+ * Adresses appelées par l'agrégateur de paiement (CinetPay, FedaPay).
  *
- * notify et retour sont hors du groupe « web » (ni session, ni CSRF) : CinetPay les appelle depuis son site,
+ * notify et retour sont hors du groupe « web » (ni session, ni CSRF) : l'agrégateur les appelle depuis son site,
  * sans les cookies du client. Le retour renvoie ensuite le client, par une simple redirection, vers « résultat »
  * qui, lui, retrouve sa session et affiche le résultat là où il a lancé le paiement.
  */
-class CinetPayController extends Controller
+class PaymentGatewayController extends Controller
 {
     public function __construct(private OnlinePayments $payments) {}
 
     /**
-     * Notification de paiement (serveur à serveur). Le statut est toujours revérifié auprès de CinetPay.
+     * Notification de paiement (serveur à serveur). Le statut est toujours revérifié auprès de l'agrégateur.
      */
-    public function notify(Request $request): Response
+    public function notify(Request $request, string $passerelle): Response
     {
-        $transactionId = (string) $request->input('cpm_trans_id', $request->input('transaction_id', ''));
+        try {
+            $gateway = PaymentGateways::driver($passerelle);
+        } catch (InvalidArgumentException) {
+            abort(404);
+        }
 
-        // CinetPay teste aussi l'adresse par un simple appel sans transaction
-        if ($transactionId !== '') {
+        $notified = $gateway->notified($request);
+
+        // L'agrégateur teste aussi l'adresse par un simple appel sans transaction
+        if ($notified['transaction'] || $notified['reference']) {
             try {
-                $this->payments->sync($transactionId);
+                $this->payments->syncNotified($gateway, $notified);
             } catch (WorkflowException $exception) {
-                Log::warning('CinetPay : notification non traitée', ['transaction' => $transactionId, 'error' => $exception->getMessage()]);
+                Log::warning('Paiement en ligne : notification non traitée', ['gateway' => $passerelle, 'notified' => $notified, 'error' => $exception->getMessage()]);
 
                 return response('Vérification impossible', 503);
             }
@@ -46,7 +54,7 @@ class CinetPayController extends Controller
     /**
      * Retour du client après le paiement.
      */
-    public function return(Request $request, string $transaction): RedirectResponse
+    public function return(string $transaction): RedirectResponse
     {
         try {
             $this->payments->sync($transaction);
@@ -54,7 +62,7 @@ class CinetPayController extends Controller
             // La notification ou la commande planifiée prendront le relais
         }
 
-        return redirect()->route('paiements.cinetpay.result', ['transaction' => $transaction]);
+        return redirect()->route('paiements.result', ['transaction' => $transaction]);
     }
 
     /**
@@ -62,7 +70,7 @@ class CinetPayController extends Controller
      */
     public function result(Request $request, string $transaction): RedirectResponse
     {
-        if ($payment = Payment::query()->where('transaction_id', $transaction)->where('provider', 'cinetpay')->with('reservation')->first()) {
+        if ($payment = Payment::query()->where('transaction_id', $transaction)->whereIn('provider', PaymentGateways::names())->with('reservation')->first()) {
             abort_unless($request->user()->can('view', $payment->reservation), 403);
 
             [$type, $message] = match (true) {

@@ -55,18 +55,33 @@
 
     @include('partials.flash')
 
-    @if (auth()->user()->isAdmin() && ! App\Services\Payments\CinetPay::enabled())
-        <div class="moderation-banner tone-info" role="note">
-            <i class="fa-solid fa-plug"></i>
-            <div>
-                <strong>Paiement en ligne non activé</strong>
-                <p>
-                    Tout est prêt côté plateforme. Pour l’activer, ajoutez dans le fichier <code>.env</code> la clé API et l’identifiant du site
-                    fournis par CinetPay (<code>CINETPAY_API_KEY</code>, <code>CINETPAY_SITE_ID</code>, <code>CINETPAY_SECRET_KEY</code>).
-                    Adresse de notification à déclarer : <code>{{ route('paiements.cinetpay.notify') }}</code>
-                </p>
+    @if (auth()->user()->isAdmin())
+        @php
+            $gateway = App\Services\Payments\PaymentGateways::configured();
+        @endphp
+        @if (! $gateway->enabled())
+            <div class="moderation-banner tone-info" role="note">
+                <i class="fa-solid fa-plug"></i>
+                <div>
+                    <strong>Paiement en ligne non activé ({{ $gateway->label() }})</strong>
+                    <p>
+                        Tout est prêt côté plateforme. Pour l’activer, renseignez dans le fichier <code>.env</code> :
+                        @foreach ($gateway->requiredKeys() as $key)
+                            <code>{{ $key }}</code>{{ $loop->last ? '.' : ',' }}
+                        @endforeach
+                        Adresse de notification à déclarer : <code>{{ route('paiements.notify', $gateway->name()) }}</code>
+                    </p>
+                </div>
             </div>
-        </div>
+        @elseif ($gateway->name() !== 'cinetpay')
+            <div class="moderation-banner tone-warning" role="note">
+                <i class="fa-solid fa-flask"></i>
+                <div>
+                    <strong>Paiement en ligne en mode test ({{ $gateway->label() }})</strong>
+                    <p>Pour la production, passez <code>PAYMENT_GATEWAY=cinetpay</code> dans <code>.env</code> avec les clés CinetPay.</p>
+                </div>
+            </div>
+        @endif
     @endif
 
     {{-- ========== Synthèse ========== --}}

@@ -23,8 +23,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\CinetPayController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\ResidenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,21 +43,22 @@ Route::get('/residences/details', [ResidenceController::class, 'show'])
     ->name('residences.show');
 
 // =========================
-// PAIEMENT EN LIGNE (CinetPay)
+// PAIEMENT EN LIGNE (CinetPay en production, FedaPay en test)
 // =========================
-// Notification et retour : appelés depuis CinetPay, sans les cookies du client, donc hors du groupe « web »
+// Notification et retour : appelés depuis l'agrégateur, sans les cookies du client, donc hors du groupe « web »
 // (une session ouverte ici remplacerait celle du client et le déconnecterait). Le résultat, lui, retrouve la session.
 
-Route::prefix('paiements/cinetpay')
-    ->name('paiements.cinetpay.')
+Route::prefix('paiements/en-ligne')
+    ->name('paiements.')
     ->group(function () {
-        Route::match(['get', 'post'], '/notification', [CinetPayController::class, 'notify'])
+        Route::match(['get', 'post'], '/{passerelle}/notification', [PaymentGatewayController::class, 'notify'])
             ->withoutMiddleware('web')
+            ->whereIn('passerelle', ['cinetpay', 'fedapay'])
             ->name('notify');
-        Route::match(['get', 'post'], '/retour/{transaction}', [CinetPayController::class, 'return'])
+        Route::match(['get', 'post'], '/retour/{transaction}', [PaymentGatewayController::class, 'return'])
             ->withoutMiddleware('web')
             ->name('return');
-        Route::get('/resultat/{transaction}', [CinetPayController::class, 'result'])
+        Route::get('/resultat/{transaction}', [PaymentGatewayController::class, 'result'])
             ->middleware('auth')
             ->name('result');
     });

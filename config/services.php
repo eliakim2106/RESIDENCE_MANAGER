@@ -37,6 +37,12 @@ return [
         'channels' => env('CINETPAY_CHANNELS', 'ALL'),
     ],
 
+    // Agrégateur de test (sandbox ouverte avec une adresse e-mail). environment : sandbox ou live.
+    'fedapay' => [
+        'secret_key' => env('FEDAPAY_SECRET_KEY'),
+        'environment' => env('FEDAPAY_ENVIRONMENT', 'sandbox'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

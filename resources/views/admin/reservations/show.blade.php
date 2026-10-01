@@ -14,7 +14,7 @@
     $canCancel = $actions['cancel'] && auth()->user()->can('cancel', $reservation);
     // Le client règle son solde en ligne (CinetPay), si le paiement en ligne est configuré
     $canPayOnline = ! $canManage
-        && App\Services\Payments\CinetPay::enabled()
+        && App\Services\Payments\PaymentGateways::available()
         && in_array($status, [ReservationStatus::Pending, ReservationStatus::Confirmed], true)
         && $reservation->balanceDue() > 0
         && auth()->user()->can('pay', $reservation);
@@ -419,7 +419,7 @@
                     <form method="POST" action="{{ route('admin.reservations.pay-online', $reservation) }}" class="online-pay">
                         @csrf
                         <button type="submit" class="btn-primary w-100"><i class="fa-solid fa-lock"></i> Payer en ligne</button>
-                        <small><i class="fa-solid fa-mobile-screen"></i> Orange Money, MTN, Moov, Wave ou carte bancaire · paiement sécurisé CinetPay</small>
+                        <small><i class="fa-solid fa-mobile-screen"></i> Mobile Money ou carte bancaire · paiement sécurisé {{ App\Services\Payments\PaymentGateways::current()?->label() }}</small>
                     </form>
                 @endif
 

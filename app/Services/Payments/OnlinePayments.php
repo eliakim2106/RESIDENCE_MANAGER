@@ -13,6 +13,7 @@ use App\Models\Reservation;
 use App\Models\SubscriptionInvoice;
 use App\Models\User;
 use App\Notifications\ReservationUpdated;
+use App\Services\Payments\Gateways\PaymentGateway;
 use App\Services\SubscriptionManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,24 +21,22 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 /**
- * Paiement en ligne des réservations (client) et des factures d'abonnement (propriétaire) via CinetPay.
+ * Paiement en ligne des réservations (client) et des factures d'abonnement (propriétaire).
  *
- * start…() crée la transaction puis renvoie l'adresse du guichet CinetPay ; sync() interroge CinetPay
- * et applique le résultat (appelé par la notification, au retour du client et par la commande planifiée).
- * sync() est idempotent : une transaction déjà traitée n'est jamais comptée deux fois.
+ * L'agrégateur est celui de PAYMENT_GATEWAY (CinetPay en production, FedaPay en test). start…() crée
+ * la transaction puis renvoie l'adresse du guichet ; sync() interroge l'agrégateur qui a ouvert la
+ * transaction et applique le résultat (appelé par la notification, au retour du client et par la
+ * commande planifiée). sync() est idempotent : une transaction déjà traitée n'est jamais comptée deux fois.
  */
 class OnlinePayments
 {
-    public const ACCEPTED = 'accepted';
+    public const ACCEPTED = PaymentGateway::ACCEPTED;
 
-    public const REFUSED = 'refused';
+    public const REFUSED = PaymentGateway::REFUSED;
 
-    public const PENDING = 'pending';
+    public const PENDING = PaymentGateway::PENDING;
 
-    public function __construct(
-        private CinetPay $cinetpay,
-        private SubscriptionManager $subscriptions,
-    ) {}
+    public function __construct(private SubscriptionManager $subscriptions) {}
 
     /*
     |--------------------------------------------------------------------------
@@ -50,6 +49,8 @@ class OnlinePayments
      */
     public function startReservation(Reservation $reservation, User $payer): string
     {
+        $gateway = $this->gateway();
+
         if (! in_array($reservation->statut, [ReservationStatus::Pending, ReservationStatus::Confirmed], true)) {
             throw new WorkflowException('Cette réservation ne peut plus être réglée en ligne.');
         }
@@ -63,23 +64,23 @@ class OnlinePayments
         $payment = $reservation->payments()->create([
             'user_id' => $payer->id,
             'transaction_id' => $this->newTransactionId('RES'),
-            'provider' => 'cinetpay',
-            'amount' => CinetPay::payableAmount($balance),
+            'provider' => $gateway->name(),
+            'amount' => $gateway->payableAmount($balance),
             'currency' => 'XOF',
             'statut' => TransactionStatus::Pending,
         ]);
 
-        $checkout = $this->cinetpay->initialize([
+        $checkout = $gateway->initialize([
             'transaction_id' => $payment->transaction_id,
             'amount' => $payment->amount,
             'description' => 'Reservation '.$reservation->reference.' '.$reservation->property?->name,
-            'notify_url' => route('paiements.cinetpay.notify'),
-            'return_url' => route('paiements.cinetpay.return', ['transaction' => $payment->transaction_id]),
+            'notify_url' => route('paiements.notify', $gateway->name()),
+            'return_url' => route('paiements.return', ['transaction' => $payment->transaction_id]),
             'customer' => ['name' => $reservation->guest_name ?: $payer->name, 'email' => $reservation->guest_email ?: $payer->email, 'phone' => $reservation->guest_phone ?: $payer->phone],
             'metadata' => 'reservation:'.$reservation->reference,
         ]);
 
-        $payment->update(['payment_url' => $checkout['payment_url'], 'payment_token' => $checkout['payment_token']]);
+        $payment->update(['payment_url' => $checkout['payment_url'], 'payment_token' => $checkout['reference']]);
 
         return $checkout['payment_url'];
     }
@@ -89,21 +90,25 @@ class OnlinePayments
      */
     public function startInvoice(SubscriptionInvoice $invoice, User $payer): string
     {
+        $gateway = $this->gateway();
+
         if (! $invoice->isUnpaid()) {
             throw new WorkflowException('Cette facture n’est pas à payer.');
         }
 
-        $invoice->update(['transaction_id' => $this->newTransactionId('ABO')]);
+        $invoice->update(['transaction_id' => $this->newTransactionId('ABO'), 'gateway' => $gateway->name(), 'gateway_reference' => null]);
 
-        $checkout = $this->cinetpay->initialize([
+        $checkout = $gateway->initialize([
             'transaction_id' => $invoice->transaction_id,
             'amount' => $invoice->amount,
             'description' => 'Abonnement '.$invoice->plan_name.' facture '.$invoice->number,
-            'notify_url' => route('paiements.cinetpay.notify'),
-            'return_url' => route('paiements.cinetpay.return', ['transaction' => $invoice->transaction_id]),
+            'notify_url' => route('paiements.notify', $gateway->name()),
+            'return_url' => route('paiements.return', ['transaction' => $invoice->transaction_id]),
             'customer' => ['name' => $payer->name, 'email' => $payer->email, 'phone' => $payer->phone],
             'metadata' => 'facture:'.$invoice->number,
         ]);
+
+        $invoice->update(['gateway_reference' => $checkout['reference']]);
 
         return $checkout['payment_url'];
     }
@@ -115,13 +120,13 @@ class OnlinePayments
     */
 
     /**
-     * Interroge CinetPay et applique le statut de la transaction.
+     * Interroge l'agrégateur et applique le statut de la transaction.
      *
      * @return array{status: string, target: Reservation|SubscriptionInvoice}|null null si la transaction est inconnue
      */
     public function sync(string $transactionId): ?array
     {
-        if ($payment = Payment::query()->where('transaction_id', $transactionId)->where('provider', 'cinetpay')->first()) {
+        if ($payment = Payment::query()->where('transaction_id', $transactionId)->whereIn('provider', PaymentGateways::names())->first()) {
             return ['status' => $this->syncPayment($payment), 'target' => $payment->reservation];
         }
 
@@ -130,6 +135,23 @@ class OnlinePayments
         }
 
         return null;
+    }
+
+    /**
+     * Notification reçue d'un agrégateur : il désigne la transaction par notre identifiant ou par le sien.
+     *
+     * @param  array{transaction: ?string, reference: ?string}  $notified
+     */
+    public function syncNotified(PaymentGateway $gateway, array $notified): ?array
+    {
+        $transactionId = $notified['transaction'];
+
+        if (! $transactionId && $notified['reference']) {
+            $transactionId = Payment::query()->where('provider', $gateway->name())->where('payment_token', $notified['reference'])->value('transaction_id')
+                ?? SubscriptionInvoice::query()->where('gateway', $gateway->name())->where('gateway_reference', $notified['reference'])->value('transaction_id');
+        }
+
+        return $transactionId ? $this->sync($transactionId) : null;
     }
 
     /**
@@ -143,7 +165,7 @@ class OnlinePayments
         $counts = ['accepted' => 0, 'refused' => 0, 'abandoned' => 0];
 
         Payment::query()
-            ->where('provider', 'cinetpay')
+            ->whereIn('provider', PaymentGateways::names())
             ->where('statut', TransactionStatus::Pending)
             ->where('created_at', '<=', now()->subMinutes(2))
             ->each(function (Payment $payment) use (&$counts): void {
@@ -178,8 +200,9 @@ class OnlinePayments
             return $payment->isAccepted() || $payment->statut === TransactionStatus::Refunded ? self::ACCEPTED : self::REFUSED;
         }
 
-        $result = $this->cinetpay->check($payment->transaction_id);
-        $status = $this->outcome($result, $payment->amount, $payment->transaction_id);
+        $gateway = PaymentGateways::driver($payment->provider);
+        $result = $gateway->check($payment->transaction_id, $payment->payment_token);
+        $status = $this->outcome($gateway, $result, $payment->amount, $payment->transaction_id);
 
         if ($status === self::PENDING) {
             return $status;
@@ -228,8 +251,9 @@ class OnlinePayments
             return self::ACCEPTED;
         }
 
-        $result = $this->cinetpay->check($invoice->transaction_id);
-        $status = $this->outcome($result, $invoice->amount, $invoice->transaction_id);
+        $gateway = PaymentGateways::driver($invoice->gateway ?? 'cinetpay');
+        $result = $gateway->check($invoice->transaction_id, $invoice->gateway_reference);
+        $status = $this->outcome($gateway, $result, $invoice->amount, $invoice->transaction_id);
 
         if ($status === self::ACCEPTED) {
             $applied = DB::transaction(function () use ($invoice, $result): bool {
@@ -244,38 +268,34 @@ class OnlinePayments
                 return true;
             });
 
-            Log::info('CinetPay : facture d’abonnement réglée en ligne', ['invoice' => $invoice->number, 'applied' => $applied]);
+            Log::info('Facture d’abonnement réglée en ligne', ['invoice' => $invoice->number, 'gateway' => $gateway->name(), 'applied' => $applied]);
         }
 
         return $status;
     }
 
     /**
-     * Statut CinetPay → accepté, refusé ou en attente. Un montant inférieur à celui attendu n'est jamais accepté.
+     * Un montant inférieur à celui attendu n'est jamais accepté.
      *
      * @param  array{status: string, amount: ?int}  $result
      */
-    private function outcome(array $result, int $expected, string $transactionId): string
+    private function outcome(PaymentGateway $gateway, array $result, int $expected, string $transactionId): string
     {
-        if ($result['status'] === CinetPay::ACCEPTED) {
-            if ($result['amount'] !== null && $result['amount'] < CinetPay::payableAmount($expected)) {
-                Log::warning('CinetPay : montant payé inférieur au montant attendu', ['transaction' => $transactionId, 'paid' => $result['amount'], 'expected' => $expected]);
+        if ($result['status'] === self::ACCEPTED && $result['amount'] !== null && $result['amount'] < $gateway->payableAmount($expected)) {
+            Log::warning('Paiement en ligne : montant payé inférieur au montant attendu', ['gateway' => $gateway->name(), 'transaction' => $transactionId, 'paid' => $result['amount'], 'expected' => $expected]);
 
-                return self::PENDING;
-            }
-
-            return self::ACCEPTED;
+            return self::PENDING;
         }
 
-        return in_array($result['status'], [CinetPay::REFUSED, 'CANCELED', 'CANCELLED', 'FAILED'], true) ? self::REFUSED : self::PENDING;
+        return $result['status'];
     }
 
     /**
-     * Moyen de paiement CinetPay (OM, MOMO, FLOOZ, WAVE, VISAM, CARD…) → moyen de la plateforme.
+     * Moyen indiqué par l'agrégateur (OM, MOMO, WAVE, mtn_open, VISAM, card…) → moyen de la plateforme.
      */
-    private function method(?string $cinetpayMethod): PaymentMethod
+    private function method(?string $gatewayMethod): PaymentMethod
     {
-        $code = strtoupper((string) $cinetpayMethod);
+        $code = strtoupper((string) $gatewayMethod);
 
         return match (true) {
             str_contains($code, 'VISA'), str_contains($code, 'MASTER'), str_contains($code, 'CARD') => PaymentMethod::Card,
@@ -298,7 +318,15 @@ class OnlinePayments
     }
 
     /**
-     * Identifiant unique transmis à CinetPay, ex. « RES-20261001-7KQ2M9XA ».
+     * Agrégateur pour un nouveau paiement.
+     */
+    private function gateway(): PaymentGateway
+    {
+        return PaymentGateways::current() ?? throw new WorkflowException('Le paiement en ligne n’est pas encore activé.');
+    }
+
+    /**
+     * Identifiant unique transmis à l'agrégateur, ex. « RES-20261001-7KQ2M9XA ».
      */
     private function newTransactionId(string $prefix): string
     {

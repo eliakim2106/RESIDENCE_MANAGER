@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
- * Paiement en ligne CinetPay (API simulée) : ouverture, notification, retour, idempotence, factures, droits.
+ * Paiement en ligne avec CinetPay (API simulée) : ouverture, notification, retour, idempotence, factures, droits.
  */
 class OnlinePaymentTest extends TestCase
 {
@@ -40,7 +40,7 @@ class OnlinePaymentTest extends TestCase
         parent::setUp();
 
         Notification::fake();
-        config(['services.cinetpay.api_key' => 'test-key', 'services.cinetpay.site_id' => '123456']);
+        config(['payments.gateway' => 'cinetpay', 'services.cinetpay.api_key' => 'test-key', 'services.cinetpay.site_id' => '123456']);
 
         $this->client = User::factory()->create();
         $this->owner = User::factory()->owner()->create();
@@ -96,7 +96,7 @@ class OnlinePaymentTest extends TestCase
         Http::assertSent(fn (HttpRequest $request) => str_ends_with($request->url(), '/v2/payment')
             && $request['amount'] === 75005
             && $request['site_id'] === '123456'
-            && str_contains($request['notify_url'], '/paiements/cinetpay/notification'));
+            && str_contains($request['notify_url'], '/paiements/en-ligne/cinetpay/notification'));
     }
 
     public function test_accepted_notification_settles_the_reservation_once(): void
@@ -104,8 +104,8 @@ class OnlinePaymentTest extends TestCase
         $this->fakeCinetPay();
         $payment = $this->startPayment();
 
-        $this->post(route('paiements.cinetpay.notify'), ['cpm_trans_id' => $payment->transaction_id, 'cpm_site_id' => '123456'])->assertOk();
-        $this->post(route('paiements.cinetpay.notify'), ['cpm_trans_id' => $payment->transaction_id])->assertOk();
+        $this->post(route('paiements.notify', 'cinetpay'), ['cpm_trans_id' => $payment->transaction_id, 'cpm_site_id' => '123456'])->assertOk();
+        $this->post(route('paiements.notify', 'cinetpay'), ['cpm_trans_id' => $payment->transaction_id])->assertOk();
 
         $payment->refresh();
         $this->assertSame(TransactionStatus::Accepted, $payment->statut);
@@ -127,17 +127,17 @@ class OnlinePaymentTest extends TestCase
         $payment = $this->startPayment();
 
         // Retour en POST depuis CinetPay : aucune session ouverte (sinon le client serait déconnecté)
-        $this->post(route('paiements.cinetpay.return', $payment->transaction_id), ['transaction_id' => $payment->transaction_id])
-            ->assertRedirect(route('paiements.cinetpay.result', $payment->transaction_id))
+        $this->post(route('paiements.return', $payment->transaction_id), ['transaction_id' => $payment->transaction_id])
+            ->assertRedirect(route('paiements.result', $payment->transaction_id))
             ->assertCookieMissing(config('session.cookie'));
 
         $this->assertSame(PaymentMethod::Card, $payment->fresh()->method);
 
-        $this->actingAs($this->client)->get(route('paiements.cinetpay.result', $payment->transaction_id))
+        $this->actingAs($this->client)->get(route('paiements.result', $payment->transaction_id))
             ->assertRedirect(route('admin.reservations.show', $this->reservation))
             ->assertSessionHas('success');
 
-        $this->actingAs(User::factory()->create())->get(route('paiements.cinetpay.result', $payment->transaction_id))->assertForbidden();
+        $this->actingAs(User::factory()->create())->get(route('paiements.result', $payment->transaction_id))->assertForbidden();
     }
 
     public function test_refused_payment_changes_nothing_on_the_reservation(): void
@@ -145,12 +145,12 @@ class OnlinePaymentTest extends TestCase
         $this->fakeCinetPay('REFUSED');
         $payment = $this->startPayment();
 
-        $this->post(route('paiements.cinetpay.notify'), ['cpm_trans_id' => $payment->transaction_id])->assertOk();
+        $this->post(route('paiements.notify', 'cinetpay'), ['cpm_trans_id' => $payment->transaction_id])->assertOk();
 
         $this->assertSame(TransactionStatus::Refused, $payment->fresh()->statut);
         $this->assertSame(0, $this->reservation->fresh()->amount_paid);
 
-        $this->actingAs($this->client)->get(route('paiements.cinetpay.result', $payment->transaction_id))->assertSessionHas('error');
+        $this->actingAs($this->client)->get(route('paiements.result', $payment->transaction_id))->assertSessionHas('error');
     }
 
     public function test_an_amount_lower_than_expected_is_never_accepted(): void
@@ -158,7 +158,7 @@ class OnlinePaymentTest extends TestCase
         $this->fakeCinetPay('ACCEPTED', 100);
         $payment = $this->startPayment();
 
-        $this->post(route('paiements.cinetpay.notify'), ['cpm_trans_id' => $payment->transaction_id])->assertOk();
+        $this->post(route('paiements.notify', 'cinetpay'), ['cpm_trans_id' => $payment->transaction_id])->assertOk();
 
         $this->assertSame(TransactionStatus::Pending, $payment->fresh()->statut);
         $this->assertSame(0, $this->reservation->fresh()->amount_paid);
@@ -177,13 +177,13 @@ class OnlinePaymentTest extends TestCase
         $invoice->refresh();
         $this->assertStringStartsWith('ABO-', $invoice->transaction_id);
 
-        $this->post(route('paiements.cinetpay.notify'), ['cpm_trans_id' => $invoice->transaction_id])->assertOk();
+        $this->post(route('paiements.notify', 'cinetpay'), ['cpm_trans_id' => $invoice->transaction_id])->assertOk();
 
         $this->assertSame(InvoiceStatus::Paid, $invoice->fresh()->statut);
         $this->assertNull($invoice->fresh()->recorded_by);
         $this->assertSame(SubscriptionStatus::Active, $subscription->fresh()->statut);
 
-        $this->actingAs($this->owner)->get(route('paiements.cinetpay.result', $invoice->transaction_id))
+        $this->actingAs($this->owner)->get(route('paiements.result', $invoice->transaction_id))
             ->assertRedirect(route('admin.abonnement.show'))
             ->assertSessionHas('success');
 
