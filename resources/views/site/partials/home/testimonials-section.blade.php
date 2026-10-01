@@ -32,7 +32,7 @@
             <div class="home-testimonials-track" tabindex="0" aria-label="Avis de voyageurs">
                 @forelse ($testimonials as $index => $review)
                     @php
-                        $author = $review->user ? Str::before($review->user->name, ' ').' '.Str::substr(Str::after($review->user->name, ' '), 0, 1).'.' : 'Voyageur';
+                        $author = $review->authorName();
                     @endphp
                     <figure class="home-testimonial" data-reveal style="--reveal-delay: {{ ($index % 3) * 120 }}ms">
                         <i class="fa-solid fa-quote-left home-testimonial-quote"></i>

@@ -2,14 +2,18 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\SendsMailInBackground;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Email « Mot de passe oublié » : lien de réinitialisation, valable une heure.
  */
-class ResetPasswordNotification extends Notification
+class ResetPasswordNotification extends Notification implements ShouldQueue
 {
+    use SendsMailInBackground;
+
     public function __construct(public string $token) {}
 
     /**

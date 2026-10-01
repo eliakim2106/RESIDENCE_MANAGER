@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyValidationController;
 use App\Http\Controllers\Admin\ReservationCalendarController;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SiteContentController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SubscriptionController;
@@ -265,6 +266,27 @@ Route::prefix('admin/parametres')
         Route::delete('/contenu/{page}/{block}', [SiteContentController::class, 'reset'])
             ->whereIn('page', array_keys(config('site-content.pages')))
             ->name('contenu.reset');
+    });
+
+// Avis des voyageurs : réponse et signalement (propriétaire), modération (administrateurs)
+Route::prefix('admin/avis')
+    ->name('admin.avis.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin,owner'])
+    ->group(function () {
+        Route::get('/', [ReviewController::class, 'index'])
+            ->name('index');
+        Route::get('/export', [ReviewController::class, 'export'])
+            ->name('export');
+        Route::get('/{review}', [ReviewController::class, 'show'])
+            ->name('show');
+        Route::put('/{review}/reponse', [ReviewController::class, 'reply'])
+            ->name('reply');
+        Route::post('/{review}/signaler', [ReviewController::class, 'report'])
+            ->name('report');
+        Route::patch('/{review}/masquer', [ReviewController::class, 'hide'])
+            ->name('hide');
+        Route::patch('/{review}/publier', [ReviewController::class, 'publish'])
+            ->name('publish');
     });
 
 // Messages reçus par le formulaire de contact

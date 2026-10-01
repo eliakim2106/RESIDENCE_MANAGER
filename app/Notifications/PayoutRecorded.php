@@ -3,14 +3,18 @@
 namespace App\Notifications;
 
 use App\Models\Payout;
+use App\Notifications\Concerns\SendsMailInBackground;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Reversement envoyé au propriétaire par DS Holding.
  */
-class PayoutRecorded extends Notification
+class PayoutRecorded extends Notification implements ShouldQueue
 {
+    use SendsMailInBackground;
+
     public function __construct(public Payout $payout) {}
 
     /**

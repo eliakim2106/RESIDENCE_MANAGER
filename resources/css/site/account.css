@@ -1463,3 +1463,34 @@
     flex-wrap: wrap;
   }
 }
+
+/* Avis : réponse de l'établissement, avis retiré par la modération */
+.acc-review-reply {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--site-gold);
+  border-radius: 0 12px 12px 0;
+  background: #fdf6e3;
+}
+
+.acc-review-reply strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--site-navy);
+  font-size: 0.86rem;
+}
+
+.acc-review-reply p {
+  margin: 6px 0 4px;
+  color: #334155;
+}
+
+.acc-review-reply small,
+.acc-review-hidden {
+  color: var(--acc-muted, #64748b);
+}
+
+.acc-review-hidden i {
+  margin-right: 4px;
+}

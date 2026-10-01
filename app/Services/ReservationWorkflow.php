@@ -139,7 +139,8 @@ class ReservationWorkflow
                     'cancellation_reason' => 'Demande expirée : l’établissement n’a pas répondu dans le délai prévu.',
                 ]);
 
-                $this->notifyGuest($reservation, ReservationUpdated::EXPIRED);
+                // Montant payé relevé avant le remboursement (l'email part ensuite, en arrière-plan)
+                $this->notifyGuest($reservation, ReservationUpdated::EXPIRED, (int) $reservation->amount_paid);
                 $reservation->property?->owner?->notify(new ReservationUpdated($reservation, ReservationUpdated::EXPIRED_FOR_OWNER));
 
                 if ($reservation->amount_paid > 0) {

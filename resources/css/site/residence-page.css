@@ -1398,3 +1398,26 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Réponse de l'établissement sous un avis */
+.rd-review-reply {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--site-gold);
+  border-radius: 0 10px 10px 0;
+  background: #fdf6e3;
+}
+
+.rd-review-reply strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--site-navy);
+  font-size: 0.82rem;
+}
+
+.rd-review-reply p {
+  margin: 0;
+  font-size: 0.86rem;
+}

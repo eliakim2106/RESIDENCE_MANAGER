@@ -57,6 +57,10 @@ Un client qui ouvre une ancienne adresse de l’administration (`/admin/...`) es
 - **Unités** : caractéristiques, prix (base, promotion, week-end, ménage), tarifs par période, galerie, équipements ; suppression bloquée si des séjours sont à venir.
 - **Réservations** : liste filtrable, calendrier d’occupation, confirmation, refus, annulation, séjour terminé, client absent, paiements reçus sur place, remboursements, bon de réservation.
 - **Paiements** : historique et reçus.
+- **Avis** : avis de ses établissements, avec note, critères et filtres.
+  - Il y **répond publiquement** ; sa réponse paraît sous l’avis, sur la fiche de la résidence, et le voyageur est prévenu.
+  - Il peut **signaler** à DS HOLDING un avis abusif, avec un motif.
+  - Le menu compte les avis sans réponse.
 - **Mes reversements** : sommes reversées par DS Holding et coordonnées de versement.
 - **Mon abonnement** : formule, factures, paiement en ligne.
 - **Notifications** : nouvelle demande, paiement reçu, annulation par le client, demande expirée, arrivées du lendemain, rappel de facture.
@@ -71,7 +75,13 @@ Un propriétaire ne voit et ne modifie que ses propres établissements.
 - **Abonnements et formules** : formules et réglages (abonnement obligatoire, délai de grâce), factures, essais, résiliation.
 - **Reversements** : sommes dues à chaque propriétaire, enregistrement d’un versement, relevé.
 - **Messages** : messages du formulaire de contact (nouveau, lu, répondu), réponse par email, export des abonnés à la newsletter.
-- **Notifications** : nouvel établissement à valider, message de contact, facture réglée en ligne, abonnement suspendu.
+- **Avis** : tous les avis, onglet des avis signalés par les établissements. L’administrateur peut :
+  - **masquer** un avis, avec un motif : il quitte le site et la note de l’établissement, et l’établissement comme le voyageur sont prévenus ;
+  - le **maintenir en ligne**, ce qui clôt le signalement ;
+  - le **remettre en ligne**.
+
+  Un administrateur ne répond pas à la place de l’établissement.
+- **Notifications** : nouvel établissement à valider, message de contact, avis signalé, facture réglée en ligne, abonnement suspendu.
 
 ### Super administrateur seulement : Paramètres du site (`/admin/parametres`)
 

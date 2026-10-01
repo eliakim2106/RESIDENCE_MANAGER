@@ -165,3 +165,263 @@ a.resa-today-card {
   color: inherit;
   text-decoration: none;
 }
+
+/* ---------- Avis des voyageurs ---------- */
+
+.review-score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  padding: 3px 9px;
+  border-radius: 8px 8px 8px 0;
+  color: #fff;
+  font-weight: 700;
+}
+
+.review-score small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.review-score.is-excellent,
+.review-detail-score.is-excellent {
+  background: #0a1f44;
+}
+
+.review-score.is-good,
+.review-detail-score.is-good {
+  background: #1565c0;
+}
+
+.review-score.is-low,
+.review-detail-score.is-low {
+  background: #b45309;
+}
+
+.review-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.review-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.review-flag.is-replied {
+  background: #e8f7ee;
+  color: #15803d;
+}
+
+.review-flag.is-waiting {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.review-flag.is-reported {
+  background: #fef5e6;
+  color: #b45309;
+}
+
+.review-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.review-banner > i {
+  margin-top: 3px;
+  color: #64748b;
+}
+
+.review-banner div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.review-detail-score {
+  display: flex;
+  flex: 0 0 96px;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 8px;
+  border-radius: 16px 16px 16px 0;
+  color: #fff;
+  text-align: center;
+}
+
+.review-detail-score strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.review-detail-score span {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.review-detail-score small {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.review-detail-body {
+  min-width: 0;
+}
+
+.review-detail-body h2 {
+  margin: 0 0 8px;
+  color: #0a1f44;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.review-detail-body p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.review-criteria {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 24px;
+  margin: 20px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid #e6eaf2;
+  list-style: none;
+}
+
+.review-criteria li {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.86rem;
+}
+
+.review-criteria-bar {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8edf5;
+}
+
+.review-criteria-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #d4a72c;
+}
+
+.review-criteria b {
+  text-align: right;
+}
+
+.review-reply {
+  margin: 0;
+  padding: 14px 18px;
+  border-left: 3px solid #d4a72c;
+  border-radius: 0 12px 12px 0;
+  background: #fdf6e3;
+}
+
+.review-reply p {
+  margin: 0;
+  color: #334155;
+}
+
+.review-reply footer {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.review-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.review-report {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #f3dcae;
+  border-radius: 12px;
+  background: #fef5e6;
+  color: #92400e;
+}
+
+.review-report small {
+  color: #b45309;
+}
+
+.review-report p {
+  margin: 6px 0 0;
+  color: #334155;
+  font-size: 0.88rem;
+}
+
+.review-block-btn {
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.review-keep {
+  margin-top: 10px;
+}
+
+.review-history {
+  margin: 14px 0 0;
+}
+
+@media (max-width: 575.98px) {
+  .review-detail {
+    flex-direction: column;
+  }
+
+  .review-detail-score {
+    flex-direction: row;
+    gap: 6px;
+    align-items: baseline;
+  }
+}
+
+/* Séjour d'un avis : les noms longs passent à la ligne au lieu de déborder */
+.review-stay > div {
+  gap: 12px;
+}
+
+.review-stay dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}

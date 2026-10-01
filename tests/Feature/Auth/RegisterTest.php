@@ -4,7 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Enums\UserRole;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -44,7 +44,7 @@ class RegisterTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertNull($user->email_verified_at);
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertSentTo($user, VerifyEmailNotification::class);
 
         $this->assertSame('Aya Marie Kouassi', $user->name);
         $this->assertSame(UserRole::Client, $user->role);

@@ -5,6 +5,8 @@ namespace App\Notifications;
 use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Notifications\Concerns\SendsMailInBackground;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -12,8 +14,10 @@ use Illuminate\Notifications\Notification;
  * Changement sur une réservation : email au client (et notification dans son espace),
  * ou alerte au propriétaire quand le client annule lui-même.
  */
-class ReservationUpdated extends Notification
+class ReservationUpdated extends Notification implements ShouldQueue
 {
+    use SendsMailInBackground;
+
     public const CONFIRMED = 'confirmed';
 
     public const REFUSED = 'refused';
@@ -89,7 +93,7 @@ class ReservationUpdated extends Notification
             self::EXPIRED => $mail
                 ->subject('Demande expirée – '.$reservation->reference)
                 ->line('L’établissement **'.$property?->name.'** n’a pas répondu à temps à votre demande '.$stay.' : elle a expiré et les dates ne vous sont plus réservées.')
-                ->lineIf($reservation->amount_paid > 0, 'Le paiement que vous avez effectué vous est remboursé.')
+                ->lineIf((int) $this->amount > 0, 'Le paiement de '.$this->money((int) $this->amount).' que vous avez effectué vous est remboursé.')
                 ->line('D’autres résidences sont peut-être disponibles à ces dates.'),
 
             self::CANCELLED => $mail

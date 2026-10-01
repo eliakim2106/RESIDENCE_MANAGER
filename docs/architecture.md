@@ -78,6 +78,14 @@ Une clé jamais enregistrée prend sa valeur de `SiteSettings::DEFAULTS`. Une va
 
 Le lien d’une notification mène à l’espace client pour un client, à l’administration pour les autres.
 
+Les notifications qui envoient un email (`ReservationUpdated`, `ArrivalsReminder`, `SubscriptionUpdated`, `PayoutRecorded`, `ResetPasswordNotification`, `VerifyEmailNotification`) implémentent `ShouldQueue` avec le trait `SendsMailInBackground` :
+
+- l’email part par la file d’attente, avec 3 tentatives ;
+- le canal `database` reste synchrone (`viaConnections`) ;
+- l’envoi est abandonné si le modèle a été supprimé entre-temps.
+
+Un email ne doit donc pas lire un état qui change juste après l’envoi : passer la valeur à la notification. C’est le cas du montant remboursé d’une demande expirée, transmis dans `$amount`.
+
 Autres notifications :
 
 - `ArrivalsReminder` : arrivées du lendemain ;
@@ -85,6 +93,7 @@ Autres notifications :
 - `SubscriptionUpdated`, `AdminSubscriptionAlert` : abonnements ;
 - `PayoutRecorded` : reversements ;
 - `NewContactMessage` : formulaire de contact ;
+- `ReviewActivity` : nouvel avis (propriétaire), réponse de l’établissement (voyageur), signalement (administrateurs), avis masqué ou maintenu ;
 - `ResetPasswordNotification` : mot de passe oublié.
 
 ## Accès

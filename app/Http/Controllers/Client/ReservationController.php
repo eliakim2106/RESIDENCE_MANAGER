@@ -8,6 +8,7 @@ use App\Exceptions\WorkflowException;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Review;
+use App\Notifications\ReviewActivity;
 use App\Services\Payments\OnlinePayments;
 use App\Services\Payments\PaymentGateways;
 use App\Services\ReservationWorkflow;
@@ -116,7 +117,7 @@ class ReservationController extends Controller
             'commentaire.min' => 'Votre avis doit faire au moins 10 caractères.',
         ]);
 
-        Review::create([
+        $review = Review::create([
             'reservation_id' => $reservation->id,
             'user_id' => $request->user()->id,
             'property_id' => $reservation->property_id,
@@ -128,6 +129,7 @@ class ReservationController extends Controller
         ]);
 
         $reservation->property?->refreshRating();
+        $reservation->property?->owner?->notify(new ReviewActivity($review, ReviewActivity::NEW_FOR_OWNER));
 
         return back()->with('success', 'Merci pour votre avis ! Il aide les prochains voyageurs à choisir.');
     }

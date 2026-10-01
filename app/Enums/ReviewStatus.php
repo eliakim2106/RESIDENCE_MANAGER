@@ -15,8 +15,20 @@ enum ReviewStatus: string
     {
         return match ($this) {
             self::Pending => 'En attente',
-            self::Approved => 'Approuvé',
-            self::Rejected => 'Rejeté',
+            self::Approved => 'Publié',
+            self::Rejected => 'Masqué',
+        };
+    }
+
+    /**
+     * Ton de la pastille de statut dans l'administration (status-pill status-…).
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Pending => 'warning',
+            self::Approved => 'good',
+            self::Rejected => 'neutral',
         };
     }
 

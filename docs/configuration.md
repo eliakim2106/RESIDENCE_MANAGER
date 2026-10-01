@@ -72,6 +72,27 @@ Réglés dans **Administration > Formules > Réglages** et non dans `.env` :
 - **Abonnement obligatoire** : si activé, seuls les établissements des propriétaires en règle (ou exemptés) sont visibles sur le site.
 - **Délai de grâce** : jours laissés après l’échéance d’une facture avant la suspension.
 
+## Envoi des emails en arrière-plan
+
+Les emails (réservations, paiements, abonnements, reversements, confirmation d’adresse, mot de passe oublié) passent par la **file d’attente**. Les notifications de l’application, elles, restent immédiates.
+
+- **Pourquoi** : un serveur d’emails lent ou en panne ne fait plus échouer l’action du visiteur.
+- **Échecs** : un envoi est retenté 3 fois (après 1 puis 5 minutes), puis consigné dans la table `failed_jobs`.
+- **Transactions** : un email n’est mis en file qu’une fois l’opération validée en base (`after_commit`).
+
+Un **worker** doit donc tourner en permanence :
+
+```bash
+php artisan queue:work --tries=3 --max-time=3600
+```
+
+En production, le confier à un gestionnaire de processus qui le relance automatiquement (Supervisor sous Linux, service Windows).
+
+- Après chaque déploiement : `php artisan queue:restart`, pour que le worker prenne le nouveau code.
+- Envois échoués : `php artisan queue:failed` pour les voir, `php artisan queue:retry all` pour les relancer.
+
+En local, `composer dev` lance le serveur, Vite et un worker ensemble. Sans worker, les emails attendent dans la table `jobs`, sans gêne avec `MAIL_MAILER=log`.
+
 ## Tâches planifiées
 
 Une seule tâche cron sur le serveur suffit :
@@ -103,6 +124,6 @@ Chaque commande peut aussi être lancée à la main, par exemple `php artisan re
    php artisan config:cache && php artisan route:cache && php artisan view:cache
    ```
 
-4. Tâche cron du planificateur.
+4. Tâche cron du planificateur et worker de la file d’attente (`php artisan queue:work`), relancé automatiquement.
 5. Faire relire par un conseil juridique les pages **Conditions d’utilisation** et **Confidentialité**. Vérifier le nom, les coordonnées et les réseaux sociaux dans **Administration > Paramètres du site**.
 6. Remplacer les formules de démonstration (prix fictifs) dans **Administration > Formules**.

@@ -117,9 +117,20 @@
                                 <strong>{{ $reservation->review->title }}</strong>
                             @endif
                             <p>{{ $reservation->review->comment }}</p>
-                            <small>Publié le {{ $reservation->review->created_at->translatedFormat('d F Y') }}</small>
+                            @if ($reservation->review->isPublished())
+                                <small>Publié le {{ $reservation->review->created_at->translatedFormat('d F Y') }}</small>
+                            @else
+                                <small class="acc-review-hidden"><i class="fa-solid fa-eye-slash"></i> Retiré par la modération : il n’apparaît plus sur le site.</small>
+                            @endif
                         </div>
                     </div>
+                    @if ($reservation->review->owner_reply && $reservation->review->isPublished())
+                        <div class="acc-review-reply">
+                            <strong><i class="fa-solid fa-reply"></i> Réponse de {{ $property?->name ?? 'l’établissement' }}</strong>
+                            <p>{{ $reservation->review->owner_reply }}</p>
+                            <small>{{ $reservation->review->replied_at?->translatedFormat('d F Y') }}</small>
+                        </div>
+                    @endif
                 </section>
             @elseif ($canReview)
                 <section class="acc-card acc-card-highlight" id="avis">

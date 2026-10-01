@@ -4,14 +4,18 @@ namespace App\Notifications;
 
 use App\Models\Subscription;
 use App\Models\SubscriptionInvoice;
+use App\Notifications\Concerns\SendsMailInBackground;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Événements de l'abonnement d'un propriétaire : début d'essai, facture émise, paiement reçu, suspension.
  */
-class SubscriptionUpdated extends Notification
+class SubscriptionUpdated extends Notification implements ShouldQueue
 {
+    use SendsMailInBackground;
+
     public const TRIAL_STARTED = 'trial_started';
 
     public const INVOICE_ISSUED = 'invoice_issued';

@@ -16,6 +16,7 @@ use App\Notifications\ReservationUpdated;
 use App\Services\BookingEngine;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -207,6 +208,28 @@ class BookingTest extends TestCase
         $this->actingAs($this->residence->owner)->get(route('residences.checkout', [$this->residence, ...$this->stay()]))
             ->assertRedirect(route('residences.show', $this->residence))
             ->assertSessionHas('error');
+    }
+
+    public function test_emails_wait_in_the_queue_and_never_block_a_booking(): void
+    {
+        // Serveur d'emails injoignable et vraie file d'attente (base de données)
+        config(['queue.default' => 'database', 'mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'smtp.invalid', 'mail.mailers.smtp.port' => 1]);
+        $client = User::factory()->create();
+
+        $this->actingAs($client)->post(route('residences.book', $this->residence), [
+            ...$this->stay(),
+            'nom' => 'Awa Koné',
+            'email' => 'awa@example.com',
+            'indicatif_telephone' => '+225',
+            'telephone' => '0701020304',
+            'conditions' => '1',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->assertSame(1, Reservation::count());
+        // Notification de l'application : immédiate ; email au propriétaire : en file d'attente
+        $this->assertSame(1, $this->residence->owner->notifications()->count());
+        $this->assertSame(1, DB::table('jobs')->count());
+        $this->assertStringContainsString('ReservationUpdated', DB::table('jobs')->value('payload'));
     }
 
     public function test_unanswered_requests_expire_and_paid_ones_are_refunded(): void

@@ -217,11 +217,11 @@ class DashboardStats
 
         if (! $this->scoped) {
             $tasks[] = [
-                'label' => 'Avis à modérer',
-                'count' => Review::where('statut', ReviewStatus::Pending)->count(),
-                'icon' => 'fa-star-half-stroke',
-                'tone' => 'info',
-                'url' => null,
+                'label' => 'Avis signalés',
+                'count' => Review::where('statut', ReviewStatus::Approved)->whereNotNull('reported_at')->count(),
+                'icon' => 'fa-flag',
+                'tone' => 'warning',
+                'url' => route('admin.avis.index', ['statut' => 'signales']),
             ];
             $tasks[] = [
                 'label' => 'Messages non lus',

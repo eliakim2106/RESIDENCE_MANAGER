@@ -25,6 +25,13 @@
         ? App\Models\SubscriptionInvoice::query()->where('statut', App\Enums\InvoiceStatus::Unpaid)->count()
         : 0;
 
+    // Avis : signalés à traiter (administrateurs) ou laissés sans réponse (propriétaire)
+    $reviewsToHandle = match (true) {
+        $user->isAdmin() => App\Models\Review::query()->where('statut', App\Enums\ReviewStatus::Approved)->whereNotNull('reported_at')->count(),
+        $user->isOwner() => App\Models\Review::query()->forOwner($user)->where('statut', App\Enums\ReviewStatus::Approved)->whereNull('owner_reply')->count(),
+        default => 0,
+    };
+
     // Messages du formulaire de contact pas encore lus (administrateurs)
     $newMessages = $user->isAdmin()
         ? App\Models\ContactMessage::query()->where('statut', App\Enums\ContactMessageStatus::New)->count()
@@ -35,6 +42,7 @@
         'Activité' => [
             [$user->hasRole(...$management) ? 'Réservations' : 'Mes réservations', 'fa-solid fa-calendar-check', 'admin.reservations.index', 'admin.reservations.', $everyone, $pendingReservations],
             ['Paiements', 'fa-solid fa-wallet', 'admin.paiements.index', 'admin.paiements.', $management],
+            ['Avis', 'fa-solid fa-star', 'admin.avis.index', 'admin.avis.', $management, $reviewsToHandle],
             ['Reversements', 'fa-solid fa-hand-holding-dollar', 'admin.reversements.index', 'admin.reversements.', $backOffice],
             ['Mes reversements', 'fa-solid fa-hand-holding-dollar', 'admin.mes-reversements.index', 'admin.mes-reversements.', [UserRole::Owner]],
             ['Mon abonnement', 'fa-solid fa-id-card', 'admin.abonnement.show', 'admin.abonnement.', [UserRole::Owner]],

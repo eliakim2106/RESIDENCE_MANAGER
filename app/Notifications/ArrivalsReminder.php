@@ -3,7 +3,9 @@
 namespace App\Notifications;
 
 use App\Models\Reservation;
+use App\Notifications\Concerns\SendsMailInBackground;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Collection;
@@ -11,8 +13,10 @@ use Illuminate\Support\Collection;
 /**
  * Rappel quotidien au propriétaire : les clients qui arrivent demain dans ses établissements.
  */
-class ArrivalsReminder extends Notification
+class ArrivalsReminder extends Notification implements ShouldQueue
 {
+    use SendsMailInBackground;
+
     /**
      * @param  Collection<int, Reservation>  $reservations  avec property
      */

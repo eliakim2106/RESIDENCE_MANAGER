@@ -331,7 +331,7 @@
                                         <header>
                                             <img src="{{ $review->user?->avatarUrl() ?? 'https://ui-avatars.com/api/?name=Client' }}" alt="">
                                             <div>
-                                                <strong>{{ $review->user ? Str::before($review->user->name, ' ').' '.Str::substr(Str::after($review->user->name, ' '), 0, 1).'.' : 'Voyageur' }}</strong>
+                                                <strong>{{ $review->authorName() }}</strong>
                                                 <small>{{ $review->created_at->translatedFormat('F Y') }}</small>
                                             </div>
                                             <span class="rd-review-note">{{ $review->rating }}<small>/10</small></span>
@@ -340,6 +340,12 @@
                                             <h3>{{ $review->title }}</h3>
                                         @endif
                                         <p>{{ $review->comment }}</p>
+                                        @if ($review->owner_reply)
+                                            <div class="rd-review-reply">
+                                                <strong><i class="fa-solid fa-reply"></i> Réponse de l’établissement</strong>
+                                                <p>{{ $review->owner_reply }}</p>
+                                            </div>
+                                        @endif
                                     </article>
                                 @endforeach
                             </div>
