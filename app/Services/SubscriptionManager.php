@@ -13,9 +13,11 @@ use App\Models\SubscriptionInvoice;
 use App\Models\SubscriptionPlan;
 use App\Models\Unit;
 use App\Models\User;
+use App\Notifications\AdminSubscriptionAlert;
 use App\Notifications\SubscriptionUpdated;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Abonnements des propriétaires.
@@ -30,6 +32,11 @@ class SubscriptionManager
     public const SETTING_REQUIRED = 'subscriptions.required';
 
     public const SETTING_GRACE_DAYS = 'subscriptions.grace_days';
+
+    /**
+     * Jours avant l'échéance où le propriétaire reçoit un rappel.
+     */
+    public const REMINDER_DAYS = 3;
 
     /*
     |--------------------------------------------------------------------------
@@ -248,12 +255,13 @@ class SubscriptionManager
     /**
      * Fin d'essai, renouvellements et suspensions (commande planifiée chaque jour).
      *
-     * @return array{invoiced: int, suspended: int}
+     * @return array{invoiced: int, reminded: int, suspended: int}
      */
     public function process(?CarbonImmutable $today = null): array
     {
         $today ??= CarbonImmutable::today();
         $invoiced = 0;
+        $reminded = 0;
         $suspended = 0;
 
         // Essais terminés : première facture
@@ -276,6 +284,19 @@ class SubscriptionManager
                 $invoiced++;
             });
 
+        // Échéance proche : un rappel par facture
+        SubscriptionInvoice::query()
+            ->where('statut', InvoiceStatus::Unpaid)
+            ->whereNull('reminder_sent_at')
+            ->whereDate('due_on', '>', $today->toDateString())
+            ->whereDate('due_on', '<=', $today->addDays(self::REMINDER_DAYS)->toDateString())
+            ->with(['subscription.plan', 'user'])
+            ->each(function (SubscriptionInvoice $invoice) use (&$reminded): void {
+                $invoice->update(['reminder_sent_at' => now()]);
+                $invoice->user?->notify(new SubscriptionUpdated($invoice->subscription, SubscriptionUpdated::INVOICE_REMINDER, $invoice));
+                $reminded++;
+            });
+
         // Échéance dépassée : suspension
         Subscription::query()
             ->where('statut', SubscriptionStatus::PastDue)
@@ -284,10 +305,11 @@ class SubscriptionManager
             ->each(function (Subscription $subscription) use (&$suspended): void {
                 $subscription->update(['statut' => SubscriptionStatus::Suspended, 'suspended_at' => now()]);
                 $subscription->user->notify(new SubscriptionUpdated($subscription, SubscriptionUpdated::SUSPENDED));
+                Notification::send(User::query()->backOffice()->get(), new AdminSubscriptionAlert($subscription, AdminSubscriptionAlert::SUSPENDED));
                 $suspended++;
             });
 
-        return ['invoiced' => $invoiced, 'suspended' => $suspended];
+        return ['invoiced' => $invoiced, 'reminded' => $reminded, 'suspended' => $suspended];
     }
 
     /*

@@ -20,6 +20,9 @@ class SubscriptionUpdated extends Notification
 
     public const SUSPENDED = 'suspended';
 
+    /** Facture à payer bientôt (quelques jours avant l'échéance) */
+    public const INVOICE_REMINDER = 'invoice_reminder';
+
     public function __construct(
         public Subscription $subscription,
         public string $event,
@@ -59,6 +62,11 @@ class SubscriptionUpdated extends Notification
                 ->subject('Paiement reçu – '.$invoice->number)
                 ->line('Nous avons bien reçu votre paiement de **'.$this->money($invoice->amount).'** pour la facture '.$invoice->number.'. Merci !'),
 
+            self::INVOICE_REMINDER => $mail
+                ->subject('Rappel : facture '.$invoice->number.' à régler avant le '.$invoice->due_on->format('d/m/Y'))
+                ->line('Votre facture **'.$invoice->number.'** de **'.$this->money($invoice->amount).'** arrive à échéance le **'.$invoice->due_on->translatedFormat('d F Y').'**.')
+                ->line('Sans paiement à cette date, votre abonnement sera suspendu et vos établissements ne seront plus visibles sur le site.'),
+
             self::SUSPENDED => $mail
                 ->subject('Abonnement suspendu')
                 ->line('Votre abonnement **'.$plan->name.'** est suspendu faute de paiement.')
@@ -79,6 +87,7 @@ class SubscriptionUpdated extends Notification
             self::TRIAL_STARTED => ['Votre essai gratuit « '.$this->subscription->plan->name.' » a commencé.', 'fa-gift', 'info'],
             self::INVOICE_ISSUED => ['Nouvelle facture '.$this->invoice?->number.' : '.$this->money((int) $this->invoice?->amount).' à régler.', 'fa-file-invoice', 'warning'],
             self::INVOICE_PAID => ['Paiement reçu pour la facture '.$this->invoice?->number.'.', 'fa-circle-check', 'good'],
+            self::INVOICE_REMINDER => ['Rappel : la facture '.$this->invoice?->number.' ('.$this->money((int) $this->invoice?->amount).') est à régler avant le '.$this->invoice?->due_on->format('d/m/Y').'.', 'fa-clock', 'warning'],
             self::SUSPENDED => ['Votre abonnement est suspendu faute de paiement.', 'fa-ban', 'critical'],
             default => ['Votre abonnement a été mis à jour.', 'fa-id-card', 'info'],
         };

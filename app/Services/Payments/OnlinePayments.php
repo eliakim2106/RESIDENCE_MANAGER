@@ -12,6 +12,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\SubscriptionInvoice;
 use App\Models\User;
+use App\Notifications\AdminSubscriptionAlert;
 use App\Notifications\ReservationUpdated;
 use App\Services\Payments\Gateways\PaymentGateway;
 use App\Services\SubscriptionManager;
@@ -269,6 +270,11 @@ class OnlinePayments
             });
 
             Log::info('Facture d’abonnement réglée en ligne', ['invoice' => $invoice->number, 'gateway' => $gateway->name(), 'applied' => $applied]);
+
+            if ($applied) {
+                $invoice->refresh()->load('subscription.user');
+                Notification::send(User::query()->backOffice()->get(), new AdminSubscriptionAlert($invoice->subscription, AdminSubscriptionAlert::INVOICE_PAID_ONLINE, $invoice));
+            }
         }
 
         return $status;

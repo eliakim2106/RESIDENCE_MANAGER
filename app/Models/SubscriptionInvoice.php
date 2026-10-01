@@ -29,6 +29,7 @@ class SubscriptionInvoice extends Model
         'currency',
         'statut',
         'due_on',
+        'reminder_sent_at',
         'paid_at',
         'payment_method',
         'payment_reference',
@@ -48,6 +49,7 @@ class SubscriptionInvoice extends Model
             'amount' => 'integer',
             'statut' => InvoiceStatus::class,
             'due_on' => 'date',
+            'reminder_sent_at' => 'datetime',
             'paid_at' => 'datetime',
             'payment_method' => PaymentMethod::class,
         ];

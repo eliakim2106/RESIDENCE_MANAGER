@@ -10,7 +10,10 @@ use App\Exceptions\WorkflowException;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Notifications\ArrivalsReminder;
 use App\Notifications\ReservationUpdated;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -30,6 +33,43 @@ class ReservationWorkflow
     | CHANGEMENTS DE STATUT
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Nouvelle réservation : l'établissement est prévenu (dans son espace et par e-mail).
+     * À appeler par le parcours de réservation, une fois la réservation enregistrée.
+     */
+    public function announce(Reservation $reservation): void
+    {
+        $reservation->loadMissing('property.owner');
+
+        $reservation->property?->owner?->notify(new ReservationUpdated($reservation, ReservationUpdated::NEW_FOR_OWNER));
+    }
+
+    /**
+     * Rappel quotidien : chaque propriétaire reçoit la liste des clients qui arrivent le lendemain.
+     * Un seul envoi par jour, même si la commande est relancée.
+     *
+     * @return int nombre de propriétaires prévenus
+     */
+    public function remindArrivals(?CarbonImmutable $day = null): int
+    {
+        $day ??= CarbonImmutable::tomorrow();
+
+        if (! Cache::add('reservations:arrivals-reminder:'.$day->toDateString(), true, now()->addDays(2))) {
+            return 0;
+        }
+
+        return Reservation::query()
+            ->where('statut', ReservationStatus::Confirmed)
+            ->whereDate('check_in', $day->toDateString())
+            ->with('property.owner')
+            ->orderBy('estimated_arrival_time')
+            ->get()
+            ->groupBy(fn (Reservation $reservation) => $reservation->property?->owner_id)
+            ->filter(fn ($reservations, $ownerId) => $ownerId && $reservations->first()->property?->owner)
+            ->each(fn ($reservations) => $reservations->first()->property->owner->notify(new ArrivalsReminder($reservations->values(), $day)))
+            ->count();
+    }
 
     public function confirm(Reservation $reservation): void
     {

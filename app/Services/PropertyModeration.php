@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\PropertyStatus;
-use App\Enums\UserRole;
 use App\Exceptions\WorkflowException;
 use App\Models\Property;
 use App\Models\User;
@@ -64,7 +63,7 @@ class PropertyModeration
         ]);
 
         Notification::send(
-            User::query()->whereIn('role', [UserRole::SuperAdmin, UserRole::Admin])->get(),
+            User::query()->backOffice()->get(),
             new PropertySubmitted($property),
         );
     }

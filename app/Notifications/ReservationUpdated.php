@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\ReservationStatus;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -28,6 +29,9 @@ class ReservationUpdated extends Notification
 
     /** Paiement en ligne reçu : alerte au propriétaire */
     public const PAID_FOR_OWNER = 'paid_for_owner';
+
+    /** Nouvelle réservation (à valider, ou confirmée d'office) : alerte au propriétaire */
+    public const NEW_FOR_OWNER = 'new_for_owner';
 
     public function __construct(
         public Reservation $reservation,
@@ -58,7 +62,7 @@ class ReservationUpdated extends Notification
         $reason = $reservation->cancellation_reason;
 
         $mail = (new MailMessage)
-            ->greeting('Bonjour '.$reservation->guest_name.',')
+            ->greeting('Bonjour '.($this->event === self::NEW_FOR_OWNER ? $notifiable->name : $reservation->guest_name).',')
             ->salutation("Cordialement,\nL’équipe DS Holding");
 
         match ($this->event) {
@@ -93,6 +97,12 @@ class ReservationUpdated extends Notification
                     ? 'Reste à régler : '.$this->money($reservation->balanceDue()).'.'
                     : 'Votre séjour est entièrement réglé.'),
 
+            self::NEW_FOR_OWNER => $mail
+                ->subject(($reservation->statut === ReservationStatus::Pending ? 'Nouvelle demande de réservation' : 'Nouvelle réservation').' – '.$reservation->reference)
+                ->line('**'.$reservation->guest_name.'** '.($reservation->statut === ReservationStatus::Pending ? 'demande à réserver' : 'a réservé').' **'.$property?->name.'** '.$stay.' ('.$reservation->nights.' nuit'.($reservation->nights > 1 ? 's' : '').', '.($reservation->adults + $reservation->children).' voyageur'.($reservation->adults + $reservation->children > 1 ? 's' : '').').')
+                ->line('Montant : '.$this->money($reservation->total_amount).'.')
+                ->lineIf($reservation->statut === ReservationStatus::Pending, 'Validez ou refusez la demande depuis votre espace : le client attend votre réponse.'),
+
             default => $mail->subject('Réservation '.$reservation->reference),
         };
 
@@ -114,6 +124,9 @@ class ReservationUpdated extends Notification
             self::REFUNDED => ["Remboursement de {$this->money((int) $this->amount)} enregistré ({$reference}).", 'fa-rotate-left', 'info'],
             self::PAID => ["Paiement de {$this->money((int) $this->amount)} reçu pour la réservation {$reference}.", 'fa-circle-check', 'good'],
             self::PAID_FOR_OWNER => ["{$this->reservation->guest_name} a payé {$this->money((int) $this->amount)} en ligne ({$reference}).", 'fa-wallet', 'good'],
+            self::NEW_FOR_OWNER => $this->reservation->statut === ReservationStatus::Pending
+                ? ["Nouvelle demande de {$this->reservation->guest_name} ({$reference}) : à valider.", 'fa-calendar-plus', 'warning']
+                : ["Nouvelle réservation de {$this->reservation->guest_name} ({$reference}).", 'fa-calendar-plus', 'good'],
             default => ["Réservation {$reference} mise à jour.", 'fa-calendar-check', 'info'],
         };
 

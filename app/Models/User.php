@@ -191,4 +191,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $query->where('role', $role);
     }
+
+    /**
+     * Administrateurs actifs (destinataires des alertes de la plateforme).
+     */
+    #[Scope]
+    protected function backOffice(Builder $query): void
+    {
+        $query->whereIn('role', [UserRole::SuperAdmin, UserRole::Admin])->where('statut', UserStatus::Active);
+    }
 }

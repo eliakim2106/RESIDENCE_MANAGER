@@ -2,6 +2,7 @@
 
 use App\Services\Payments\OnlinePayments;
 use App\Services\Payments\PaymentGateways;
+use App\Services\ReservationWorkflow;
 use App\Services\SubscriptionManager;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -15,14 +16,14 @@ Artisan::command('inspire', function () {
 |--------------------------------------------------------------------------
 | ABONNEMENTS DES PROPRIÉTAIRES
 |--------------------------------------------------------------------------
-| Chaque jour : fin des essais, factures de renouvellement, suspensions après l'échéance.
+| Chaque jour : fin des essais, factures de renouvellement, rappels avant l'échéance, suspensions après l'échéance.
 | En production, le planificateur est lancé par une tâche cron : * * * * * php artisan schedule:run
 */
 
 Artisan::command('subscriptions:process', function (SubscriptionManager $subscriptions) {
     $result = $subscriptions->process();
 
-    $this->info("{$result['invoiced']} facture(s) émise(s), {$result['suspended']} abonnement(s) suspendu(s).");
+    $this->info("{$result['invoiced']} facture(s) émise(s), {$result['reminded']} rappel(s) d’échéance, {$result['suspended']} abonnement(s) suspendu(s).");
 })->purpose('Émet les factures d’abonnement et suspend les abonnements impayés');
 
 Schedule::command('subscriptions:process')->dailyAt('06:00');
@@ -47,3 +48,18 @@ Artisan::command('payments:sync', function (OnlinePayments $payments) {
 })->purpose('Revérifie auprès de l’agrégateur les paiements en ligne en attente');
 
 Schedule::command('payments:sync')->everyTenMinutes()->when(fn () => PaymentGateways::available());
+
+/*
+|--------------------------------------------------------------------------
+| RÉSERVATIONS
+|--------------------------------------------------------------------------
+| Chaque matin : chaque propriétaire reçoit la liste des clients qui arrivent le lendemain.
+*/
+
+Artisan::command('reservations:remind-arrivals', function (ReservationWorkflow $reservations) {
+    $owners = $reservations->remindArrivals();
+
+    $this->info("{$owners} propriétaire(s) prévenu(s) des arrivées de demain.");
+})->purpose('Prévient chaque propriétaire des arrivées du lendemain');
+
+Schedule::command('reservations:remind-arrivals')->dailyAt('07:00');
