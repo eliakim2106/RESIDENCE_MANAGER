@@ -81,3 +81,34 @@
   color: var(--ds-gold);
   text-align: center;
 }
+
+/* =====================================================================
+   PAIEMENT EN LIGNE
+===================================================================== */
+
+.online-pay {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.online-pay small {
+  color: var(--ds-muted);
+  font-size: 0.76rem;
+  text-align: center;
+}
+
+.banner-pay {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.moderation-banner code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(10, 31, 68, 0.06);
+  color: var(--ds-navy);
+  font-size: 0.8rem;
+  word-break: break-all;
+}

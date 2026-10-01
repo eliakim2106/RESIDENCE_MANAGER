@@ -55,6 +55,20 @@
 
     @include('partials.flash')
 
+    @if (auth()->user()->isAdmin() && ! App\Services\Payments\CinetPay::enabled())
+        <div class="moderation-banner tone-info" role="note">
+            <i class="fa-solid fa-plug"></i>
+            <div>
+                <strong>Paiement en ligne non activé</strong>
+                <p>
+                    Tout est prêt côté plateforme. Pour l’activer, ajoutez dans le fichier <code>.env</code> la clé API et l’identifiant du site
+                    fournis par CinetPay (<code>CINETPAY_API_KEY</code>, <code>CINETPAY_SITE_ID</code>, <code>CINETPAY_SECRET_KEY</code>).
+                    Adresse de notification à déclarer : <code>{{ route('paiements.cinetpay.notify') }}</code>
+                </p>
+            </div>
+        </div>
+    @endif
+
     {{-- ========== Synthèse ========== --}}
     <div class="resa-today">
         <div class="resa-today-card tone-good">

@@ -23,6 +23,12 @@ class ReservationUpdated extends Notification
 
     public const REFUNDED = 'refunded';
 
+    /** Paiement en ligne reçu : reçu au client */
+    public const PAID = 'paid';
+
+    /** Paiement en ligne reçu : alerte au propriétaire */
+    public const PAID_FOR_OWNER = 'paid_for_owner';
+
     public function __construct(
         public Reservation $reservation,
         public string $event,
@@ -37,7 +43,7 @@ class ReservationUpdated extends Notification
     public function via(object $notifiable): array
     {
         // Le propriétaire est prévenu dans son espace ; le client, par email aussi
-        if ($this->event === self::CANCELLED_BY_GUEST) {
+        if (in_array($this->event, [self::CANCELLED_BY_GUEST, self::PAID_FOR_OWNER], true)) {
             return ['database'];
         }
 
@@ -80,6 +86,13 @@ class ReservationUpdated extends Notification
                 ->line('Un remboursement de **'.$this->money((int) $this->amount).'** a été enregistré pour votre réservation **'.$reservation->reference.'**.')
                 ->line('Il vous est reversé par le moyen utilisé lors du paiement.'),
 
+            self::PAID => $mail
+                ->subject('Paiement reçu – '.$reservation->reference)
+                ->line('Nous avons bien reçu votre paiement de **'.$this->money((int) $this->amount).'** pour la réservation **'.$reservation->reference.'** à **'.$property?->name.'**. Merci !')
+                ->line($reservation->balanceDue() > 0
+                    ? 'Reste à régler : '.$this->money($reservation->balanceDue()).'.'
+                    : 'Votre séjour est entièrement réglé.'),
+
             default => $mail->subject('Réservation '.$reservation->reference),
         };
 
@@ -99,6 +112,8 @@ class ReservationUpdated extends Notification
             self::CANCELLED => ["Votre réservation {$reference} a été annulée.", 'fa-ban', 'critical'],
             self::CANCELLED_BY_GUEST => ["{$this->reservation->guest_name} a annulé la réservation {$reference}.", 'fa-ban', 'warning'],
             self::REFUNDED => ["Remboursement de {$this->money((int) $this->amount)} enregistré ({$reference}).", 'fa-rotate-left', 'info'],
+            self::PAID => ["Paiement de {$this->money((int) $this->amount)} reçu pour la réservation {$reference}.", 'fa-circle-check', 'good'],
+            self::PAID_FOR_OWNER => ["{$this->reservation->guest_name} a payé {$this->money((int) $this->amount)} en ligne ({$reference}).", 'fa-wallet', 'good'],
             default => ["Réservation {$reference} mise à jour.", 'fa-calendar-check', 'info'],
         };
 

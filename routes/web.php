@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\LoginLogController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OnlinePaymentController;
 use App\Http\Controllers\Admin\OwnerPayoutController;
 use App\Http\Controllers\Admin\OwnerSubscriptionController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CinetPayController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ResidenceController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +41,26 @@ Route::get('/residences', [ResidenceController::class, 'index'])
 
 Route::get('/residences/details', [ResidenceController::class, 'show'])
     ->name('residences.show');
+
+// =========================
+// PAIEMENT EN LIGNE (CinetPay)
+// =========================
+// Notification et retour : appelés depuis CinetPay, sans les cookies du client, donc hors du groupe « web »
+// (une session ouverte ici remplacerait celle du client et le déconnecterait). Le résultat, lui, retrouve la session.
+
+Route::prefix('paiements/cinetpay')
+    ->name('paiements.cinetpay.')
+    ->group(function () {
+        Route::match(['get', 'post'], '/notification', [CinetPayController::class, 'notify'])
+            ->withoutMiddleware('web')
+            ->name('notify');
+        Route::match(['get', 'post'], '/retour/{transaction}', [CinetPayController::class, 'return'])
+            ->withoutMiddleware('web')
+            ->name('return');
+        Route::get('/resultat/{transaction}', [CinetPayController::class, 'result'])
+            ->middleware('auth')
+            ->name('result');
+    });
 
 // =========================
 // AUTHENTIFICATION
@@ -259,6 +281,8 @@ Route::prefix('admin/reservations')
             ->name('notes');
         Route::post('/{reservation}/paiements', [ReservationController::class, 'storePayment'])
             ->name('payments.store');
+        Route::post('/{reservation}/payer-en-ligne', [OnlinePaymentController::class, 'reservation'])
+            ->name('pay-online');
     });
 
 // Paiements : un paiement est désigné par son identifiant de transaction.
@@ -380,6 +404,8 @@ Route::prefix('admin/mon-abonnement')
                 ->name('show');
             Route::post('/', [OwnerSubscriptionController::class, 'subscribe'])
                 ->name('subscribe');
+            Route::post('/factures/{facture}/payer-en-ligne', [OnlinePaymentController::class, 'invoice'])
+                ->name('pay-online');
         });
     });
 

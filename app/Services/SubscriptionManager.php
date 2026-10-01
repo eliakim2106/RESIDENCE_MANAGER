@@ -194,10 +194,10 @@ class SubscriptionManager
     }
 
     /**
-     * Paiement reçu hors ligne (Mobile Money, virement, espèces) : la facture est soldée
+     * Paiement reçu hors ligne (Mobile Money, virement, espèces) ou en ligne (CinetPay, sans auteur) : la facture est soldée
      * et l'abonnement redevient actif s'il ne reste rien à payer.
      */
-    public function markPaid(SubscriptionInvoice $invoice, PaymentMethod $method, ?string $reference, User $recordedBy): void
+    public function markPaid(SubscriptionInvoice $invoice, PaymentMethod $method, ?string $reference, ?User $recordedBy): void
     {
         if (! $invoice->isUnpaid()) {
             throw new WorkflowException('Cette facture n’est pas à payer.');
@@ -209,7 +209,7 @@ class SubscriptionManager
                 'paid_at' => now(),
                 'payment_method' => $method,
                 'payment_reference' => $reference,
-                'recorded_by' => $recordedBy->id,
+                'recorded_by' => $recordedBy?->id,
             ]);
 
             $subscription = $invoice->subscription;

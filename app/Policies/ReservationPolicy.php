@@ -40,6 +40,14 @@ class ReservationPolicy
             || ($this->isGuest($user, $reservation) && $reservation->isCancellable());
     }
 
+    /**
+     * Régler en ligne le solde de sa réservation (client).
+     */
+    public function pay(User $user, Reservation $reservation): bool
+    {
+        return $this->isGuest($user, $reservation);
+    }
+
     private function isGuest(User $user, Reservation $reservation): bool
     {
         return $reservation->user_id === $user->id;

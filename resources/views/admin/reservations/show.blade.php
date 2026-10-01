@@ -12,6 +12,12 @@
 
     $canManage = auth()->user()->can('manage', $reservation);
     $canCancel = $actions['cancel'] && auth()->user()->can('cancel', $reservation);
+    // Le client règle son solde en ligne (CinetPay), si le paiement en ligne est configuré
+    $canPayOnline = ! $canManage
+        && App\Services\Payments\CinetPay::enabled()
+        && in_array($status, [ReservationStatus::Pending, ReservationStatus::Confirmed], true)
+        && $reservation->balanceDue() > 0
+        && auth()->user()->can('pay', $reservation);
     $deadline = $reservation->freeCancellationDeadline();
     $guests = $reservation->adults + $reservation->children;
     $paidRatio = $reservation->total_amount > 0 ? min(100, round($reservation->amount_paid / $reservation->total_amount * 100)) : 0;
@@ -104,6 +110,13 @@
                         @csrf
                         @method('PATCH')
                         <button type="submit" class="btn-secondary"><i class="fa-solid fa-rotate-left"></i> Rembourser</button>
+                    </form>
+                @endif
+
+                @if ($canPayOnline)
+                    <form method="POST" action="{{ route('admin.reservations.pay-online', $reservation) }}">
+                        @csrf
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-lock"></i> Payer {{ $money($reservation->balanceDue()) }} en ligne</button>
                     </form>
                 @endif
 
@@ -401,6 +414,14 @@
                         </div>
                     @endunless
                 </dl>
+
+                @if ($canPayOnline)
+                    <form method="POST" action="{{ route('admin.reservations.pay-online', $reservation) }}" class="online-pay">
+                        @csrf
+                        <button type="submit" class="btn-primary w-100"><i class="fa-solid fa-lock"></i> Payer en ligne</button>
+                        <small><i class="fa-solid fa-mobile-screen"></i> Orange Money, MTN, Moov, Wave ou carte bancaire · paiement sécurisé CinetPay</small>
+                    </form>
+                @endif
 
                 @if ($canCancel && ! $canManage)
                     <p class="resa-hint">
