@@ -898,22 +898,42 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  gap: 6px;
+  min-width: 40px;
   height: 40px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 4px 14px rgba(6, 20, 47, 0.12);
   color: var(--site-navy);
   cursor: pointer;
   transition: transform 0.25s var(--site-ease), color 0.25s;
 }
 
 .listing-card-fav:hover {
-  transform: scale(1.1);
+  transform: scale(1.06);
 }
 
 .listing-card-fav[aria-pressed="true"] {
   color: #e11d48;
+}
+
+.listing-card-fav [data-like-count] {
+  color: var(--site-navy);
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.listing-card-fav.is-popping i {
+  animation: likePop 0.45s var(--site-ease);
+}
+
+@keyframes likePop {
+  50% {
+    transform: scale(1.35);
+  }
 }
 
 .listing-card-body {

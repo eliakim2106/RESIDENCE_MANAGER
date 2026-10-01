@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Client;
 use App\Enums\ActiveStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Services\PropertyLikes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Résidences mises de côté par le client (cœur sur les cartes et la fiche).
+ * Résidences mises de côté par le client : celles qu'il aime (cœur « J'aime » sur les cartes et la fiche).
  */
 class FavoriteController extends Controller
 {
@@ -27,12 +28,11 @@ class FavoriteController extends Controller
     }
 
     /**
-     * Ajoute ou retire une résidence des favoris.
+     * Ajoute ou retire une résidence des favoris : c'est aussi son j'aime.
      */
-    public function toggle(Request $request, Property $residence): RedirectResponse|JsonResponse
+    public function toggle(Request $request, Property $residence, PropertyLikes $likes): RedirectResponse|JsonResponse
     {
-        $result = $request->user()->favorites()->toggle($residence->id);
-        $added = $result['attached'] !== [];
+        $added = $likes->toggle($request, $residence);
 
         if ($request->expectsJson()) {
             return response()->json(['favorite' => $added]);

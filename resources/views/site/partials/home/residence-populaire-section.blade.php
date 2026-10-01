@@ -1,7 +1,7 @@
 {{-- Résidences en ligne : coups de cœur puis mieux notées (HomeController) --}}
 @if ($residences->isNotEmpty())
     @php
-        $favorites = auth()->user()?->isClient() ? auth()->user()->favorites()->pluck('properties.id')->all() : [];
+        $likedIds = app(\App\Services\PropertyLikes::class)->likedIds(request());
         $heading = $site->content('home_featured');
     @endphp
 
@@ -28,7 +28,7 @@
                         $url = route('residences.show', $residence);
                         $badge = $residence->is_featured ? 'Coup de cœur' : ($residence->published_at?->gt(now()->subDays(30)) ? 'Nouveau' : null);
                         $location = collect([$residence->neighborhood ?: $residence->district, $residence->city?->name])->filter()->unique()->implode(', ');
-                        $isFavorite = in_array($residence->id, $favorites, true);
+                        $isLiked = in_array($residence->id, $likedIds, true);
                     @endphp
                     <article class="home-residence" data-reveal style="--reveal-delay: {{ ($index % 3) * 120 }}ms">
 
@@ -39,14 +39,14 @@
                             @endif
                         </a>
 
-                        @if (auth()->user()?->isClient())
-                            <form method="POST" action="{{ route('client.favorites.toggle', $residence) }}" class="home-residence-fav-form">
-                                @csrf
-                                <button type="submit" class="home-residence-fav {{ $isFavorite ? 'is-active' : '' }}" aria-label="{{ $isFavorite ? 'Retirer' : 'Ajouter' }} {{ $residence->name }} {{ $isFavorite ? 'des' : 'aux' }} favoris" aria-pressed="{{ $isFavorite ? 'true' : 'false' }}">
-                                    <i class="fa-{{ $isFavorite ? 'solid' : 'regular' }} fa-heart"></i>
-                                </button>
-                            </form>
-                        @endif
+                        <form method="POST" action="{{ route('residences.like', $residence) }}" class="home-residence-fav-form" data-like-form data-like-id="{{ $residence->id }}">
+                            @csrf
+                            <button type="submit" class="home-residence-fav {{ $isLiked ? 'is-active' : '' }}" data-like-button
+                                aria-label="J’aime {{ $residence->name }}" aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
+                                <i class="fa-{{ $isLiked ? 'solid' : 'regular' }} fa-heart"></i>
+                                <span data-like-count @if (! $residence->likes_count) hidden @endif>{{ number_format((int) $residence->likes_count, 0, ',', ' ') }}</span>
+                            </button>
+                        </form>
 
                         <div class="home-residence-body">
                             <div class="home-residence-meta">
@@ -79,7 +79,6 @@
                             <div class="home-residence-footer">
                                 <p class="home-residence-price">
                                     @if ($residence->prix_min)
-                                        <span>Dès</span>
                                         <strong>{{ number_format((int) $residence->prix_min, 0, ',', ' ') }} FCFA</strong>
                                         <span>/ nuit</span>
                                     @endif

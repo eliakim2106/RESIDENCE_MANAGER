@@ -37,19 +37,16 @@
         </span>
     </a>
 
-    @if (auth()->user()?->isClient())
-        @php $isFavorite = in_array($residence->id, $favoriteIds ?? [], true); @endphp
-        <form method="POST" action="{{ route('client.favorites.toggle', $residence) }}">
-            @csrf
-            <button type="submit" class="listing-card-fav" aria-label="{{ $isFavorite ? 'Retirer '.$residence->name.' des favoris' : 'Ajouter '.$residence->name.' aux favoris' }}" aria-pressed="{{ $isFavorite ? 'true' : 'false' }}">
-                <i class="fa-{{ $isFavorite ? 'solid' : 'regular' }} fa-heart"></i>
-            </button>
-        </form>
-    @elseif (! auth()->check())
-        <a href="{{ route('login') }}" class="listing-card-fav" aria-label="Connectez-vous pour ajouter {{ $residence->name }} à vos favoris">
-            <i class="fa-regular fa-heart"></i>
-        </a>
-    @endif
+    {{-- J'aime : ouvert à tous les visiteurs --}}
+    @php $isLiked = in_array($residence->id, $likedIds ?? [], true); @endphp
+    <form method="POST" action="{{ route('residences.like', $residence) }}" data-like-form data-like-id="{{ $residence->id }}">
+        @csrf
+        <button type="submit" class="listing-card-fav {{ $isLiked ? 'is-active' : '' }}" data-like-button
+            aria-label="J’aime {{ $residence->name }}" aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
+            <i class="fa-{{ $isLiked ? 'solid' : 'regular' }} fa-heart"></i>
+            <span data-like-count @if (! $residence->likes_count) hidden @endif>{{ number_format((int) $residence->likes_count, 0, ',', ' ') }}</span>
+        </button>
+    </form>
 
     <div class="listing-card-body">
         <div class="listing-card-top">

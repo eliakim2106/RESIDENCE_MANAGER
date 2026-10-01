@@ -175,7 +175,7 @@
             <span class="resa-today-icon"><i class="fa-solid fa-star"></i></span>
             <span class="resa-today-text">
                 <strong>{{ $kpis['reviews'] > 0 ? number_format($kpis['rating'], 1, ',', ' ').' / 10' : '—' }}</strong>
-                <span>{{ $kpis['reviews'] }} avis client{{ $kpis['reviews'] > 1 ? 's' : '' }}</span>
+                <span>{{ $kpis['reviews'] }} avis client{{ $kpis['reviews'] > 1 ? 's' : '' }} · {{ number_format((int) $etablissement->likes_count, 0, ',', ' ') }} j’aime</span>
             </span>
         </div>
     </div>

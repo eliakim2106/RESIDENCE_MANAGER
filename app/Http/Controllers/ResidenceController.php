@@ -7,6 +7,7 @@ use App\Enums\ReviewStatus;
 use App\Exceptions\WorkflowException;
 use App\Models\Property;
 use App\Services\BookingEngine;
+use App\Services\PropertyLikes;
 use App\Services\ResidenceSearch;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ class ResidenceController extends Controller
     /**
      * Liste des établissements publiés, avec recherche, filtres et tri.
      */
-    public function index(Request $request): View
+    public function index(Request $request, PropertyLikes $likes): View
     {
         $search = ResidenceSearch::fromRequest($request);
 
@@ -37,7 +38,7 @@ class ResidenceController extends Controller
             'priceBounds' => $search->priceBounds(),
             'activeFilters' => $search->activeFilters($cities, $types, $equipments),
             'nights' => $search->nights(),
-            'favoriteIds' => $request->user()?->isClient() ? $request->user()->favorites()->pluck('properties.id')->all() : [],
+            'likedIds' => $likes->likedIds($request),
         ]);
     }
 
@@ -45,7 +46,7 @@ class ResidenceController extends Controller
      * Fiche d'une résidence : galerie, logements (prix et disponibilités selon les dates), conditions, carte, avis.
      * Le propriétaire et les administrateurs peuvent aussi voir une fiche pas encore en ligne (aperçu).
      */
-    public function show(Request $request, Property $residence, BookingEngine $engine): View
+    public function show(Request $request, Property $residence, BookingEngine $engine, PropertyLikes $likes): View
     {
         $user = $request->user();
         $online = Property::query()->onSite()->whereKey($residence->id)->exists();
@@ -71,6 +72,9 @@ class ResidenceController extends Controller
             ->selectRaw('AVG(cleanliness) as proprete, AVG(comfort) as confort, AVG(location) as emplacement, AVG(staff) as accueil, AVG(value_for_money) as rapport')
             ->first();
 
+        // J'aime du visiteur : cœur de la fiche et des résidences similaires
+        $likedIds = $likes->likedIds($request);
+
         return view('site.residence-details', [
             'residence' => $residence,
             'online' => $online,
@@ -93,7 +97,8 @@ class ResidenceController extends Controller
                 ->orderByDesc('rating_average')
                 ->limit(3)
                 ->get(),
-            'isFavorite' => $user?->isClient() ? $user->favorites()->whereKey($residence->id)->exists() : false,
+            'likedIds' => $likedIds,
+            'isLiked' => in_array($residence->id, $likedIds, true),
             'serviceRate' => BookingEngine::serviceFeeRate(),
         ]);
     }

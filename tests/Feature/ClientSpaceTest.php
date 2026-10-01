@@ -96,13 +96,15 @@ class ClientSpaceTest extends TestCase
         $this->actingAs($client)->post(route('client.favorites.toggle', $residence))->assertRedirect();
         $this->assertTrue($client->favorites()->whereKey($residence->id)->exists());
         $this->actingAs($client)->get(route('client.favorites.index'))->assertOk()->assertSee('Villa Océane');
-        // Dans la liste des résidences, le cœur de la carte est plein et renvoie vers le même bouton
+        // Un favori est aussi un j'aime : le cœur de la carte est plein et compte ce j'aime
+        $this->assertSame(1, $residence->fresh()->likes_count);
         $this->actingAs($client)->get(route('residences.index'))
-            ->assertSee(route('client.favorites.toggle', $residence))
-            ->assertSee('Retirer Villa Océane des favoris');
+            ->assertSee(route('residences.like', $residence))
+            ->assertSee('aria-pressed="true"', false);
 
         $this->actingAs($client)->post(route('client.favorites.toggle', $residence));
         $this->assertFalse($client->favorites()->whereKey($residence->id)->exists());
+        $this->assertSame(0, $residence->fresh()->likes_count);
     }
 
     public function test_client_updates_its_profile(): void

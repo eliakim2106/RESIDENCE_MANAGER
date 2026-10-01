@@ -67,6 +67,7 @@ class Property extends Model
         'is_featured',
         'rating_average',
         'reviews_count',
+        'likes_count',
         'published_at',
     ];
 
@@ -84,6 +85,7 @@ class Property extends Model
             'is_featured' => 'boolean',
             'manages_units' => 'boolean',
             'rating_average' => 'decimal:1',
+            'likes_count' => 'integer',
             'published_at' => 'datetime',
             'submitted_at' => 'datetime',
             'moderated_at' => 'datetime',
@@ -185,6 +187,11 @@ class Property extends Model
     public function favoritedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'favorites');
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->hasMany(PropertyLike::class);
     }
 
     /*

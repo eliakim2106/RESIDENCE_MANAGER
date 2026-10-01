@@ -37,6 +37,7 @@ use App\Http\Controllers\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Client\ReservationController as ClientReservationController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentGatewayController;
@@ -59,6 +60,11 @@ Route::get('/residences/details', [ResidenceController::class, 'legacy']);
 
 Route::get('/residences/{residence}', [ResidenceController::class, 'show'])
     ->name('residences.show');
+
+// « J'aime » : ouvert à tous les visiteurs (sans compte, un j'aime par navigateur)
+Route::post('/residences/{residence}/jaime', LikeController::class)
+    ->name('residences.like')
+    ->middleware('throttle:30,1');
 
 // Réservation : récapitulatif (un visiteur est d'abord dirigé vers la création d'un compte), puis demande
 Route::get('/reserver/{residence}', [BookingController::class, 'checkout'])

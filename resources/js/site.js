@@ -13,6 +13,7 @@ import { initAuthForms } from "./site/auth";
 import { initHome } from "./site/home";
 import { initListing } from "./site/listing";
 import { initFaq } from "./site/faq";
+import { initLikes } from "./site/likes";
 
 window.bootstrap = bootstrap;
 
@@ -37,3 +38,4 @@ initAuthForms();
 initHome();
 initListing();
 initFaq();
+initLikes();

@@ -4,6 +4,7 @@
     $money = fn (int $amount): string => number_format($amount, 0, ',', ' ').' FCFA';
     $hour = fn (?string $time): ?string => $time ? substr($time, 0, 5) : null;
     $images = $residence->images;
+    $photoCount = $images->count();
     $location = collect([$residence->neighborhood, $residence->district, $residence->city?->name])->filter()->unique()->implode(', ');
     $rating = (float) $residence->rating_average;
     $ratingLabel = match (true) {
@@ -74,46 +75,76 @@
                 </div>
 
                 <div class="rd-header-actions">
-                    @if (auth()->user()?->isClient())
-                        <form method="POST" action="{{ route('client.favorites.toggle', $residence) }}">
-                            @csrf
-                            <button type="submit" class="rd-icon-btn {{ $isFavorite ? 'is-active' : '' }}" aria-pressed="{{ $isFavorite ? 'true' : 'false' }}">
-                                <i class="fa-{{ $isFavorite ? 'solid' : 'regular' }} fa-heart"></i>
-                                <span>{{ $isFavorite ? 'Dans mes favoris' : 'Ajouter aux favoris' }}</span>
-                            </button>
-                        </form>
-                    @elseif (! auth()->check())
-                        <a href="{{ route('login') }}" class="rd-icon-btn"><i class="fa-regular fa-heart"></i> <span>Ajouter aux favoris</span></a>
-                    @endif
+                    {{-- J'aime : ouvert à tous ; pour un client, l'établissement rejoint aussi ses favoris --}}
+                    <form method="POST" action="{{ route('residences.like', $residence) }}" data-like-form data-like-id="{{ $residence->id }}">
+                        @csrf
+                        <button type="submit" class="rd-icon-btn rd-like {{ $isLiked ? 'is-active' : '' }}" data-like-button aria-pressed="{{ $isLiked ? 'true' : 'false' }}"
+                            @if (auth()->user()?->isClient()) title="Les résidences que vous aimez sont aussi dans vos favoris" @endif>
+                            <i class="fa-{{ $isLiked ? 'solid' : 'regular' }} fa-heart"></i>
+                            <span>J’aime</span>
+                            <span class="rd-like-count" data-like-count @if (! $residence->likes_count) hidden @endif>{{ number_format((int) $residence->likes_count, 0, ',', ' ') }}</span>
+                        </button>
+                    </form>
                     <button type="button" class="rd-icon-btn" data-share data-share-title="{{ $residence->name }}" data-share-text="{{ $residence->short_description ?: $residence->name.' sur DS HOLDING' }}">
                         <i class="fa-solid fa-share-nodes"></i> <span>Partager</span>
                     </button>
                 </div>
             </header>
 
-            {{-- ========== Galerie : une photo secondaire cliquée s'affiche dans la zone principale ========== --}}
+            {{--
+                ========== Galerie ==========
+                Grand écran : mosaïque des 5 premières photos. Mobile : carrousel de toutes les photos, au doigt.
+                Un clic ouvre la visionneuse plein écran (flèches, clavier, glisser, miniatures).
+            --}}
             @if ($images->isNotEmpty())
-                <section class="rd-gallery" data-gallery aria-label="Photos de la résidence">
-                    <div class="rd-gallery-main">
-                        <img src="{{ $images->first()->url }}" alt="{{ $images->first()->caption ?: $residence->name }}" data-gallery-main>
-                        @if ($images->count() > 1)
-                            <button type="button" class="rd-gallery-nav is-prev" data-gallery-prev aria-label="Photo précédente"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button type="button" class="rd-gallery-nav is-next" data-gallery-next aria-label="Photo suivante"><i class="fa-solid fa-chevron-right"></i></button>
-                        @endif
-                        <span class="rd-gallery-counter" data-gallery-counter>1 / {{ $images->count() }}</span>
+                <section class="rd-gallery is-count-{{ min($photoCount, 5) }}" data-gallery aria-label="Photos de la résidence">
+                    <div class="rd-gallery-grid" data-gallery-track>
+                        @foreach ($images as $index => $image)
+                            <button type="button" class="rd-gallery-tile" data-gallery-open="{{ $index }}"
+                                data-src="{{ $image->url }}" data-caption="{{ $image->caption }}"
+                                aria-label="Agrandir la photo {{ $index + 1 }} sur {{ $photoCount }}{{ $image->caption ? ' : '.$image->caption : '' }}">
+                                <img src="{{ $image->url }}" alt="{{ $image->caption ?: $residence->name }}"
+                                    loading="{{ $index === 0 ? 'eager' : 'lazy' }}" fetchpriority="{{ $index === 0 ? 'high' : 'auto' }}">
+                            </button>
+                        @endforeach
                     </div>
 
-                    @if ($images->count() > 1)
-                        <div class="rd-gallery-thumbs" role="tablist" aria-label="Choisir une photo">
-                            @foreach ($images as $index => $image)
-                                <button type="button" class="rd-gallery-thumb {{ $index === 0 ? 'is-active' : '' }}" data-gallery-thumb="{{ $index }}"
-                                    data-src="{{ $image->url }}" data-alt="{{ $image->caption ?: $residence->name }}"
-                                    role="tab" aria-selected="{{ $index === 0 ? 'true' : 'false' }}" aria-label="Photo {{ $index + 1 }}">
-                                    <img src="{{ $image->url }}" alt="" loading="lazy">
-                                </button>
-                            @endforeach
-                        </div>
+                    @if ($photoCount > 1)
+                        <button type="button" class="rd-gallery-all" data-gallery-open="0">
+                            <i class="fa-solid fa-table-cells-large"></i>
+                            Voir les {{ $photoCount }} photos
+                        </button>
+                        <span class="rd-gallery-counter" data-gallery-counter aria-hidden="true">1 / {{ $photoCount }}</span>
                     @endif
+
+                    <dialog class="rd-lightbox" data-lightbox aria-label="Photos de {{ $residence->name }}">
+                        <div class="rd-lightbox-bar">
+                            <span class="rd-lightbox-counter" data-lightbox-counter>1 / {{ $photoCount }}</span>
+                            <strong class="rd-lightbox-title">{{ $residence->name }}</strong>
+                            <button type="button" class="rd-lightbox-close" data-lightbox-close aria-label="Fermer">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <figure class="rd-lightbox-stage" data-lightbox-stage>
+                            <img src="{{ $images->first()->url }}" alt="" data-lightbox-image>
+                            <figcaption data-lightbox-caption></figcaption>
+                            @if ($photoCount > 1)
+                                <button type="button" class="rd-lightbox-nav is-prev" data-lightbox-prev aria-label="Photo précédente"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button type="button" class="rd-lightbox-nav is-next" data-lightbox-next aria-label="Photo suivante"><i class="fa-solid fa-chevron-right"></i></button>
+                            @endif
+                        </figure>
+
+                        @if ($photoCount > 1)
+                            <div class="rd-lightbox-thumbs" aria-label="Toutes les photos">
+                                @foreach ($images as $index => $image)
+                                    <button type="button" class="rd-lightbox-thumb" data-lightbox-thumb="{{ $index }}" aria-label="Photo {{ $index + 1 }}">
+                                        <img src="{{ $image->url }}" alt="" loading="lazy">
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
+                    </dialog>
                 </section>
             @endif
 
@@ -239,16 +270,22 @@
                                         @if ($line['cleaning'] > 0)
                                             <small>+ ménage {{ $money($line['cleaning']) }}</small>
                                         @endif
-                                        <label class="rd-qty">
-                                            <span>Logements</span>
-                                            <select name="unites[{{ $unit->id }}]" form="bookingForm" data-unit-select
-                                                data-subtotal="{{ $line['subtotal'] }}" data-cleaning="{{ $line['cleaning'] }}"
-                                                data-capacity="{{ $unit->max_adults + $unit->max_children }}" data-name="{{ $unit->name }}">
-                                                @for ($q = 0; $q <= $maxQuantity; $q++)
-                                                    <option value="{{ $q }}" @selected((int) old('unites.'.$unit->id) === $q)>{{ $q }}</option>
-                                                @endfor
-                                            </select>
-                                        </label>
+                                        <div class="rd-qty" data-stepper>
+                                            <label for="unite-{{ $unit->id }}">Logements</label>
+                                            <div class="rd-stepper">
+                                                <button type="button" class="rd-stepper-btn" data-step="-1" aria-label="Retirer un logement « {{ $unit->name }} »">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </button>
+                                                <input type="number" id="unite-{{ $unit->id }}" name="unites[{{ $unit->id }}]" form="bookingForm"
+                                                    min="0" max="{{ $maxQuantity }}" step="1" inputmode="numeric"
+                                                    value="{{ max(0, min((int) old('unites.'.$unit->id, 0), $maxQuantity)) }}"
+                                                    data-unit-select data-subtotal="{{ $line['subtotal'] }}" data-cleaning="{{ $line['cleaning'] }}"
+                                                    data-capacity="{{ $unit->max_adults + $unit->max_children }}" data-name="{{ $unit->name }}">
+                                                <button type="button" class="rd-stepper-btn" data-step="1" aria-label="Ajouter un logement « {{ $unit->name }} »">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     @elseif (! $arrival)
                                         <span class="rd-from">À partir de</span>
                                         <strong>{{ $money($line['average']) }}</strong>
@@ -468,21 +505,34 @@
                     <h2>Vous aimerez aussi</h2>
                     <div class="rd-similar-grid">
                         @foreach ($similar as $other)
-                            <a href="{{ route('residences.show', [$other, ...$stayQuery]) }}" class="rd-similar-card">
-                                <img src="{{ $other->coverImage?->url ?? asset('assets/images/home/residence-1.webp') }}" alt="{{ $other->name }}" loading="lazy">
-                                <div>
-                                    <small>{{ $other->propertyType?->name }} · {{ $other->city?->name }}</small>
-                                    <strong>{{ $other->name }}</strong>
-                                    <span>
-                                        @if ($other->prix_min)
-                                            Dès <b>{{ $money((int) $other->prix_min) }}</b> / nuit
-                                        @endif
-                                        @if ($other->reviews_count > 0)
-                                            <em><i class="fa-solid fa-star"></i> {{ number_format((float) $other->rating_average, 1, ',', ' ') }}</em>
-                                        @endif
-                                    </span>
-                                </div>
-                            </a>
+                            @php $otherLiked = in_array($other->id, $likedIds, true); @endphp
+                            <article class="rd-similar-card">
+                                <a href="{{ route('residences.show', [$other, ...$stayQuery]) }}" class="rd-similar-link">
+                                    <img src="{{ $other->coverImage?->url ?? asset('assets/images/home/residence-1.webp') }}" alt="{{ $other->name }}" loading="lazy">
+                                    <div>
+                                        <small>{{ $other->propertyType?->name }} · {{ $other->city?->name }}</small>
+                                        <strong>{{ $other->name }}</strong>
+                                        <span>
+                                            @if ($other->prix_min)
+                                                <span><b>{{ $money((int) $other->prix_min) }}</b> / nuit</span>
+                                            @endif
+                                            @if ($other->reviews_count > 0)
+                                                <em><i class="fa-solid fa-star"></i> {{ number_format((float) $other->rating_average, 1, ',', ' ') }}</em>
+                                            @endif
+                                        </span>
+                                    </div>
+                                </a>
+
+                                {{-- J'aime : même cœur que sur les cartes de la liste --}}
+                                <form method="POST" action="{{ route('residences.like', $other) }}" data-like-form data-like-id="{{ $other->id }}">
+                                    @csrf
+                                    <button type="submit" class="listing-card-fav {{ $otherLiked ? 'is-active' : '' }}" data-like-button
+                                        aria-label="J’aime {{ $other->name }}" aria-pressed="{{ $otherLiked ? 'true' : 'false' }}">
+                                        <i class="fa-{{ $otherLiked ? 'solid' : 'regular' }} fa-heart"></i>
+                                        <span data-like-count @if (! $other->likes_count) hidden @endif>{{ number_format((int) $other->likes_count, 0, ',', ' ') }}</span>
+                                    </button>
+                                </form>
+                            </article>
                         @endforeach
                     </div>
                 </section>

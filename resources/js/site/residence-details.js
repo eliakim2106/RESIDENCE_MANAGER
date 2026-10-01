@@ -34,68 +34,159 @@ function initMap(L) {
 }
 
 /* =====================================
-   GALERIE : la miniature cliquée s'affiche dans la zone principale
+   GALERIE : mosaïque (carrousel sur mobile) et visionneuse plein écran
 ===================================== */
 
 function initGallery() {
   const gallery = document.querySelector("[data-gallery]");
-  const main = gallery?.querySelector("[data-gallery-main]");
+  const lightbox = gallery?.querySelector("[data-lightbox]");
 
-  if (!gallery || !main) {
+  if (!gallery || !lightbox) {
     return;
   }
 
-  const thumbs = Array.from(gallery.querySelectorAll("[data-gallery-thumb]"));
+  const tiles = Array.from(gallery.querySelectorAll(".rd-gallery-tile"));
+  const track = gallery.querySelector("[data-gallery-track]");
   const counter = gallery.querySelector("[data-gallery-counter]");
-
-  if (thumbs.length === 0) {
-    return;
-  }
-
+  const image = lightbox.querySelector("[data-lightbox-image]");
+  const caption = lightbox.querySelector("[data-lightbox-caption]");
+  const lightboxCounter = lightbox.querySelector("[data-lightbox-counter]");
+  const thumbs = Array.from(lightbox.querySelectorAll("[data-lightbox-thumb]"));
+  const stage = lightbox.querySelector("[data-lightbox-stage]");
+  const total = tiles.length;
   let current = 0;
 
-  const show = (index) => {
-    current = (index + thumbs.length) % thumbs.length;
-    const thumb = thumbs[current];
+  // Carrousel mobile : compteur selon la photo visible
+  track.addEventListener(
+    "scroll",
+    () => {
+      if (!counter || track.clientWidth === 0) return;
+      const index = Math.round(track.scrollLeft / track.clientWidth);
+      counter.textContent = `${Math.min(index, total - 1) + 1} / ${total}`;
+    },
+    { passive: true },
+  );
 
-    main.classList.add("is-changing");
-    main.src = thumb.dataset.src;
-    main.alt = thumb.dataset.alt ?? "";
-    main.addEventListener("load", () => main.classList.remove("is-changing"), { once: true });
-    if (main.complete) {
-      main.classList.remove("is-changing");
-    }
-
-    thumbs.forEach((item, position) => {
-      item.classList.toggle("is-active", position === current);
-      item.setAttribute("aria-selected", position === current ? "true" : "false");
-    });
-
-    thumb.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "nearest", inline: "center" });
-
-    if (counter) {
-      counter.textContent = `${current + 1} / ${thumbs.length}`;
-    }
+  const preload = (index) => {
+    const tile = tiles[(index + total) % total];
+    if (tile) new Image().src = tile.dataset.src;
   };
 
-  thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => show(index)));
-  gallery.querySelector("[data-gallery-prev]")?.addEventListener("click", () => show(current - 1));
-  gallery.querySelector("[data-gallery-next]")?.addEventListener("click", () => show(current + 1));
+  const show = (index) => {
+    current = (index + total) % total;
+    const tile = tiles[current];
 
-  // Flèches du clavier quand la galerie a le focus
-  gallery.addEventListener("keydown", (event) => {
+    image.classList.add("is-changing");
+    image.src = tile.dataset.src;
+    image.alt = tile.querySelector("img")?.alt ?? "";
+    if (image.complete) {
+      image.classList.remove("is-changing");
+    } else {
+      image.addEventListener("load", () => image.classList.remove("is-changing"), { once: true });
+    }
+
+    caption.textContent = tile.dataset.caption ?? "";
+    caption.hidden = !tile.dataset.caption;
+    lightboxCounter.textContent = `${current + 1} / ${total}`;
+
+    thumbs.forEach((thumb, position) => {
+      const active = position === current;
+      thumb.classList.toggle("is-active", active);
+      thumb.toggleAttribute("aria-current", active);
+    });
+    thumbs[current]?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "nearest", inline: "center" });
+
+    preload(current + 1);
+    preload(current - 1);
+  };
+
+  const open = (index) => {
+    show(index);
+    document.documentElement.classList.add("has-lightbox");
+    lightbox.showModal();
+  };
+
+  gallery.querySelectorAll("[data-gallery-open]").forEach((button) => {
+    button.addEventListener("click", () => open(parseInt(button.dataset.galleryOpen, 10) || 0));
+  });
+
+  thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => show(index)));
+  lightbox.querySelector("[data-lightbox-prev]")?.addEventListener("click", () => show(current - 1));
+  lightbox.querySelector("[data-lightbox-next]")?.addEventListener("click", () => show(current + 1));
+  lightbox.querySelector("[data-lightbox-close]").addEventListener("click", () => lightbox.close());
+
+  // Fermeture (bouton, Échap) : défilement de la page rétabli, carrousel calé sur la dernière photo vue
+  lightbox.addEventListener("close", () => {
+    document.documentElement.classList.remove("has-lightbox");
+    if (track.scrollWidth > track.clientWidth) {
+      track.scrollTo({ left: current * track.clientWidth, behavior: "auto" });
+    }
+  });
+
+  // Clic dans le vide autour de la photo : fermeture
+  stage.addEventListener("click", (event) => {
+    if (event.target === stage) lightbox.close();
+  });
+
+  lightbox.addEventListener("keydown", (event) => {
     if (event.key === "ArrowRight") show(current + 1);
     if (event.key === "ArrowLeft") show(current - 1);
   });
 
-  // Glisser du doigt sur la photo principale
+  // Glisser du doigt dans la visionneuse
   let startX = null;
-  main.parentElement.addEventListener("touchstart", (event) => (startX = event.touches[0].clientX), { passive: true });
-  main.parentElement.addEventListener("touchend", (event) => {
-    if (startX === null) return;
+  stage.addEventListener("touchstart", (event) => (startX = event.touches[0].clientX), { passive: true });
+  stage.addEventListener("touchend", (event) => {
+    if (startX === null || total < 2) return;
     const delta = event.changedTouches[0].clientX - startX;
     if (Math.abs(delta) > 40) show(current + (delta < 0 ? 1 : -1));
     startX = null;
+  });
+}
+
+/* =====================================
+   NOMBRE DE LOGEMENTS : boutons − / +, saisie bornée au disponible
+===================================== */
+
+function initSteppers() {
+  document.querySelectorAll("[data-stepper]").forEach((stepper) => {
+    const input = stepper.querySelector("input");
+    const minus = stepper.querySelector('[data-step="-1"]');
+    const plus = stepper.querySelector('[data-step="1"]');
+    const max = parseInt(input.max, 10) || 0;
+
+    const clamp = (value) => Math.min(max, Math.max(0, Number.isNaN(value) ? 0 : value));
+
+    const refresh = () => {
+      const value = parseInt(input.value, 10) || 0;
+      minus.disabled = value <= 0;
+      plus.disabled = value >= max;
+      stepper.classList.toggle("has-value", value > 0);
+    };
+
+    const set = (value) => {
+      const next = clamp(value);
+      if (String(next) === input.value) return;
+      input.value = next;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    stepper.querySelectorAll("[data-step]").forEach((button) => {
+      button.addEventListener("click", () => set((parseInt(input.value, 10) || 0) + parseInt(button.dataset.step, 10)));
+    });
+
+    // Saisie au clavier : bornée à la sortie du champ, total mis à jour à chaque frappe valide
+    input.addEventListener("input", () => {
+      if (input.value !== "") input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    input.addEventListener("blur", () => set(parseInt(input.value, 10)));
+    input.addEventListener("change", () => {
+      const value = parseInt(input.value, 10);
+      if (input.value !== "" && value !== clamp(value)) input.value = clamp(value);
+      refresh();
+    });
+
+    refresh();
   });
 }
 
@@ -271,6 +362,7 @@ function initBookingBar() {
 export function initResidenceDetails(L) {
   initMap(L);
   initGallery();
+  initSteppers();
   initBookingSummary();
   initShare();
   initCollapsible();

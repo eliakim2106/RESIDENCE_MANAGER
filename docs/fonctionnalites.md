@@ -8,11 +8,13 @@ Ce que chaque profil peut faire, avec l’adresse des pages. Quatre rôles : **v
 | --- | --- | --- |
 | Accueil | `/` | Résidences à la une, chiffres de la plateforme et avis vérifiés, tirés de la base. Recherche (destination, dates, voyageurs). |
 | Résidences | `/residences` | Liste filtrable : type, budget, ville, note, équipements, tri. Avec des dates, seules les résidences disponibles apparaissent. |
-| Fiche | `/residences/{slug}` | Galerie (une miniature cliquée s’affiche en grand), présentation, équipements, logements avec prix du séjour et disponibilités, conditions, carte, avis, résidences similaires. |
+| Fiche | `/residences/{slug}` | Galerie en mosaïque (carrousel sur mobile) et visionneuse plein écran, présentation, équipements, logements avec prix du séjour et disponibilités, conditions, carte, avis, résidences similaires. |
 | Questions fréquentes | `/questions-frequentes` | Réponses classées par thème, avec recherche instantanée. |
 | Propriétaires | `/proprietaires` | Fonctionnement, outils de gestion, formules actives (tirées de l’administration). |
 | Contact | `/contact` | Formulaire (message enregistré, administrateurs prévenus). Aussi en bas de l’accueil. |
 | Conditions, confidentialité | `/conditions-utilisation`, `/confidentialite` | Textes décrivant le fonctionnement réel de la plateforme, à faire valider juridiquement. |
+
+**J’aime** : un cœur sur la fiche et sur les cartes (accueil, liste), avec le nombre de j’aime. Ouvert à tous, sans compte : un j’aime par navigateur, reconnu par un cookie. Un second clic le retire.
 
 En bas de chaque page : inscription à la newsletter (lien de désinscription personnel `/newsletter/desinscription/{jeton}`).
 
@@ -37,7 +39,7 @@ En bas de chaque page : inscription à la newsletter (lien de désinscription pe
 | Payer | Paiement en ligne du solde (Mobile Money, carte) depuis la fiche de la réservation. |
 | Annuler | Remboursement automatique si l’annulation intervient avant la date limite d’annulation gratuite. |
 | Donner un avis | Après le séjour, une fois par réservation : note sur 10 et critères (propreté, confort, emplacement, accueil, qualité-prix). |
-| Favoris | Cœur sur les cartes et les fiches ; liste des résidences enregistrées. |
+| Favoris | Les résidences que le client aime (cœur « J’aime » des cartes et des fiches) ; les retirer d’ici retire aussi le j’aime. |
 | Notifications, Mon profil | Historique des notifications ; coordonnées, téléphone avec indicatif, mot de passe. |
 
 Un client qui ouvre une ancienne adresse de l’administration (`/admin/...`) est renvoyé vers la page équivalente de son espace. Le bon de réservation et le reçu de paiement imprimables restent accessibles.
