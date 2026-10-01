@@ -10,19 +10,34 @@
 
         @include('site.partials.home.hero-section')
 
-        @include('site.partials.home.stats-section')
+        {{-- Sections masquables depuis Paramètres du site > Contenu des pages > Accueil --}}
+        @if ($site->visible('home_stats'))
+            @include('site.partials.home.stats-section')
+        @endif
 
-        @include('site.partials.home.residence-populaire-section')
+        @if ($site->visible('home_featured'))
+            @include('site.partials.home.residence-populaire-section')
+        @endif
 
-        @include('site.partials.home.why-section')
+        @if ($site->visible('home_why'))
+            @include('site.partials.home.why-section')
+        @endif
 
-        @include('site.partials.home.steps-section')
+        @if ($site->visible('home_steps'))
+            @include('site.partials.home.steps-section')
+        @endif
 
-        @include('site.partials.home.testimonials-section')
+        @if ($site->visible('home_reviews'))
+            @include('site.partials.home.testimonials-section')
+        @endif
 
-        @include('site.partials.home.cta-section')
+        @if ($site->visible('home_cta'))
+            @include('site.partials.home.cta-section')
+        @endif
 
-        @include('site.partials.home.contact-section')
+        @if ($site->visible('home_contact'))
+            @include('site.partials.home.contact-section')
+        @endif
 
     </main>
 

@@ -1,13 +1,18 @@
-{{-- Avis vérifiés laissés par les voyageurs après leur séjour (HomeController) --}}
+{{-- Avis vérifiés laissés par les voyageurs après leur séjour (HomeController) ; titres réglés dans Paramètres du site --}}
+@php $heading = $site->content('home_reviews'); @endphp
 <section class="home-section home-testimonials" id="avis">
     <div class="container">
 
         <div class="home-testimonials-layout">
 
             <div class="home-testimonials-intro" data-reveal>
-                <span class="home-kicker">Avis clients</span>
-                <h2 class="home-title">Ils ont séjourné <span>chez nous</span></h2>
-                <p class="home-lead">Seuls les voyageurs ayant séjourné dans une résidence peuvent la noter : chaque avis correspond à une réservation réelle.</p>
+                @if ($heading['kicker'])
+                    <span class="home-kicker">{{ $heading['kicker'] }}</span>
+                @endif
+                <h2 class="home-title">{{ $heading['title'] }} @if ($heading['highlight'])<span>{{ $heading['highlight'] }}</span>@endif</h2>
+                @if ($heading['lead'])
+                    <p class="home-lead">{{ $heading['lead'] }}</p>
+                @endif
 
                 @if ($stats['rating'] !== null)
                     <div class="home-rating-summary">

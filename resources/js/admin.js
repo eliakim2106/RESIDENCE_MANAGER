@@ -313,21 +313,116 @@ function initCycleToggle() {
 ===================================== */
 
 function initCharCounters() {
-  document.querySelectorAll("[data-char-count]").forEach((field) => {
+  const update = (field) => {
     const counter = field.closest(".form-group")?.querySelector("[data-char-counter]");
     const max = parseInt(field.getAttribute("maxlength") || "0", 10);
 
-    if (!counter || !max) {
-      return;
-    }
-
-    const update = () => {
+    if (counter && max) {
       counter.textContent = `${field.value.length} / ${max}`;
       counter.classList.toggle("is-over", field.value.length > max * 0.9);
+    }
+  };
+
+  // Délégation : vaut aussi pour les champs ajoutés ensuite (éléments de liste du contenu des pages)
+  document.addEventListener("input", (event) => {
+    if (event.target.matches?.("[data-char-count]")) {
+      update(event.target);
+    }
+  });
+
+  document.querySelectorAll("[data-char-count]").forEach(update);
+}
+
+/* =====================================
+   CONTENU DES PAGES (Paramètres du site)
+   Listes réordonnables (diapositives, étapes, questions…), aperçu des images et des icônes,
+   bloc masqué grisé.
+===================================== */
+
+function initContentEditor() {
+  // Aperçu d'une image choisie, avant l'envoi
+  document.addEventListener("change", (event) => {
+    const input = event.target;
+
+    if (input.matches?.("[data-image-input]") && input.files?.[0]) {
+      const preview = input.closest("[data-image-field]")?.querySelector("[data-image-preview]");
+      if (preview) {
+        preview.src = URL.createObjectURL(input.files[0]);
+      }
+    }
+
+    if (input.matches?.("[data-icon-select]")) {
+      const preview = input.closest(".content-icon-select")?.querySelector("[data-icon-preview]");
+      if (preview) {
+        preview.className = `fa-solid ${input.value}`;
+      }
+    }
+
+    if (input.matches?.("[data-visible-toggle]")) {
+      input.closest("[data-content-block]")?.classList.toggle("is-hidden", !input.checked);
+    }
+  });
+
+  document.querySelectorAll("[data-content-list]").forEach((list) => {
+    const items = list.querySelector("[data-list-items]");
+    const template = list.querySelector("[data-list-template]");
+    const addButton = list.querySelector("[data-list-add]");
+    const count = list.querySelector("[data-list-count]");
+    const min = parseInt(list.dataset.min || "0", 10);
+    const max = parseInt(list.dataset.max || "99", 10);
+
+    // Numéro libre pour les noms des champs d'un nouvel élément (l'ordre envoyé suit celui de la page)
+    let nextIndex = items.children.length;
+    items.querySelectorAll("[name]").forEach((field) => {
+      const match = field.name.match(/\[items\]\[(\d+)\]/);
+      if (match) nextIndex = Math.max(nextIndex, parseInt(match[1], 10) + 1);
+    });
+
+    const refresh = () => {
+      const rows = [...items.children];
+      rows.forEach((row, position) => {
+        row.querySelector("[data-item-number]").textContent = position + 1;
+        row.querySelector("[data-item-up]").disabled = position === 0;
+        row.querySelector("[data-item-down]").disabled = position === rows.length - 1;
+        row.querySelector("[data-item-remove]").disabled = rows.length <= min;
+      });
+      addButton.disabled = rows.length >= max;
+      if (count) count.textContent = rows.length;
     };
 
-    field.addEventListener("input", update);
-    update();
+    addButton.addEventListener("click", () => {
+      const html = template.innerHTML.replaceAll("__INDEX__", String(nextIndex++));
+      items.insertAdjacentHTML("beforeend", html);
+      const row = items.lastElementChild;
+      row.classList.add("is-new");
+      refresh();
+      row.querySelector("input:not([type=hidden]):not([type=file]), textarea, select")?.focus();
+      // Compteurs de caractères du nouvel élément
+      row.querySelectorAll("[data-char-count]").forEach((field) => field.dispatchEvent(new Event("input")));
+    });
+
+    items.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      const row = button?.closest("[data-list-item]");
+
+      if (!button || !row || button.disabled) {
+        return;
+      }
+
+      if (button.matches("[data-item-up]") && row.previousElementSibling) {
+        row.previousElementSibling.before(row);
+      } else if (button.matches("[data-item-down]") && row.nextElementSibling) {
+        row.nextElementSibling.after(row);
+      } else if (button.matches("[data-item-remove]")) {
+        row.remove();
+      } else {
+        return;
+      }
+
+      refresh();
+    });
+
+    refresh();
   });
 }
 
@@ -481,6 +576,7 @@ initCycleToggle();
 initPayoutAccount();
 initSettingsForm();
 initCharCounters();
+initContentEditor();
 initAlerts();
 initNotifications();
 initDatepickers();

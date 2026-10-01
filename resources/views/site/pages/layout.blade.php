@@ -12,11 +12,11 @@
                     <i class="fa-solid fa-chevron-right"></i>
                     <span>@yield('title')</span>
                 </nav>
-                @hasSection('page_kicker')
+                @if (trim($__env->yieldContent('page_kicker')) !== '')
                     <span class="info-kicker">@yield('page_kicker')</span>
                 @endif
                 <h1>@yield('page_title')</h1>
-                @hasSection('page_lead')
+                @if (trim($__env->yieldContent('page_lead')) !== '')
                     <p>@yield('page_lead')</p>
                 @endif
             </div>

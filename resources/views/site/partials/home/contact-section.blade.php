@@ -7,6 +7,7 @@
         $site->whatsappUrl() ? ['fa-brands fa-whatsapp', 'WhatsApp', 'Écrivez-nous sur WhatsApp', $site->whatsappUrl()] : null,
         $site->get('contact_hours') ? ['fa-regular fa-clock', 'Horaires', $site->get('contact_hours'), null] : null,
     ]));
+    $heading = $site->content('home_contact');
 @endphp
 
 <section class="home-section home-contact" id="contact">
@@ -15,9 +16,13 @@
         <div class="home-contact-layout">
 
             <div data-reveal>
-                <span class="home-kicker">Contact</span>
-                <h2 class="home-title">Besoin <span>d’informations ?</span></h2>
-                <p class="home-lead">Notre équipe vous répond rapidement pour toute question sur une résidence ou une réservation.</p>
+                @if ($heading['kicker'])
+                    <span class="home-kicker">{{ $heading['kicker'] }}</span>
+                @endif
+                <h2 class="home-title">{{ $heading['title'] }} @if ($heading['highlight'])<span>{{ $heading['highlight'] }}</span>@endif</h2>
+                @if ($heading['lead'])
+                    <p class="home-lead">{{ $heading['lead'] }}</p>
+                @endif
 
                 <ul class="home-contact-list">
                     @foreach ($contacts as [$icon, $label, $value, $href])

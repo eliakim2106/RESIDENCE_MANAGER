@@ -20,9 +20,10 @@
 
 @section('title', 'Propriétaires')
 @section('description', 'Proposez votre résidence, votre hôtel ou votre villa sur DS HOLDING : réservations et paiements en ligne, calendrier, reversements.')
-@section('page_kicker', 'Propriétaires et gestionnaires')
-@section('page_title', 'Proposez votre établissement sur DS HOLDING')
-@section('page_lead', 'Résidences, hôtels, villas, appartements : recevez des réservations en ligne et gérez tout depuis un seul espace.')
+@php $hero = $site->content('owners_hero'); @endphp
+@section('page_kicker', $hero['kicker'])
+@section('page_title', $hero['title'])
+@section('page_lead', $hero['lead'])
 
 @section('page')
     <div class="container">

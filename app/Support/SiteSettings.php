@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Setting;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Paramètres du site modifiables par le super administrateur (Administration > Paramètres du site) :
@@ -15,6 +16,9 @@ use App\Models\Setting;
 class SiteSettings
 {
     public const GROUP = 'site';
+
+    /** Contenu des pages (config/site-content.php) : un réglage JSON « content.{bloc} » par bloc */
+    public const CONTENT_GROUP = 'content';
 
     /**
      * Valeurs par défaut : celles du site avant la création de ces réglages.
@@ -75,7 +79,7 @@ class SiteSettings
     public function all(): array
     {
         return $this->values ??= rescue(
-            fn (): array => Setting::query()->where('group', self::GROUP)->pluck('value', 'key')->all(),
+            fn (): array => Setting::query()->whereIn('group', [self::GROUP, self::CONTENT_GROUP])->pluck('value', 'key')->all(),
             [],
             report: false,
         );
@@ -176,6 +180,77 @@ class SiteSettings
         $value = $this->all()[self::BOOKING[$key]] ?? null;
 
         return is_numeric($value) ? $value + 0 : config("booking.{$key}");
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONTENU DES PAGES
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Contenu d'un bloc : valeurs enregistrées complétées par celles d'origine.
+     * Les éléments d'une liste (« items ») enregistrés remplacent entièrement ceux d'origine.
+     *
+     * @return array<string, mixed>
+     */
+    public function content(string $block): array
+    {
+        $definition = config("site-content.blocks.{$block}") ?? throw new \InvalidArgumentException("Bloc de contenu inconnu : {$block}");
+        $defaults = ['visible' => true, ...$definition['defaults']];
+
+        $stored = json_decode((string) ($this->all()['content.'.$block] ?? ''), true);
+
+        return is_array($stored) ? array_replace($defaults, $stored) : $defaults;
+    }
+
+    /**
+     * Le bloc est-il affiché ? (un bloc sans option « visible » l'est toujours)
+     */
+    public function visible(string $block): bool
+    {
+        return ! (config("site-content.blocks.{$block}.visible") ?? false) || (bool) ($this->content($block)['visible'] ?? true);
+    }
+
+    /**
+     * Enregistre le contenu d'un bloc (null : retour au contenu d'origine).
+     *
+     * @param  array<string, mixed>|null  $content
+     */
+    public function saveContent(string $block, ?array $content): void
+    {
+        if ($content === null) {
+            // Par le modèle : son événement « deleted » vide le cache des réglages
+            Setting::query()->where('key', 'content.'.$block)->first()?->delete();
+        } else {
+            Setting::set('content.'.$block, json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), self::CONTENT_GROUP);
+        }
+
+        $this->values = null;
+    }
+
+    /**
+     * Adresse d'une image : fichier du site (assets/…) ou image envoyée (disque public, dossier site/).
+     */
+    public function image(?string $path, string $fallback = 'assets/images/home/slide-1.webp'): string
+    {
+        $path = filled($path) ? $path : $fallback;
+
+        return str_starts_with($path, 'assets/') ? asset($path) : Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Lien saisi dans le contenu : adresse complète, chemin du site (/residences) ou ancre (#contact).
+     */
+    public function link(?string $link): string
+    {
+        $link = trim((string) $link);
+
+        return match (true) {
+            $link === '' => url('/'),
+            str_starts_with($link, '#'), str_starts_with($link, 'http://'), str_starts_with($link, 'https://'), str_starts_with($link, 'mailto:'), str_starts_with($link, 'tel:') => $link,
+            default => url($link),
+        };
     }
 
     public static function current(): self

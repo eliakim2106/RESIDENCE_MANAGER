@@ -84,6 +84,19 @@ Un propriétaire ne voit et ne modifie que ses propres établissements.
 
 Un champ facultatif laissé vide (WhatsApp, horaires, réseau) n’est pas affiché. Les changements s’appliquent immédiatement.
 
+Onglet **Contenu des pages** (`/admin/parametres/contenu/{page}`) : textes, images et sections des pages publiques.
+
+| Page | Blocs |
+| --- | --- |
+| Accueil | Diaporama (1 à 6 diapositives : image, surtitre, titre, texte, bouton), chiffres, résidences à la une, « Pourquoi nous » (image et 2 à 6 atouts avec icône), étapes (2 à 4), avis, bandeau de réservation, section contact |
+| Résidences | En-tête (image, titre), bandeau propriétaires |
+| Pages d’information | En-têtes des pages Questions fréquentes, Contact et Propriétaires ; questions fréquentes (thème, question, réponse) |
+
+- Les éléments d’une liste s’ajoutent, se retirent et se réordonnent avec les flèches.
+- Les sections de l’accueil et le bandeau propriétaires peuvent être masqués.
+- Chaque bloc peut retrouver son **contenu d’origine** ; les images envoyées pour ce bloc sont alors supprimées.
+- Les données calculées (résidences à la une, chiffres, avis) restent automatiques : seuls leurs titres se modifient.
+
 ## Exports Excel
 
 Chaque liste propose un bouton **Exporter** qui reprend les filtres en cours :

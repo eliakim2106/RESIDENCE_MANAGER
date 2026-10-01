@@ -22,7 +22,9 @@
 
     </form>
 
-    @include('site.partials.residences.residence-cta-section')
+    @if ($site->visible('listing_cta'))
+        @include('site.partials.residences.residence-cta-section')
+    @endif
 
     @include('site.partials.footer')
 @endsection

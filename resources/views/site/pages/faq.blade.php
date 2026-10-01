@@ -2,9 +2,10 @@
 
 @section('title', 'Questions fréquentes')
 @section('description', 'Réservation, paiement, annulation, compte client et propriétaires : les réponses aux questions les plus fréquentes sur DS HOLDING.')
-@section('page_kicker', 'Aide')
-@section('page_title', 'Questions fréquentes')
-@section('page_lead', 'Tout ce qu’il faut savoir pour réserver, payer et gérer votre séjour.')
+@php $hero = $site->content('faq_hero'); @endphp
+@section('page_kicker', $hero['kicker'])
+@section('page_title', $hero['title'])
+@section('page_lead', $hero['lead'])
 
 @section('page')
     <div class="container info-faq" data-faq>

@@ -2,9 +2,10 @@
 
 @section('title', 'Contact')
 @section('description', 'Contactez DS HOLDING : une question sur une résidence, une réservation ou un partenariat ? Écrivez-nous.')
-@section('page_kicker', 'Contact')
-@section('page_title', 'Parlons de votre projet')
-@section('page_lead', 'Une question sur une résidence, une réservation ou un partenariat ? Écrivez-nous.')
+@php $hero = $site->content('contact_hero'); @endphp
+@section('page_kicker', $hero['kicker'])
+@section('page_title', $hero['title'])
+@section('page_lead', $hero['lead'])
 
 @section('page')
     <div class="home info-contact">

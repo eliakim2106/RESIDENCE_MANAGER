@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyValidationController;
 use App\Http\Controllers\Admin\ReservationCalendarController;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Admin\SiteContentController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
@@ -251,6 +252,19 @@ Route::prefix('admin/parametres')
             ->name('edit');
         Route::put('/', [SiteSettingController::class, 'update'])
             ->name('update');
+
+        // Contenu des pages : diaporama, sections, en-têtes, questions fréquentes (config/site-content.php)
+        Route::redirect('/contenu', '/admin/parametres/contenu/accueil')
+            ->name('contenu.index');
+        Route::get('/contenu/{page}', [SiteContentController::class, 'edit'])
+            ->whereIn('page', array_keys(config('site-content.pages')))
+            ->name('contenu');
+        Route::put('/contenu/{page}', [SiteContentController::class, 'update'])
+            ->whereIn('page', array_keys(config('site-content.pages')))
+            ->name('contenu.update');
+        Route::delete('/contenu/{page}/{block}', [SiteContentController::class, 'reset'])
+            ->whereIn('page', array_keys(config('site-content.pages')))
+            ->name('contenu.reset');
     });
 
 // Messages reçus par le formulaire de contact

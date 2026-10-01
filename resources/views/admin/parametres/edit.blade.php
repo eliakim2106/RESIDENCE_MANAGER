@@ -28,7 +28,7 @@
             <span class="admin-page-icon"><i class="fa-solid fa-sliders"></i></span>
             <div>
                 <h1>Paramètres du site</h1>
-                <p>Nom, coordonnées, réseaux sociaux et règles de réservation affichés sur le site public.</p>
+                <p>Nom, coordonnées, réseaux sociaux, règles de réservation et contenu des pages publiques.</p>
             </div>
         </div>
 
@@ -39,6 +39,8 @@
             </a>
         </div>
     </div>
+
+    @include('admin.parametres.partials.tabs')
 
     @include('partials.flash')
 

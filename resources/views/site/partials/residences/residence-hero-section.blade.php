@@ -1,5 +1,7 @@
+@php $hero = $site->content('listing_hero'); @endphp
+
 <section class="listing-hero">
-    <img src="{{ asset('assets/images/home/slide-2.webp') }}" alt="" class="listing-hero-bg" fetchpriority="high">
+    <img src="{{ $site->image($hero['image'], 'assets/images/home/slide-2.webp') }}" alt="" class="listing-hero-bg" fetchpriority="high">
 
     <div class="container listing-hero-content">
         <nav aria-label="Fil d’Ariane">
@@ -9,7 +11,7 @@
             </ol>
         </nav>
 
-        <h1>Trouvez la résidence <span>qui vous ressemble</span></h1>
+        <h1>{{ $hero['title'] }} @if ($hero['highlight'])<span>{{ $hero['highlight'] }}</span>@endif</h1>
 
         <p>
             {{ $cities->sum('properties_count') }} établissement{{ $cities->sum('properties_count') > 1 ? 's' : '' }} sélectionné{{ $cities->sum('properties_count') > 1 ? 's' : '' }}

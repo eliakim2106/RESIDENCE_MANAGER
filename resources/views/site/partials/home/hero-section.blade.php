@@ -1,33 +1,16 @@
 @php
-    $slides = [
-        [
-            'image' => 'assets/images/home/slide-1.webp',
-            'eyebrow' => 'Résidences meublées haut standing',
-            'title' => 'Trouvez votre',
-            'highlight' => 'résidence idéale',
-            'text' => 'Séjournez avec confort, sécurité et élégance dans nos résidences sélectionnées à Abidjan et partout en Côte d’Ivoire.',
-            'link' => route('residences.index'),
-            'cta' => 'Découvrir nos résidences',
-        ],
-        [
-            'image' => 'assets/images/home/slide-2.webp',
-            'eyebrow' => 'Complexes avec piscine',
-            'title' => 'Le confort d’un hôtel,',
-            'highlight' => 'la liberté d’un chez-soi',
-            'text' => 'Appartements équipés, services inclus et espaces de détente pour des séjours courts ou prolongés.',
-            'link' => route('residences.index'),
-            'cta' => 'Voir les disponibilités',
-        ],
-        [
-            'image' => 'assets/images/home/slide-3.webp',
-            'eyebrow' => 'Villas d’exception',
-            'title' => 'Des villas pensées pour',
-            'highlight' => 'vos plus beaux séjours',
-            'text' => 'Piscine privée, jardin tropical et prestations sur mesure : l’adresse idéale en famille ou entre amis.',
-            'link' => ($featured = $residences->first()) ? route('residences.show', $featured) : route('residences.index'),
-            'cta' => $featured ? 'Découvrir notre coup de cœur' : 'Voir les résidences',
-        ],
-    ];
+    // Diapositives réglées dans Paramètres du site > Contenu des pages > Accueil
+    $slides = collect($site->content('home_slides')['items'])
+        ->map(fn (array $slide): array => [
+            'image' => $site->image($slide['image'] ?? null),
+            'eyebrow' => $slide['eyebrow'] ?? '',
+            'title' => $slide['title'] ?? '',
+            'highlight' => $slide['highlight'] ?? '',
+            'text' => $slide['text'] ?? '',
+            'link' => filled($slide['button_label'] ?? '') ? $site->link($slide['button_link'] ?? '/residences') : null,
+            'cta' => $slide['button_label'] ?? '',
+        ])
+        ->all();
 @endphp
 
 <section class="home-hero" id="accueil" aria-roledescription="carrousel" aria-label="Nos résidences à la une" data-hero-slider>
@@ -40,24 +23,30 @@
                 @if ($index !== 0) aria-hidden="true" @endif>
 
                 <div class="home-hero-bg">
-                    <img src="{{ asset($slide['image']) }}" alt=""
+                    <img src="{{ $slide['image'] }}" alt=""
                         @if ($index === 0) fetchpriority="high" @else loading="lazy" @endif>
                 </div>
 
                 <div class="container home-hero-content">
-                    <span class="home-eyebrow home-hero-anim">
-                        <span class="home-eyebrow-dot"></span>
-                        {{ $slide['eyebrow'] }}
-                    </span>
+                    @if ($slide['eyebrow'])
+                        <span class="home-eyebrow home-hero-anim">
+                            <span class="home-eyebrow-dot"></span>
+                            {{ $slide['eyebrow'] }}
+                        </span>
+                    @endif
 
                     {{-- Un seul h1 par page : les diapositives suivantes utilisent un h2 --}}
                     @php $tag = $index === 0 ? 'h1' : 'h2'; @endphp
                     <{{ $tag }} class="home-hero-title home-hero-anim">
                         {{ $slide['title'] }}
-                        <span>{{ $slide['highlight'] }}</span>
+                        @if ($slide['highlight'])
+                            <span>{{ $slide['highlight'] }}</span>
+                        @endif
                     </{{ $tag }}>
 
-                    <p class="home-hero-text home-hero-anim">{{ $slide['text'] }}</p>
+                    @if ($slide['text'])
+                        <p class="home-hero-text home-hero-anim">{{ $slide['text'] }}</p>
+                    @endif
 
                     <div class="home-hero-actions home-hero-anim">
                         <a href="{{ route('residences.index') }}" class="site-btn site-btn-gold home-btn-lg">
@@ -65,17 +54,19 @@
                             <i class="fa-solid fa-arrow-right"></i>
                         </a>
 
-                        <a href="{{ $slide['link'] }}" class="site-btn site-btn-ghost home-btn-lg">
-                            {{ $slide['cta'] }}
-                        </a>
+                        @if ($slide['link'])
+                            <a href="{{ $slide['link'] }}" class="site-btn site-btn-ghost home-btn-lg">
+                                {{ $slide['cta'] }}
+                            </a>
+                        @endif
                     </div>
                 </div>
             </article>
         @endforeach
     </div>
 
-    {{-- Commandes du diaporama --}}
-    <div class="container home-hero-controls">
+    {{-- Commandes du diaporama (inutiles avec une seule diapositive) --}}
+    <div class="container home-hero-controls" @if (count($slides) < 2) hidden @endif>
         <div class="home-hero-counter" aria-hidden="true">
             <strong data-hero-current>01</strong>
             <span>/ {{ str_pad((string) count($slides), 2, '0', STR_PAD_LEFT) }}</span>
@@ -84,7 +75,7 @@
         <div class="home-hero-dots" role="tablist" aria-label="Choisir une diapositive">
             @foreach ($slides as $index => $slide)
                 <button type="button" class="home-hero-dot {{ $index === 0 ? 'is-active' : '' }}" role="tab"
-                    aria-label="Diapositive {{ $index + 1 }} : {{ $slide['eyebrow'] }}"
+                    aria-label="Diapositive {{ $index + 1 }} : {{ $slide['eyebrow'] ?: $slide['title'] }}"
                     aria-selected="{{ $index === 0 ? 'true' : 'false' }}" data-hero-dot="{{ $index }}">
                     <span class="home-hero-dot-bar"></span>
                 </button>

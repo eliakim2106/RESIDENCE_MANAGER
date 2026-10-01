@@ -868,7 +868,8 @@
 
 .home-bento-feature {
   position: relative;
-  grid-row: span 3;
+  /* Autant de rangées que les cartes (deux par rangée), réglé par la vue */
+  grid-row: span var(--bento-rows, 3);
   overflow: hidden;
   min-height: 420px;
   border-radius: var(--home-radius);
@@ -982,7 +983,8 @@
 .home-steps-list {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Nombre d'étapes réglé dans Paramètres du site (2 à 4) */
+  grid-template-columns: repeat(var(--steps, 3), minmax(0, 1fr));
   gap: 28px;
   margin: 0;
   padding: 0;

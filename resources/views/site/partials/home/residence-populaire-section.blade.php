@@ -1,14 +1,19 @@
 {{-- Résidences en ligne : coups de cœur puis mieux notées (HomeController) --}}
 @if ($residences->isNotEmpty())
-    @php $favorites = auth()->user()?->isClient() ? auth()->user()->favorites()->pluck('properties.id')->all() : []; @endphp
+    @php
+        $favorites = auth()->user()?->isClient() ? auth()->user()->favorites()->pluck('properties.id')->all() : [];
+        $heading = $site->content('home_featured');
+    @endphp
 
     <section class="home-section" id="residences">
         <div class="container">
 
             <div class="home-section-head home-section-head-split" data-reveal>
                 <div>
-                    <span class="home-kicker">Sélection DS HOLDING</span>
-                    <h2 class="home-title">Nos résidences <span>à la une</span></h2>
+                    @if ($heading['kicker'])
+                        <span class="home-kicker">{{ $heading['kicker'] }}</span>
+                    @endif
+                    <h2 class="home-title">{{ $heading['title'] }} @if ($heading['highlight'])<span>{{ $heading['highlight'] }}</span>@endif</h2>
                 </div>
 
                 <a href="{{ route('residences.index') }}" class="home-link-arrow">
