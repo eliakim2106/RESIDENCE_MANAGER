@@ -299,6 +299,67 @@ function initCycleToggle() {
 }
 
 /* =====================================
+   RÉGLAGES DES ABONNEMENTS (page Formules)
+   Compteur − / + du délai de grâce, résumé de la règle en direct,
+   bouton « Enregistrer » actif seulement quand quelque chose a changé.
+===================================== */
+
+function initSettingsForm() {
+  const form = document.querySelector("[data-settings-form]");
+
+  if (!form) {
+    return;
+  }
+
+  const toggle = form.querySelector("[data-required-toggle]");
+  const input = form.querySelector("[data-grace-input]");
+  const down = form.querySelector("[data-stepper-down]");
+  const up = form.querySelector("[data-stepper-up]");
+  const save = form.querySelector("[data-settings-save]");
+  const dirtyNote = form.querySelector("[data-dirty-note]");
+  const summary = form.querySelector("[data-settings-summary]");
+
+  const min = Number(input.min);
+  const max = Number(input.max);
+  const initial = { required: toggle.checked, grace: input.value };
+  const hasError = form.querySelector(".field-error") !== null;
+
+  const clamp = (value) => Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+
+  const update = () => {
+    const days = clamp(Number.parseInt(input.value, 10));
+    const delay = days === 0 ? "dès l’échéance" : `${days} jour${days > 1 ? "s" : ""} après l’émission de la facture`;
+
+    down.disabled = days <= min;
+    up.disabled = days >= max;
+
+    summary.innerHTML = toggle.checked
+      ? `<i class="fa-solid fa-circle-info"></i><span>Une facture impayée entraîne la suspension <strong>${delay}</strong> : les établissements du propriétaire quittent alors le site.</span>`
+      : `<i class="fa-solid fa-circle-info"></i><span>Abonnement facultatif : un abonnement impayé est suspendu <strong>${delay}</strong>, mais les établissements restent en ligne.</span>`;
+
+    const dirty = hasError || toggle.checked !== initial.required || input.value !== initial.grace;
+    save.disabled = !dirty;
+    dirtyNote.hidden = !dirty;
+  };
+
+  const step = (delta) => {
+    input.value = String(clamp((Number.parseInt(input.value, 10) || 0) + delta));
+    update();
+  };
+
+  down.addEventListener("click", () => step(-1));
+  up.addEventListener("click", () => step(1));
+  input.addEventListener("input", update);
+  input.addEventListener("blur", () => {
+    input.value = String(clamp(Number.parseInt(input.value, 10)));
+    update();
+  });
+  toggle.addEventListener("change", update);
+
+  update();
+}
+
+/* =====================================
    COORDONNÉES DE REVERSEMENT
    Le libellé du champ « compte » suit le moyen choisi (numéro Mobile Money, RIB…).
 ===================================== */
@@ -391,6 +452,7 @@ initAvatarField();
 initOccupancyGrid();
 initCycleToggle();
 initPayoutAccount();
+initSettingsForm();
 initAlerts();
 initNotifications();
 initDatepickers();
