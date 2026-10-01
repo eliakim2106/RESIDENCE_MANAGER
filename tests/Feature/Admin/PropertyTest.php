@@ -110,6 +110,17 @@ class PropertyTest extends TestCase
         $this->assertSame(PropertyStatus::Draft, Property::sole()->statut);
     }
 
+    public function test_unit_management_is_off_by_default_on_a_new_property(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $isChecked = fn (string $html): bool => (bool) preg_match('/name="gestion_unites"\s+value="1"\s+checked/', $html);
+
+        $this->assertFalse($isChecked($this->actingAs($owner)->get(route('admin.etablissements.create'))->getContent()));
+
+        $multi = Property::factory()->for($owner, 'owner')->create(['manages_units' => true]);
+        $this->assertTrue($isChecked($this->actingAs($owner)->get(route('admin.etablissements.edit', $multi))->getContent()));
+    }
+
     public function test_owner_only_sees_and_edits_their_own_properties(): void
     {
         $owner = User::factory()->owner()->create();

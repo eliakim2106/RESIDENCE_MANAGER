@@ -405,7 +405,7 @@
                     id="gestion_unites"
                     name="gestion_unites"
                     value="1"
-                    @checked(old('gestion_unites', $etablissement->exists ? $etablissement->manages_units : true))>
+                    @checked(session()->hasOldInput() ? (bool) old('gestion_unites') : ($etablissement->exists && $etablissement->manages_units))>
 
                 <span class="slider"></span>
 
