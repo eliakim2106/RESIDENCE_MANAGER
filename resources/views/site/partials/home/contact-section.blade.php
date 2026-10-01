@@ -1,10 +1,12 @@
 @php
-    $contacts = [
-        ['fa-solid fa-location-dot', 'Adresse', 'Cocody, Abidjan', null],
-        ['fa-solid fa-phone', 'Téléphone', '+225 01 41 60 12 78', 'tel:+2250141601278'],
-        ['fa-regular fa-envelope', 'Email', 'contact@dsholding.ci', 'mailto:contact@dsholding.ci'],
-        ['fa-brands fa-whatsapp', 'WhatsApp', 'Écrivez-nous sur WhatsApp', 'https://wa.me/2250141601278'],
-    ];
+    // Coordonnées réglées dans Administration > Paramètres du site ; une ligne vide n'est pas affichée
+    $contacts = array_values(array_filter([
+        ['fa-solid fa-location-dot', 'Adresse', $site->get('contact_address'), null],
+        $site->phone() ? ['fa-solid fa-phone', 'Téléphone', $site->phone(), $site->phoneHref()] : null,
+        ['fa-regular fa-envelope', 'Email', $site->email(), 'mailto:'.$site->email()],
+        $site->whatsappUrl() ? ['fa-brands fa-whatsapp', 'WhatsApp', 'Écrivez-nous sur WhatsApp', $site->whatsappUrl()] : null,
+        $site->get('contact_hours') ? ['fa-regular fa-clock', 'Horaires', $site->get('contact_hours'), null] : null,
+    ]));
 @endphp
 
 <section class="home-section home-contact" id="contact">

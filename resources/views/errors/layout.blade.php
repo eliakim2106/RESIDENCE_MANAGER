@@ -7,6 +7,8 @@
     $home = Route::has('home') ? route('home') : url('/');
     $user = rescue(fn () => auth()->user(), null, false);
     $space = rescue(fn () => $user?->homeUrl(), null, false);
+    // Paramètres du site (valeurs par défaut si la base est injoignable)
+    $site ??= app(\App\Support\SiteSettings::class);
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
@@ -16,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#0a1f44">
-    <title>@yield('code') · @yield('title') · {{ config('app.name') }}</title>
+    <title>@yield('code') · @yield('title') · {{ $site->name() }}</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon/ds_holding_favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -188,8 +190,8 @@
 
 <body>
     <header>
-        <a href="{{ $home }}" aria-label="{{ config('app.name') }}, accueil">
-            <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="{{ config('app.name') }}">
+        <a href="{{ $home }}" aria-label="{{ $site->name() }}, accueil">
+            <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="{{ $site->name() }}">
         </a>
     </header>
 
@@ -219,12 +221,12 @@
             </div>
 
             @unless (View::hasSection('no_help'))
-                <p class="error-help">Le problème persiste ? <a href="mailto:contact@dsholding.ci">contact@dsholding.ci</a></p>
+                <p class="error-help">Le problème persiste ? <a href="mailto:{{ $site->email() }}">{{ $site->email() }}</a></p>
             @endunless
         </div>
     </main>
 
-    <footer>© {{ date('Y') }} DS HOLDING</footer>
+    <footer>© {{ date('Y') }} {{ $site->name() }}</footer>
 </body>
 
 </html>

@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Support\SiteSettings;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -16,7 +18,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Paramètres du site : lus une fois par requête, au premier besoin
+        $this->app->singleton(SiteSettings::class);
     }
 
     /**
@@ -25,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        // $site dans toutes les vues : nom, coordonnées, réseaux (aucune requête tant qu'une valeur n'est pas lue)
+        View::share('site', $this->app->make(SiteSettings::class));
 
         // Email de confirmation d'adresse envoyé après l'inscription
         VerifyEmail::toMailUsing(fn (object $notifiable, string $url): MailMessage => (new MailMessage)

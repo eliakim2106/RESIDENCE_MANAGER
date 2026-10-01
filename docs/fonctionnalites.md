@@ -73,6 +73,17 @@ Un propriétaire ne voit et ne modifie que ses propres établissements.
 - **Messages** : messages du formulaire de contact (nouveau, lu, répondu), réponse par email, export des abonnés à la newsletter.
 - **Notifications** : nouvel établissement à valider, message de contact, facture réglée en ligne, abonnement suspendu.
 
+### Super administrateur seulement : Paramètres du site (`/admin/parametres`)
+
+| Bloc | Réglages | Où ils apparaissent |
+| --- | --- | --- |
+| Identité | Nom du site, description pour les moteurs de recherche, présentation du pied de page | Titres d’onglet, balise description, pied de page |
+| Coordonnées | Adresse, email, téléphone et WhatsApp (avec indicatif), horaires | Pied de page, menu mobile, page Contact, pages d’erreur, pages légales |
+| Réseaux sociaux | Facebook, Instagram, LinkedIn, TikTok, YouTube | Icônes du pied de page, pour les réseaux renseignés |
+| Réservation en ligne | Délai de réponse, frais de service, durée maximale, anticipation maximale | Fiche, récapitulatif, création et expiration des demandes |
+
+Un champ facultatif laissé vide (WhatsApp, horaires, réseau) n’est pas affiché. Les changements s’appliquent immédiatement.
+
 ## Exports Excel
 
 Chaque liste propose un bouton **Exporter** qui reprend les filtres en cours :

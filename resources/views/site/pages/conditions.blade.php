@@ -84,7 +84,7 @@
 
             <section id="contact">
                 <h2>10. Contact</h2>
-                <p>Pour toute question sur ces conditions : <a href="{{ route('pages.contact') }}">formulaire de contact</a> ou <a href="mailto:contact@dsholding.ci">contact@dsholding.ci</a>.</p>
+                <p>Pour toute question sur ces conditions : <a href="{{ route('pages.contact') }}">formulaire de contact</a> ou <a href="mailto:{{ $site->email() }}">{{ $site->email() }}</a>.</p>
             </section>
         </article>
     </div>

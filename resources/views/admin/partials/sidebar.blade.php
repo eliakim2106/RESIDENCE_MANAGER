@@ -54,6 +54,7 @@
             ['Abonnements', 'fa-solid fa-id-card', 'admin.abonnements.index', 'admin.abonnements.', $backOffice, $unpaidInvoices],
             ['Formules', 'fa-solid fa-layer-group', 'admin.formules.index', 'admin.formules.', $backOffice],
             ['Messages', 'fa-solid fa-envelope', 'admin.messages.index', 'admin.messages.', $backOffice, $newMessages],
+            ['Paramètres du site', 'fa-solid fa-sliders', 'admin.parametres.edit', 'admin.parametres.', [UserRole::SuperAdmin]],
         ],
     ];
 @endphp

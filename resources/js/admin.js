@@ -307,6 +307,30 @@ function initCycleToggle() {
    bouton « Enregistrer » actif seulement quand quelque chose a changé.
 ===================================== */
 
+/* =====================================
+   COMPTEUR DE CARACTÈRES
+   Sous un champ [data-char-count] : « 142 / 180 », en orange près de la limite.
+===================================== */
+
+function initCharCounters() {
+  document.querySelectorAll("[data-char-count]").forEach((field) => {
+    const counter = field.closest(".form-group")?.querySelector("[data-char-counter]");
+    const max = parseInt(field.getAttribute("maxlength") || "0", 10);
+
+    if (!counter || !max) {
+      return;
+    }
+
+    const update = () => {
+      counter.textContent = `${field.value.length} / ${max}`;
+      counter.classList.toggle("is-over", field.value.length > max * 0.9);
+    };
+
+    field.addEventListener("input", update);
+    update();
+  });
+}
+
 function initSettingsForm() {
   const form = document.querySelector("[data-settings-form]");
 
@@ -456,6 +480,7 @@ initOccupancyGrid();
 initCycleToggle();
 initPayoutAccount();
 initSettingsForm();
+initCharCounters();
 initAlerts();
 initNotifications();
 initDatepickers();

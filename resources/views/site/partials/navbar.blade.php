@@ -14,8 +14,8 @@
 <header class="site-header {{ $transparent ? 'is-transparent' : '' }}" id="siteHeader">
     <div class="container site-header-inner">
 
-        <a class="site-brand" href="{{ route('home') }}" aria-label="DS HOLDING, accueil">
-            <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="DS HOLDING">
+        <a class="site-brand" href="{{ route('home') }}" aria-label="{{ $site->name() }}, accueil">
+            <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="{{ $site->name() }}">
         </a>
 
         <nav class="site-nav" id="siteNav" aria-label="Navigation principale">
@@ -52,8 +52,10 @@
             </div>
 
             <div class="site-nav-contact">
-                <a href="tel:+2250141601278"><i class="fa-solid fa-phone"></i> +225 01 41 60 12 78</a>
-                <a href="mailto:contact@dsholding.ci"><i class="fa-regular fa-envelope"></i> contact@dsholding.ci</a>
+                @if ($site->phone())
+                    <a href="{{ $site->phoneHref() }}"><i class="fa-solid fa-phone"></i> {{ $site->phone() }}</a>
+                @endif
+                <a href="mailto:{{ $site->email() }}"><i class="fa-regular fa-envelope"></i> {{ $site->email() }}</a>
             </div>
         </nav>
 

@@ -29,6 +29,7 @@
         'admin.types-unite.' => ["Types d'unité", 'admin.types-unite.index'],
         'admin.equipements.' => ['Équipements', 'admin.equipements.index'],
         'admin.messages.' => ['Messages', 'admin.messages.index'],
+        'admin.parametres.' => ['Paramètres du site', 'admin.parametres.edit'],
     ];
 
     $routeName = (string) request()->route()?->getName();

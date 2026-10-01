@@ -12,7 +12,7 @@
     <title>
         @hasSection('title')
             @yield('title') ·
-        @endif DS HOLDING Administration
+        @endif {{ $site->name() }} Administration
     </title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

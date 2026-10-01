@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PropertyTypeController;
 use App\Http\Controllers\Admin\PropertyValidationController;
 use App\Http\Controllers\Admin\ReservationCalendarController;
 use App\Http\Controllers\Admin\ReservationController;
+use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\UnitController;
@@ -240,6 +241,17 @@ Route::get('/admin', DashboardController::class)
 // =========================
 // RÉFÉRENTIELS DE LA PLATEFORME (administrateurs)
 // =========================
+
+// Paramètres du site : identité, coordonnées, réseaux sociaux, règles de réservation (super administrateur)
+Route::prefix('admin/parametres')
+    ->name('admin.parametres.')
+    ->middleware(['auth', 'verified', 'role:super_admin'])
+    ->group(function () {
+        Route::get('/', [SiteSettingController::class, 'edit'])
+            ->name('edit');
+        Route::put('/', [SiteSettingController::class, 'update'])
+            ->name('update');
+    });
 
 // Messages reçus par le formulaire de contact
 Route::prefix('admin/messages')

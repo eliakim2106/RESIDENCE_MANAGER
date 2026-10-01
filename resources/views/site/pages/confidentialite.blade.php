@@ -63,7 +63,7 @@
 
             <section id="droits">
                 <h2>7. Vos droits</h2>
-                <p>Vous pouvez consulter et modifier vos informations depuis votre espace (« Mon profil »). Pour demander une copie ou la suppression de vos données, ou vous opposer à un traitement, écrivez-nous via le <a href="{{ route('pages.contact', ['sujet' => 'Données personnelles']) }}">formulaire de contact</a> ou à <a href="mailto:contact@dsholding.ci">contact@dsholding.ci</a>. Chaque newsletter contient un lien de désinscription.</p>
+                <p>Vous pouvez consulter et modifier vos informations depuis votre espace (« Mon profil »). Pour demander une copie ou la suppression de vos données, ou vous opposer à un traitement, écrivez-nous via le <a href="{{ route('pages.contact', ['sujet' => 'Données personnelles']) }}">formulaire de contact</a> ou à <a href="mailto:{{ $site->email() }}">{{ $site->email() }}</a>. Chaque newsletter contient un lien de désinscription.</p>
             </section>
         </article>
     </div>

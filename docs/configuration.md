@@ -56,6 +56,8 @@ Adresses de retour à déclarer chez chaque fournisseur :
 
 ## Réservation en ligne
 
+Ces règles se modifient dans **Administration > Paramètres du site** (super administrateur). Les variables ci-dessous ne servent que de valeurs par défaut tant que rien n’y est enregistré.
+
 | Clé | Défaut | Rôle |
 | --- | --- | --- |
 | `BOOKING_REQUEST_TTL_HOURS` | `48` | Délai laissé à l’établissement pour répondre. Passé ce délai, la demande expire. |
@@ -102,5 +104,5 @@ Chaque commande peut aussi être lancée à la main, par exemple `php artisan re
    ```
 
 4. Tâche cron du planificateur.
-5. Faire relire par un conseil juridique les pages **Conditions d’utilisation** et **Confidentialité**, puis renseigner les coordonnées réelles. Elles sont écrites en dur dans le pied de page, la page Contact et le menu mobile.
+5. Faire relire par un conseil juridique les pages **Conditions d’utilisation** et **Confidentialité**. Vérifier le nom, les coordonnées et les réseaux sociaux dans **Administration > Paramètres du site**.
 6. Remplacer les formules de démonstration (prix fictifs) dans **Administration > Formules**.

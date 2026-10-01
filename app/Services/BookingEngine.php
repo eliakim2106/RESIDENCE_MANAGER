@@ -15,6 +15,7 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Models\UnitRate;
 use App\Models\User;
+use App\Support\SiteSettings;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Carbon;
@@ -125,7 +126,7 @@ class BookingEngine
 
     public static function serviceFeeRate(): float
     {
-        return max(0, (float) config('booking.service_fee_rate', 0));
+        return max(0, (float) SiteSettings::current()->booking('service_fee_rate'));
     }
 
     /**
@@ -205,7 +206,7 @@ class BookingEngine
                 'indicatif_telephone' => $guest['dial'] ?: '+225',
                 'estimated_arrival_time' => $guest['arrival_time'],
                 'special_requests' => $guest['requests'],
-                'expires_at' => now()->addHours((int) config('booking.request_ttl_hours', 48)),
+                'expires_at' => now()->addHours((int) SiteSettings::current()->booking('request_ttl_hours')),
             ]);
 
             foreach ($lines as $line) {
@@ -233,12 +234,14 @@ class BookingEngine
     public function assertDates(CarbonImmutable $arrival, CarbonImmutable $departure): void
     {
         $nights = (int) $arrival->diffInDays($departure, false);
+        $maxNights = (int) SiteSettings::current()->booking('max_nights');
+        $maxDaysAhead = (int) SiteSettings::current()->booking('max_days_ahead');
 
         match (true) {
             $arrival->lt(CarbonImmutable::today()) => throw new WorkflowException('La date d’arrivée est déjà passée.'),
             $nights < 1 => throw new WorkflowException('La date de départ doit suivre la date d’arrivée.'),
-            $nights > (int) config('booking.max_nights', 60) => throw new WorkflowException('Séjour de '.config('booking.max_nights', 60).' nuits maximum en ligne : contactez l’établissement pour un long séjour.'),
-            $arrival->gt(CarbonImmutable::today()->addDays((int) config('booking.max_days_ahead', 365))) => throw new WorkflowException('Les réservations sont ouvertes jusqu’à un an à l’avance.'),
+            $nights > $maxNights => throw new WorkflowException("Séjour de {$maxNights} nuits maximum en ligne : contactez l’établissement pour un long séjour."),
+            $arrival->gt(CarbonImmutable::today()->addDays($maxDaysAhead)) => throw new WorkflowException("Les réservations sont ouvertes jusqu’à {$maxDaysAhead} jours à l’avance."),
             default => null,
         };
     }

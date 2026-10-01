@@ -1,0 +1,172 @@
+/* =====================================================================
+   PARAMÈTRES DU SITE (super administrateur)
+   Sommaire collant à gauche, sections du formulaire à droite.
+===================================================================== */
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.settings-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.settings-main .form-section {
+  scroll-margin-top: 96px;
+}
+
+/* ---------- Sommaire ---------- */
+
+.settings-nav {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.settings-nav nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-nav nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.settings-nav nav a i {
+  width: 18px;
+  color: var(--ds-muted);
+  text-align: center;
+}
+
+.settings-nav nav a:hover {
+  background: var(--ds-blue-soft);
+  color: var(--ds-blue-dark);
+}
+
+.settings-nav nav a.has-error {
+  color: var(--ds-danger);
+}
+
+.settings-nav-error {
+  margin-left: auto;
+}
+
+.settings-nav-error i {
+  color: var(--ds-danger) !important;
+}
+
+.settings-save {
+  justify-content: center;
+  width: 100%;
+}
+
+.settings-nav .field-help {
+  margin: 0;
+  text-align: center;
+}
+
+.settings-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid #fecaca;
+  border-radius: var(--ds-radius);
+  background: var(--ds-danger-soft);
+  color: #991b1b;
+  font-weight: 500;
+}
+
+/* ---------- Champs ---------- */
+
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+.form-group > label small {
+  color: var(--ds-muted);
+  font-weight: 400;
+}
+
+.settings-input-icon,
+.settings-input-unit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.settings-input-icon i {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  color: var(--ds-muted);
+  text-align: center;
+  pointer-events: none;
+}
+
+.form-group .settings-input-icon input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+  padding-left: 42px;
+}
+
+/* Même spécificité que la règle générale des champs de l'administration, pour la remplacer */
+.form-group .settings-input-unit input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+  padding-right: 120px;
+}
+
+.settings-input-unit span {
+  position: absolute;
+  right: 14px;
+  color: var(--ds-muted);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+[data-char-counter] {
+  white-space: nowrap;
+}
+
+[data-char-counter].is-over {
+  color: var(--ds-warning);
+  font-weight: 600;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 991.98px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-nav {
+    position: static;
+    order: 2;
+  }
+
+  .settings-nav nav {
+    display: none;
+  }
+}

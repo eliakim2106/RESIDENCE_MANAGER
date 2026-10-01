@@ -8,13 +8,19 @@
 
             {{-- Présentation --}}
             <div class="footer-col">
-                <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="DS HOLDING" class="footer-logo">
+                <img src="{{ asset('assets/images/logo/ds_holding_logo.png') }}" alt="{{ $site->name() }}" class="footer-logo">
 
-                <p>
-                    DS HOLDING vous propose des résidences meublées
-                    haut standing alliant confort, sécurité
-                    et élégance.
-                </p>
+                <p>{{ $site->get('site_about') }}</p>
+
+                @if ($site->socials() !== [])
+                    <div class="social-links">
+                        @foreach ($site->socials() as $social)
+                            <a href="{{ $social['url'] }}" target="_blank" rel="noopener" aria-label="{{ $site->name() }} sur {{ $social['label'] }}">
+                                <i class="fa-brands {{ $social['icon'] }}"></i>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             {{-- Navigation --}}
@@ -37,16 +43,24 @@
                 <ul>
                     <li>
                         <i class="fa-solid fa-location-dot"></i>
-                        Cocody, Abidjan
+                        {{ $site->get('contact_address') }}
                     </li>
-                    <li>
-                        <i class="fa-solid fa-phone"></i>
-                        <a href="tel:+2250141601278">+225 01 41 60 12 78</a>
-                    </li>
+                    @if ($site->phone())
+                        <li>
+                            <i class="fa-solid fa-phone"></i>
+                            <a href="{{ $site->phoneHref() }}">{{ $site->phone() }}</a>
+                        </li>
+                    @endif
                     <li>
                         <i class="fa-solid fa-envelope"></i>
-                        <a href="mailto:contact@dsholding.ci">contact@dsholding.ci</a>
+                        <a href="mailto:{{ $site->email() }}">{{ $site->email() }}</a>
                     </li>
+                    @if ($site->get('contact_hours'))
+                        <li>
+                            <i class="fa-regular fa-clock"></i>
+                            {{ $site->get('contact_hours') }}
+                        </li>
+                    @endif
                 </ul>
             </div>
 
@@ -79,7 +93,7 @@
         <div class="footer-bottom">
             <p>
                 © {{ now()->year }}
-                DS HOLDING • Tous droits réservés.
+                {{ $site->name() }} • Tous droits réservés.
             </p>
 
             <nav class="footer-legal" aria-label="Informations légales">

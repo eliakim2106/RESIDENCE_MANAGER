@@ -81,7 +81,7 @@
                     <section class="rd-card">
                         <h2>Conditions</h2>
                         <ul class="co-conditions">
-                            <li><i class="fa-solid fa-hourglass-half"></i> Votre demande est envoyée à l’établissement, qui la confirme. Sans réponse sous {{ config('booking.request_ttl_hours', 48) }} h, elle expire automatiquement.</li>
+                            <li><i class="fa-solid fa-hourglass-half"></i> Votre demande est envoyée à l’établissement, qui la confirme. Sans réponse sous {{ $site->booking('request_ttl_hours') }} h, elle expire automatiquement.</li>
                             <li><i class="fa-solid fa-credit-card"></i> Vous pouvez régler en ligne depuis votre espace dès l’envoi de la demande, ou attendre sa confirmation.</li>
                             @if ($freeUntil && $freeUntil->isFuture())
                                 <li><i class="fa-solid fa-rotate-left"></i> Annulation gratuite jusqu’au {{ $freeUntil->translatedFormat('d F Y à H:i') }} : un paiement déjà effectué est alors remboursé.</li>

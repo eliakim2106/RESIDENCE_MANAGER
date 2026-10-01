@@ -671,3 +671,38 @@ img {
     font-size: 1rem;
   }
 }
+
+/* Réseaux sociaux du pied de page (Administration > Paramètres du site) */
+
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.3s, background-color 0.3s, color 0.3s;
+}
+
+.social-links a:hover,
+.social-links a:focus-visible {
+  background: #d4af37;
+  color: #041b4d;
+  transform: translateY(-4px);
+}
+
+@media (max-width: 992px) {
+  .social-links {
+    justify-content: center;
+  }
+}
