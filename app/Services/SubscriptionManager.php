@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Notification;
 /**
  * Abonnements des propriétaires.
  *
+ * Les comptes exemptés (comptes de démonstration) échappent à tout cela.
+ *
  * Essai gratuit → facture à la fin de l'essai (statut « paiement attendu ») → actif une fois payée.
  * À chaque fin de période, une nouvelle facture est émise ; sans paiement à l'échéance
  * (période + délai de grâce), l'abonnement est suspendu et, si l'abonnement est obligatoire,
@@ -266,6 +268,7 @@ class SubscriptionManager
 
         // Essais terminés : première facture
         Subscription::query()
+            ->whereHas('user', fn ($query) => $query->where('subscription_exempt', false))
             ->where('statut', SubscriptionStatus::Trial)
             ->where('trial_ends_at', '<=', $today->endOfDay())
             ->with(['plan', 'user'])
@@ -276,6 +279,7 @@ class SubscriptionManager
 
         // Périodes payées terminées : facture de la période suivante
         Subscription::query()
+            ->whereHas('user', fn ($query) => $query->where('subscription_exempt', false))
             ->where('statut', SubscriptionStatus::Active)
             ->whereDate('current_period_end', '<', $today->toDateString())
             ->with(['plan', 'user'])
@@ -286,6 +290,7 @@ class SubscriptionManager
 
         // Échéance proche : un rappel par facture
         SubscriptionInvoice::query()
+            ->whereHas('user', fn ($query) => $query->where('subscription_exempt', false))
             ->where('statut', InvoiceStatus::Unpaid)
             ->whereNull('reminder_sent_at')
             ->whereDate('due_on', '>', $today->toDateString())
@@ -299,6 +304,7 @@ class SubscriptionManager
 
         // Échéance dépassée : suspension
         Subscription::query()
+            ->whereHas('user', fn ($query) => $query->where('subscription_exempt', false))
             ->where('statut', SubscriptionStatus::PastDue)
             ->whereHas('invoices', fn ($query) => $query->where('statut', InvoiceStatus::Unpaid)->whereDate('due_on', '<', $today->toDateString()))
             ->with('user')
@@ -323,7 +329,7 @@ class SubscriptionManager
      */
     public function propertyBlocker(User $owner): ?string
     {
-        if (! self::required()) {
+        if (! self::required() || $owner->isSubscriptionExempt()) {
             return null;
         }
 
@@ -345,7 +351,7 @@ class SubscriptionManager
      */
     public function unitBlocker(User $owner): ?string
     {
-        if (! self::required()) {
+        if (! self::required() || $owner->isSubscriptionExempt()) {
             return null;
         }
 

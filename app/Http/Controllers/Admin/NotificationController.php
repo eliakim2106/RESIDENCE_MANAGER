@@ -118,9 +118,9 @@ class NotificationController extends Controller
             return null;
         }
 
-        // Seules les pages de l'espace connecté (/admin…) sont ouvertes depuis une notification. Le préfixe
+        // Seules les pages des espaces connectés (/admin…, /mon-compte…) sont ouvertes depuis une notification. Le préfixe
         // éventuel du site au moment de l'envoi (ex. /DS_HOLDING/RESIDENCE_MANAGER/public) est ignoré.
-        if (! preg_match('#^(?:/[^/]+)*?(/admin(?:/.*)?)$#', '/'.ltrim($parts['path'] ?? '', '/'), $matches)) {
+        if (! preg_match('#^(?:/[^/]+)*?(/(?:admin|mon-compte)(?:/.*)?)$#', '/'.ltrim($parts['path'] ?? '', '/'), $matches)) {
             return null;
         }
 

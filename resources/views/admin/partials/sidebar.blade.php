@@ -25,6 +25,11 @@
         ? App\Models\SubscriptionInvoice::query()->where('statut', App\Enums\InvoiceStatus::Unpaid)->count()
         : 0;
 
+    // Messages du formulaire de contact pas encore lus (administrateurs)
+    $newMessages = $user->isAdmin()
+        ? App\Models\ContactMessage::query()->where('statut', App\Enums\ContactMessageStatus::New)->count()
+        : 0;
+
     // Chaque lien : titre, icône, route, préfixe de route pour l'état actif, rôles autorisés, compteur (facultatif)
     $sections = [
         'Activité' => [
@@ -48,6 +53,7 @@
             ['Utilisateurs', 'fa-solid fa-users', 'admin.utilisateurs.index', 'admin.utilisateurs.', $backOffice],
             ['Abonnements', 'fa-solid fa-id-card', 'admin.abonnements.index', 'admin.abonnements.', $backOffice, $unpaidInvoices],
             ['Formules', 'fa-solid fa-layer-group', 'admin.formules.index', 'admin.formules.', $backOffice],
+            ['Messages', 'fa-solid fa-envelope', 'admin.messages.index', 'admin.messages.', $backOffice, $newMessages],
         ],
     ];
 @endphp

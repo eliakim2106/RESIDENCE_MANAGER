@@ -161,7 +161,7 @@
                         <dt>Téléphone</dt>
                         <dd>
                             @if ($user->phone)
-                                <a href="tel:{{ preg_replace('/\s+/', '', $user->phone) }}">{{ $user->phone }}</a>
+                                <a href="tel:{{ $user->internationalPhone() }}">{{ $user->formattedPhone() }}</a>
                             @else
                                 —
                             @endif

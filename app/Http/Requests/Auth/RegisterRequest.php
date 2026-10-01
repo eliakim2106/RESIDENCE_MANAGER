@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\User;
+use App\Rules\PhoneNumberRule;
+use App\Support\PhoneNumber;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,11 +16,6 @@ use Illuminate\Validation\Rules\Password;
  */
 class RegisterRequest extends FormRequest
 {
-    /**
-     * Indicatifs proposés par le formulaire.
-     */
-    public const COUNTRY_CODES = ['+225', '+221', '+223', '+226', '+228', '+229', '+233', '+224', '+33', '+32', '+1'];
-
     public function authorize(): bool
     {
         return true;
@@ -26,9 +23,11 @@ class RegisterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->merge(['indicatif_telephone' => $this->input('indicatif_telephone') ?: PhoneNumber::defaultDial()]);
+
         $this->merge([
             'email' => mb_strtolower(trim((string) $this->input('email'))),
-            'telephone' => preg_replace('/\D/', '', (string) $this->input('telephone')),
+            'telephone' => PhoneNumber::normalize((string) $this->input('indicatif_telephone'), (string) $this->input('telephone')),
         ]);
     }
 
@@ -40,8 +39,8 @@ class RegisterRequest extends FormRequest
         return [
             'nom' => ['required', 'string', 'max:100'],
             'prenoms' => ['required', 'string', 'max:150'],
-            'country_code' => ['required', Rule::in(self::COUNTRY_CODES)],
-            'telephone' => ['required', 'digits_between:8,10'],
+            'indicatif_telephone' => ['required', Rule::in(array_keys(config('phone.countries')))],
+            'telephone' => ['required', new PhoneNumberRule],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'pays' => ['required', 'string', 'max:100'],
             'ville' => ['required', 'string', 'max:100'],
@@ -58,7 +57,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if ($validator->errors()->isEmpty() && User::withTrashed()->where('phone', $this->phone())->exists()) {
+                if ($validator->errors()->isEmpty() && User::withTrashed()->where('indicatif_telephone', $this->input('indicatif_telephone'))->where('phone', $this->input('telephone'))->exists()) {
                     $validator->errors()->add('telephone', 'Ce numéro de téléphone est déjà utilisé.');
                 }
             },
@@ -73,7 +72,7 @@ class RegisterRequest extends FormRequest
         return [
             'nom' => 'nom',
             'prenoms' => 'prénoms',
-            'country_code' => 'indicatif',
+            'indicatif_telephone' => 'indicatif',
             'telephone' => 'téléphone',
             'pays' => 'pays',
             'ville' => 'ville',
@@ -103,15 +102,11 @@ class RegisterRequest extends FormRequest
         return [
             'name' => trim($this->string('prenoms').' '.$this->string('nom')),
             'email' => $this->string('email')->toString(),
-            'phone' => $this->phone(),
+            'phone' => $this->input('telephone'),
+            'indicatif_telephone' => $this->input('indicatif_telephone'),
             'country' => $this->string('pays')->trim()->toString(),
             'city' => $this->string('ville')->trim()->toString(),
             'password' => $this->string('password')->toString(),
         ];
-    }
-
-    private function phone(): string
-    {
-        return $this->input('country_code').' '.$this->input('telephone');
     }
 }

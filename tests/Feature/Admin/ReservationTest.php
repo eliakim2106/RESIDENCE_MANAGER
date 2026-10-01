@@ -38,13 +38,16 @@ class ReservationTest extends TestCase
         $this->actingAs($owner)->get(route('admin.reservations.index'))
             ->assertOk()->assertSee($mine->reference)->assertDontSee($other->reference);
 
-        $this->actingAs($client)->get(route('admin.reservations.index'))
-            ->assertOk()->assertSee('Mes réservations')->assertSee($mine->reference)->assertDontSee($other->reference);
+        // Le client suit ses réservations dans son espace
+        $this->actingAs($client)->get(route('admin.reservations.index'))->assertRedirect(route('client.reservations.index'));
+        $this->actingAs($client)->get(route('client.reservations.index'))
+            ->assertOk()->assertSee($mine->reference)->assertDontSee($other->reference);
 
         $this->actingAs($owner)->get(route('admin.reservations.show', $mine))->assertOk();
-        $this->actingAs($client)->get(route('admin.reservations.show', $mine))->assertOk()->assertDontSee('Notes internes');
+        $this->actingAs($client)->get(route('admin.reservations.show', $mine))->assertRedirect(route('client.reservations.show', $mine));
+        $this->actingAs($client)->get(route('client.reservations.show', $mine))->assertOk()->assertDontSee('Notes internes');
         $this->actingAs($owner)->get(route('admin.reservations.show', $other))->assertForbidden();
-        $this->actingAs($client)->get(route('admin.reservations.show', $other))->assertForbidden();
+        $this->actingAs($client)->get(route('client.reservations.show', $other))->assertForbidden();
     }
 
     public function test_dashboards_link_to_reservations(): void
@@ -54,11 +57,16 @@ class ReservationTest extends TestCase
         $reservation = Reservation::factory()->for(Property::factory()->for($owner, 'owner'))->for($client)->create();
         Reservation::factory()->cancelled()->for($reservation->property)->create();
 
-        foreach ([User::factory()->admin()->create(), $owner, $client] as $user) {
+        foreach ([User::factory()->admin()->create(), $owner] as $user) {
             $this->actingAs($user)->get(route('dashboard'))
                 ->assertOk()
                 ->assertSee(route('admin.reservations.show', $reservation));
         }
+
+        $this->actingAs($client)->get(route('dashboard'))->assertRedirect(route('client.dashboard'));
+        $this->actingAs($client)->get(route('client.dashboard'))
+            ->assertOk()
+            ->assertSee(route('client.reservations.show', $reservation));
     }
 
     public function test_list_filters_by_status_tab_and_search(): void
@@ -86,7 +94,7 @@ class ReservationTest extends TestCase
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.paiements.index'))
             ->assertOk()->assertSee('RECU-MINE')->assertSee('RECU-OTHER');
 
-        $this->actingAs(User::factory()->create())->get(route('admin.paiements.index'))->assertForbidden();
+        $this->actingAs(User::factory()->create())->get(route('admin.paiements.index'))->assertRedirect(route('client.dashboard'));
     }
 
     /*

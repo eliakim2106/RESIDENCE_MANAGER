@@ -12,7 +12,7 @@ class SitePagesTest extends TestCase
 
     public function test_public_pages_render(): void
     {
-        foreach (['home', 'residences.index', 'residences.show', 'login', 'register', 'register.client', 'register.owner'] as $route) {
+        foreach (['home', 'residences.index', 'login', 'register', 'register.client', 'register.owner', 'password.request', 'pages.faq', 'pages.contact', 'pages.owners', 'pages.conditions', 'pages.privacy'] as $route) {
             $this->get(route($route))->assertOk();
         }
     }
@@ -26,9 +26,10 @@ class SitePagesTest extends TestCase
     {
         $client = User::factory()->create();
 
-        $this->actingAs($client)->get(route('dashboard'))->assertOk();
-        $this->actingAs($client)->get(route('admin.etablissements.index'))->assertForbidden();
-        $this->actingAs($client)->get(route('admin.types-etablissement.index'))->assertForbidden();
+        // Le client est renvoyé vers son espace ; les actions d'écriture restent refusées
+        $this->actingAs($client)->get(route('dashboard'))->assertRedirect(route('client.dashboard'));
+        $this->actingAs($client)->get(route('admin.etablissements.index'))->assertRedirect(route('client.dashboard'));
+        $this->actingAs($client)->post(route('admin.types-etablissement.store'), ['nom' => 'Test'])->assertForbidden();
     }
 
     public function test_owner_cannot_manage_the_platform_catalogs(): void

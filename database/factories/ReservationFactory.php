@@ -44,7 +44,8 @@ class ReservationFactory extends Factory
             'cancellation_policy' => CancellationPolicy::Flexible,
             'guest_name' => fake()->name(),
             'guest_email' => fake()->safeEmail(),
-            'guest_phone' => '+225 07 '.fake()->numerify('## ## ## ##'),
+            'guest_phone' => '07'.fake()->numerify('########'),
+            'indicatif_telephone' => '+225',
             'special_requests' => fake()->optional(0.3)->sentence(),
             'expires_at' => now()->addMinutes(30),
         ];

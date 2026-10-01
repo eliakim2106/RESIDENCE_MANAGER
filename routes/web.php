@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EquipmentController;
 use App\Http\Controllers\Admin\LoginLogController;
@@ -22,8 +23,19 @@ use App\Http\Controllers\Admin\UnitTypeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Client\DashboardController as ClientDashboardController;
+use App\Http\Controllers\Client\FavoriteController as ClientFavoriteController;
+use App\Http\Controllers\Client\NotificationController as ClientNotificationController;
+use App\Http\Controllers\Client\ProfileController as ClientProfileController;
+use App\Http\Controllers\Client\ReservationController as ClientReservationController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\ResidenceController;
 use Illuminate\Support\Facades\Route;
@@ -39,8 +51,86 @@ Route::get('/', HomeController::class)
 Route::get('/residences', [ResidenceController::class, 'index'])
     ->name('residences.index');
 
-Route::get('/residences/details', [ResidenceController::class, 'show'])
+// Ancienne fiche de démonstration
+Route::get('/residences/details', [ResidenceController::class, 'legacy']);
+
+Route::get('/residences/{residence}', [ResidenceController::class, 'show'])
     ->name('residences.show');
+
+// Réservation : récapitulatif (un visiteur est d'abord dirigé vers la création d'un compte), puis demande
+Route::get('/reserver/{residence}', [BookingController::class, 'checkout'])
+    ->name('residences.checkout');
+Route::post('/reserver/{residence}', [BookingController::class, 'store'])
+    ->name('residences.book')
+    ->middleware(['auth', 'throttle:10,1']);
+
+// Pages d'information
+Route::controller(PageController::class)
+    ->name('pages.')
+    ->group(function () {
+        Route::get('/questions-frequentes', 'faq')->name('faq');
+        Route::get('/contact', 'contact')->name('contact');
+        Route::get('/proprietaires', 'owners')->name('owners');
+        Route::get('/conditions-utilisation', 'terms')->name('conditions');
+        Route::get('/confidentialite', 'privacy')->name('privacy');
+    });
+
+// Formulaire de contact et lettre d'information
+Route::post('/contact', [ContactController::class, 'store'])
+    ->name('contact.store')
+    ->middleware('throttle:5,1');
+Route::post('/newsletter', [NewsletterController::class, 'store'])
+    ->name('newsletter.store')
+    ->middleware('throttle:5,1');
+Route::get('/newsletter/desinscription/{token}', [NewsletterController::class, 'unsubscribe'])
+    ->name('newsletter.unsubscribe');
+
+// =========================
+// ESPACE CLIENT (hors administration)
+// =========================
+// Réservations, paiements, avis, favoris et profil du client. Un client sans téléphone, ville ou pays
+// (compte créé avec Google / Facebook) complète d'abord son profil.
+
+Route::prefix('mon-compte')
+    ->name('client.')
+    ->middleware(['auth', 'verified', 'role:client'])
+    ->group(function () {
+        Route::get('/completer-mon-profil', [ClientProfileController::class, 'complete'])
+            ->name('profile.complete');
+        Route::put('/completer-mon-profil', [ClientProfileController::class, 'storeCompletion'])
+            ->name('profile.complete.store');
+
+        Route::middleware('profile.complete')->group(function () {
+            Route::get('/', ClientDashboardController::class)
+                ->name('dashboard');
+
+            Route::get('/reservations', [ClientReservationController::class, 'index'])
+                ->name('reservations.index');
+            Route::get('/reservations/{reservation}', [ClientReservationController::class, 'show'])
+                ->name('reservations.show');
+            Route::patch('/reservations/{reservation}/annuler', [ClientReservationController::class, 'cancel'])
+                ->name('reservations.cancel');
+            Route::post('/reservations/{reservation}/payer', [ClientReservationController::class, 'pay'])
+                ->name('reservations.pay');
+            Route::post('/reservations/{reservation}/avis', [ClientReservationController::class, 'review'])
+                ->name('reservations.review');
+
+            Route::get('/favoris', [ClientFavoriteController::class, 'index'])
+                ->name('favorites.index');
+            Route::post('/favoris/{residence}', [ClientFavoriteController::class, 'toggle'])
+                ->name('favorites.toggle');
+
+            Route::get('/notifications', ClientNotificationController::class)
+                ->name('notifications');
+
+            Route::get('/profil', [ClientProfileController::class, 'edit'])
+                ->name('profile.edit');
+            Route::put('/profil', [ClientProfileController::class, 'update'])
+                ->name('profile.update');
+            Route::put('/profil/mot-de-passe', [ClientProfileController::class, 'updatePassword'])
+                ->name('profile.password');
+        });
+    });
 
 // =========================
 // PAIEMENT EN LIGNE (CinetPay en production, FedaPay en test)
@@ -75,6 +165,30 @@ Route::get('/connexion', [LoginController::class, 'create'])
 Route::post('/connexion', [LoginController::class, 'store'])
     ->name('login.store')
     ->middleware(['guest', 'throttle:10,1']);
+
+// Connexion avec Google / Facebook (clients)
+Route::middleware('guest')->group(function () {
+    Route::get('/connexion/{provider}', [SocialLoginController::class, 'redirect'])
+        ->whereIn('provider', ['google', 'facebook'])
+        ->name('social.redirect');
+    Route::get('/connexion/{provider}/retour', [SocialLoginController::class, 'callback'])
+        ->whereIn('provider', ['google', 'facebook'])
+        ->name('social.callback');
+});
+
+// Mot de passe oublié : lien envoyé par email, puis nouveau mot de passe
+Route::middleware('guest')->group(function () {
+    Route::get('/mot-de-passe-oublie', [PasswordResetController::class, 'request'])
+        ->name('password.request');
+    Route::post('/mot-de-passe-oublie', [PasswordResetController::class, 'email'])
+        ->name('password.email')
+        ->middleware('throttle:6,1');
+    Route::get('/reinitialiser-mot-de-passe/{token}', [PasswordResetController::class, 'edit'])
+        ->name('password.reset');
+    Route::post('/reinitialiser-mot-de-passe', [PasswordResetController::class, 'update'])
+        ->name('password.update')
+        ->middleware('throttle:10,1');
+});
 
 Route::post('/deconnexion', [LoginController::class, 'destroy'])
     ->name('logout')
@@ -127,6 +241,25 @@ Route::get('/admin', DashboardController::class)
 // RÉFÉRENTIELS DE LA PLATEFORME (administrateurs)
 // =========================
 
+// Messages reçus par le formulaire de contact
+Route::prefix('admin/messages')
+    ->name('admin.messages.')
+    ->middleware(['auth', 'verified', 'role:super_admin,admin'])
+    ->group(function () {
+        Route::get('/', [ContactMessageController::class, 'index'])
+            ->name('index');
+        Route::get('/export', [ContactMessageController::class, 'export'])
+            ->name('export');
+        Route::get('/abonnes-newsletter', [ContactMessageController::class, 'subscribers'])
+            ->name('subscribers');
+        Route::get('/{message}', [ContactMessageController::class, 'show'])
+            ->name('show');
+        Route::patch('/{message}', [ContactMessageController::class, 'update'])
+            ->name('update');
+        Route::delete('/{message}', [ContactMessageController::class, 'destroy'])
+            ->name('destroy');
+    });
+
 // Types d'établissement
 Route::prefix('admin/types-etablissement')
     ->name('admin.types-etablissement.')
@@ -134,6 +267,8 @@ Route::prefix('admin/types-etablissement')
     ->group(function () {
         Route::get('/', [PropertyTypeController::class, 'index'])
             ->name('index');
+        Route::get('/export', [PropertyTypeController::class, 'export'])
+            ->name('export');
         Route::get('/creer', [PropertyTypeController::class, 'create'])
             ->name('create');
         Route::post('/', [PropertyTypeController::class, 'store'])
@@ -153,6 +288,8 @@ Route::prefix('admin/types-unite')
     ->group(function () {
         Route::get('/', [UnitTypeController::class, 'index'])
             ->name('index');
+        Route::get('/export', [UnitTypeController::class, 'export'])
+            ->name('export');
         Route::get('/creer', [UnitTypeController::class, 'create'])
             ->name('create');
         Route::post('/', [UnitTypeController::class, 'store'])
@@ -172,6 +309,8 @@ Route::prefix('admin/equipements')
     ->group(function () {
         Route::get('/', [EquipmentController::class, 'index'])
             ->name('index');
+        Route::get('/export', [EquipmentController::class, 'export'])
+            ->name('export');
         Route::get('/creer', [EquipmentController::class, 'create'])
             ->name('create');
         Route::post('/', [EquipmentController::class, 'store'])
@@ -196,6 +335,8 @@ Route::prefix('admin/etablissements')
     ->group(function () {
         Route::get('/', [PropertyController::class, 'index'])
             ->name('index');
+        Route::get('/export', [PropertyController::class, 'export'])
+            ->name('export');
         Route::get('/creer', [PropertyController::class, 'create'])
             ->name('create');
         Route::post('/', [PropertyController::class, 'store'])
@@ -246,6 +387,8 @@ Route::prefix('admin/unites')
     ->group(function () {
         Route::get('/', [UnitController::class, 'index'])
             ->name('index');
+        Route::get('/export', [UnitController::class, 'export'])
+            ->name('export');
         Route::get('/{unite}/modifier', [UnitController::class, 'edit'])
             ->name('edit');
         Route::put('/{unite}', [UnitController::class, 'update'])
@@ -331,6 +474,8 @@ Route::prefix('admin/reversements')
         Route::middleware('role:super_admin,admin')->group(function () {
             Route::get('/', [PayoutController::class, 'index'])
                 ->name('index');
+            Route::get('/export', [PayoutController::class, 'export'])
+                ->name('export');
             Route::get('/proprietaires/{proprietaire}', [PayoutController::class, 'owner'])
                 ->name('owner');
             Route::post('/proprietaires/{proprietaire}', [PayoutController::class, 'store'])
@@ -384,6 +529,8 @@ Route::prefix('admin/abonnements')
     ->group(function () {
         Route::get('/', [SubscriptionController::class, 'index'])
             ->name('index');
+        Route::get('/export', [SubscriptionController::class, 'export'])
+            ->name('export');
         Route::post('/', [SubscriptionController::class, 'store'])
             ->name('store');
         Route::get('/{abonnement}', [SubscriptionController::class, 'show'])
@@ -429,6 +576,8 @@ Route::prefix('admin/utilisateurs')
     ->group(function () {
         Route::get('/', [UserController::class, 'index'])
             ->name('index');
+        Route::get('/export', [UserController::class, 'export'])
+            ->name('export');
         Route::get('/connexions', [LoginLogController::class, 'index'])
             ->name('connexions');
         Route::get('/{utilisateur}', [UserController::class, 'show'])

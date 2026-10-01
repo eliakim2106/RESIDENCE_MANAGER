@@ -14,11 +14,13 @@
     $moreEquipments = $residence->equipments->count() - $equipments->count();
     $price = (int) $residence->prix_min;
     $image = $residence->coverImage?->url ?? asset('assets/images/home/residence-1.webp');
+    // Les dates et voyageurs recherchés suivent vers la fiche : prix et disponibilités y sont déjà calculés
+    $url = route('residences.show', [$residence, ...array_filter(['arrivee' => request('arrivee'), 'depart' => request('depart'), 'adultes' => request('voyageurs')])]);
 @endphp
 
 <article class="listing-card">
 
-    <a href="{{ route('residences.show') }}" class="listing-card-media" aria-label="Voir {{ $residence->name }}">
+    <a href="{{ $url }}" class="listing-card-media" aria-label="Voir {{ $residence->name }}">
         <img src="{{ $image }}" alt="{{ $residence->name }}" @if ($index > 2) loading="lazy" @endif>
 
         <span class="listing-card-badges">
@@ -35,9 +37,19 @@
         </span>
     </a>
 
-    <button type="button" class="listing-card-fav" aria-label="Ajouter {{ $residence->name }} aux favoris" aria-pressed="false" data-favorite>
-        <i class="fa-regular fa-heart"></i>
-    </button>
+    @if (auth()->user()?->isClient())
+        @php $isFavorite = in_array($residence->id, $favoriteIds ?? [], true); @endphp
+        <form method="POST" action="{{ route('client.favorites.toggle', $residence) }}">
+            @csrf
+            <button type="submit" class="listing-card-fav" aria-label="{{ $isFavorite ? 'Retirer '.$residence->name.' des favoris' : 'Ajouter '.$residence->name.' aux favoris' }}" aria-pressed="{{ $isFavorite ? 'true' : 'false' }}">
+                <i class="fa-{{ $isFavorite ? 'solid' : 'regular' }} fa-heart"></i>
+            </button>
+        </form>
+    @elseif (! auth()->check())
+        <a href="{{ route('login') }}" class="listing-card-fav" aria-label="Connectez-vous pour ajouter {{ $residence->name }} à vos favoris">
+            <i class="fa-regular fa-heart"></i>
+        </a>
+    @endif
 
     <div class="listing-card-body">
         <div class="listing-card-top">
@@ -57,7 +69,7 @@
         </div>
 
         <h3>
-            <a href="{{ route('residences.show') }}">{{ $residence->name }}</a>
+            <a href="{{ $url }}">{{ $residence->name }}</a>
         </h3>
 
         <p class="listing-card-facts">
@@ -89,7 +101,7 @@
                 @endif
             </div>
 
-            <a href="{{ route('residences.show') }}" class="listing-card-cta">
+            <a href="{{ $url }}" class="listing-card-cta">
                 Voir
                 <i class="fa-solid fa-arrow-right"></i>
             </a>

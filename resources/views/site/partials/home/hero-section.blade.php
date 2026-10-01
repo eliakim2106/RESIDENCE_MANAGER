@@ -24,8 +24,8 @@
             'title' => 'Des villas pensées pour',
             'highlight' => 'vos plus beaux séjours',
             'text' => 'Piscine privée, jardin tropical et prestations sur mesure : l’adresse idéale en famille ou entre amis.',
-            'link' => route('residences.show'),
-            'cta' => 'Visiter une villa',
+            'link' => ($featured = $residences->first()) ? route('residences.show', $featured) : route('residences.index'),
+            'cta' => $featured ? 'Découvrir notre coup de cœur' : 'Voir les résidences',
         ],
     ];
 @endphp

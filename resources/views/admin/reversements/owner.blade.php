@@ -90,7 +90,7 @@
                         @endif
                     </dl>
                 @else
-                    <p class="resa-note"><i class="fa-solid fa-triangle-exclamation text-tone-warning"></i> Non renseignées. Le propriétaire les saisit depuis « Mes reversements »{{ $owner->phone ? ' ; téléphone : '.$owner->phone : '' }}.</p>
+                    <p class="resa-note"><i class="fa-solid fa-triangle-exclamation text-tone-warning"></i> Non renseignées. Le propriétaire les saisit depuis « Mes reversements »{{ $owner->phone ? ' ; téléphone : '.$owner->formattedPhone() : '' }}.</p>
                 @endif
             </section>
         </aside>

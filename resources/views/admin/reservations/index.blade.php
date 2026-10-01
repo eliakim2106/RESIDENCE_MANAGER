@@ -35,10 +35,7 @@
                     <i class="fa-regular fa-calendar"></i>
                     Calendrier
                 </a>
-                <a href="{{ route('admin.reservations.export', request()->except('page')) }}" class="btn-secondary">
-                    <i class="fa-solid fa-file-arrow-down"></i>
-                    Exporter
-                </a>
+                @include('admin.partials.export-button', ['route' => 'admin.reservations.export'])
             @else
                 <a href="{{ route('residences.index') }}" class="btn-primary">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -203,7 +200,7 @@
                                     <span class="guest-avatar" aria-hidden="true">{{ $initials($reservation->guest_name) }}</span>
                                     <span class="cell-entity-text guest-cell">
                                         <strong title="{{ $reservation->guest_name }}">{{ $reservation->guest_name }}</strong>
-                                        <small>{{ $reservation->guest_phone ?: $reservation->guest_email }}</small>
+                                        <small>{{ $reservation->guest_phone ? $reservation->formattedGuestPhone() : $reservation->guest_email }}</small>
                                     </span>
                                 </div>
                             </td>

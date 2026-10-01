@@ -7,32 +7,100 @@ use App\Http\Controllers\Admin\Concerns\FiltersByStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UnitTypeRequest;
 use App\Models\UnitType;
+use App\Support\ExcelExport;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UnitTypeController extends Controller
 {
     use FiltersByStatus;
 
+    /**
+     * Tris proposés dans la liste.
+     */
+    public const SORTS = ['recents' => 'Plus récents', 'nom' => 'Nom (A → Z)', 'utilisation' => 'Plus utilisés'];
+
     public function index(Request $request): View
     {
+        [$query, $search, $sort] = $this->filtered($request);
+        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('statut', ActiveStatus::Active));
+
+        $types = $this->sorted($query->withCount('units'), $sort)
+            ->paginate(12)
+            ->withQueryString();
+
+        $top = UnitType::query()->withCount('units')->orderByDesc('units_count')->first();
+
+        return view('admin.types-unite.index', [
+            'types' => $types,
+            'search' => $search,
+            'sort' => $sort,
+            'counts' => $counts,
+            'statut' => $statut,
+            'summary' => [
+                'total' => UnitType::query()->count(),
+                'active' => UnitType::query()->where('statut', ActiveStatus::Active)->count(),
+                'used' => UnitType::query()->has('units')->count(),
+                'top' => $top?->units_count > 0 ? $top : null,
+                'max' => max(1, (int) $top?->units_count),
+            ],
+        ]);
+    }
+
+    /**
+     * Export Excel des types affichés (mêmes filtres que la liste).
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        [$query, , $sort] = $this->filtered($request);
+        $this->filterByStatus($request, $query, fn ($query) => $query->where('statut', ActiveStatus::Active));
+
+        return ExcelExport::download('types-unite', 'Types d’unité', [
+            ['label' => 'Type', 'width' => 26],
+            ['label' => 'Description', 'width' => 60],
+            ['label' => 'Unités', 'type' => 'number'],
+            ['label' => 'Statut', 'width' => 12],
+            ['label' => 'Créé le', 'type' => 'date'],
+        ], $this->sorted($query->withCount('units'), $sort)->lazy()->map(fn (UnitType $type): array => [
+            $type->name,
+            $type->description,
+            (int) $type->units_count,
+            $type->statut,
+            $type->created_at,
+        ]));
+    }
+
+    /**
+     * @return array{0: Builder<UnitType>, 1: string, 2: string}
+     */
+    private function filtered(Request $request): array
+    {
         $search = trim((string) $request->query('search'));
+        $sort = array_key_exists((string) $request->query('tri'), self::SORTS) ? (string) $request->query('tri') : 'recents';
+        $like = '%'.addcslashes($search, '%_\\').'%';
 
         $query = UnitType::query()
             ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")));
+                ->where('name', 'like', $like)
+                ->orWhere('description', 'like', $like)));
 
-        [$counts, $statut] = $this->filterByStatus($request, $query, fn ($query) => $query->where('statut', ActiveStatus::Active));
+        return [$query, $search, $sort];
+    }
 
-        $types = $query
-            ->withCount('units')
-            ->latest('id')
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('admin.types-unite.index', compact('types', 'search', 'counts', 'statut'));
+    /**
+     * @param  Builder<UnitType>  $query
+     * @return Builder<UnitType>
+     */
+    private function sorted(Builder $query, string $sort): Builder
+    {
+        return match ($sort) {
+            'nom' => $query->orderBy('name'),
+            'utilisation' => $query->orderByDesc('units_count')->orderBy('name'),
+            default => $query->latest('id'),
+        };
     }
 
     public function create(): View

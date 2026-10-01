@@ -1,16 +1,17 @@
 @php
-    $stats = [
-        ['fa-building', 15, '+', 'Résidences premium'],
-        ['fa-users', 5000, '+', 'Clients satisfaits'],
-        ['fa-star', 4.8, '/5', 'Note moyenne'],
-        ['fa-headset', 24, 'h/24', 'Assistance dédiée'],
-    ];
+    // Chiffres réels de la plateforme (HomeController::stats) ; la note n'apparaît qu'avec des avis publiés
+    $items = array_values(array_filter([
+        ['fa-building', $stats['residences'], '', $stats['residences'] > 1 ? 'Résidences en ligne' : 'Résidence en ligne'],
+        ['fa-map-location-dot', $stats['cities'], '', $stats['cities'] > 1 ? 'Villes couvertes' : 'Ville couverte'],
+        ['fa-door-open', $stats['units'], '', $stats['units'] > 1 ? 'Logements à réserver' : 'Logement à réserver'],
+        $stats['rating'] !== null ? ['fa-star', (float) $stats['rating'], '/10', 'Note moyenne des voyageurs'] : null,
+    ]));
 @endphp
 
 <section class="home-stats" id="chiffres" aria-label="DS HOLDING en chiffres">
     <div class="container">
         <div class="home-stats-grid">
-            @foreach ($stats as $index => [$icon, $value, $suffix, $label])
+            @foreach ($items as $index => [$icon, $value, $suffix, $label])
                 <div class="home-stat" data-reveal style="--reveal-delay: {{ $index * 90 }}ms">
                     <span class="home-stat-icon"><i class="fa-solid {{ $icon }}"></i></span>
                     <div>

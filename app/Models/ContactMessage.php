@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ContactMessageStatus;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,7 @@ class ContactMessage extends Model
         'name',
         'email',
         'phone',
+        'indicatif_telephone',
         'subject',
         'message',
         'statut',
@@ -42,5 +44,21 @@ class ContactMessage extends Model
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AFFICHAGE
+    |--------------------------------------------------------------------------
+    */
+
+    public function formattedPhone(): ?string
+    {
+        return $this->phone ? PhoneNumber::format($this->indicatif_telephone, $this->phone) : null;
+    }
+
+    public function internationalPhone(): ?string
+    {
+        return $this->phone ? PhoneNumber::e164($this->indicatif_telephone, $this->phone) : null;
     }
 }

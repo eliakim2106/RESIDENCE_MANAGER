@@ -4,10 +4,15 @@
 @import "leaflet/dist/leaflet.css";
 
 @import "./datepicker.css";
+@import "flag-icons/css/flag-icons.min.css";
+@import "./phone-field.css";
 
 @import "./site/app.css";
 @import "./site/header.css";
 @import "./site/home.css";
 @import "./site/residences.css";
+@import "./site/residence-page.css";
+@import "./site/pages.css";
 @import "./site/auth.css";
+@import "./site/account.css";
 @import "./alert.css";

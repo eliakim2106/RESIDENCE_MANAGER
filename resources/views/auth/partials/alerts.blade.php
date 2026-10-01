@@ -6,6 +6,13 @@
     </div>
 @endif
 
+@if (session('info'))
+    <div class="auth-alert auth-alert-info" role="status">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>{{ session('info') }}</span>
+    </div>
+@endif
+
 @if (session('error'))
     <div class="auth-alert auth-alert-error" role="alert">
         <i class="fa-solid fa-circle-exclamation"></i>

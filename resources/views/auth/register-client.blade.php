@@ -25,6 +25,8 @@
 
     @include('auth.partials.alerts')
 
+    @include('auth.partials.social', ['verb' => 'S’inscrire', 'divider' => 'ou créez votre compte avec votre email'])
+
     @include('auth.partials.register-form', ['action' => route('register.client.store')])
 
     <p class="auth-switch">

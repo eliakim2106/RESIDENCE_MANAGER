@@ -118,6 +118,41 @@ class ReservationWorkflow
     }
 
     /**
+     * Demandes restées sans réponse de l'établissement après leur délai : annulées, client et établissement prévenus.
+     * Un paiement déjà effectué est remboursé (les dates ne sont plus réservées au client).
+     *
+     * @return int nombre de demandes expirées
+     */
+    public function expirePending(): int
+    {
+        $expired = 0;
+
+        Reservation::query()
+            ->where('statut', ReservationStatus::Pending)
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now())
+            ->with(['user', 'property.owner'])
+            ->each(function (Reservation $reservation) use (&$expired): void {
+                $reservation->update([
+                    'statut' => ReservationStatus::Cancelled,
+                    'cancelled_at' => now(),
+                    'cancellation_reason' => 'Demande expirée : l’établissement n’a pas répondu dans le délai prévu.',
+                ]);
+
+                $this->notifyGuest($reservation, ReservationUpdated::EXPIRED);
+                $reservation->property?->owner?->notify(new ReservationUpdated($reservation, ReservationUpdated::EXPIRED_FOR_OWNER));
+
+                if ($reservation->amount_paid > 0) {
+                    $this->refund($reservation);
+                }
+
+                $expired++;
+            });
+
+        return $expired;
+    }
+
+    /**
      * Séjour terminé : possible à partir du jour du départ.
      */
     public function complete(Reservation $reservation): void

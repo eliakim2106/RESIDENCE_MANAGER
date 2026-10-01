@@ -8,11 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Services\PaymentListing;
 use App\Services\ReservationWorkflow;
+use App\Support\ExcelExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Paiements : tous pour un administrateur, ceux de ses établissements pour un propriétaire.
@@ -94,40 +95,38 @@ class PaymentController extends Controller
     /**
      * Export CSV de la liste filtrée (Excel : séparateur « ; », UTF-8).
      */
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request): BinaryFileResponse
     {
         $listing = new PaymentListing($request->user(), $request);
 
-        return response()->streamDownload(function () use ($listing): void {
-            $out = fopen('php://output', 'w');
-            fwrite($out, "\xEF\xBB\xBF");
-
-            fputcsv($out, [
-                'Transaction', 'Date', 'Statut', 'Moyen', 'Opérateur', 'Référence opérateur', 'Montant (FCFA)', 'Remboursé (FCFA)', 'Net (FCFA)',
-                'Réservation', 'Client', 'Établissement', 'Source',
-            ], ';');
-
-            $listing->query()->with('reservation.property')->chunk(200, function ($payments) use ($out): void {
-                foreach ($payments as $payment) {
-                    fputcsv($out, [
-                        $payment->transaction_id,
-                        ($payment->paid_at ?? $payment->created_at)->format('d/m/Y H:i'),
-                        $payment->statut->label(),
-                        $payment->method?->label(),
-                        $payment->operator,
-                        $payment->operator_reference,
-                        $payment->amount,
-                        $payment->refunded_amount,
-                        $payment->isAccepted() ? $payment->netAmount() : 0,
-                        $payment->reservation?->reference,
-                        $payment->reservation?->guest_name,
-                        $payment->reservation?->property?->name,
-                        $payment->isManual() ? 'Saisie manuelle' : 'En ligne ('.$payment->provider.')',
-                    ], ';');
-                }
-            });
-
-            fclose($out);
-        }, 'paiements-'.now()->format('Y-m-d-His').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        return ExcelExport::download('paiements', 'Paiements', [
+            ['label' => 'Transaction', 'width' => 26],
+            ['label' => 'Date', 'type' => 'datetime'],
+            ['label' => 'Statut', 'width' => 13],
+            ['label' => 'Moyen', 'width' => 18],
+            ['label' => 'Opérateur', 'width' => 12],
+            ['label' => 'Référence opérateur', 'width' => 20],
+            ['label' => 'Montant', 'type' => 'money'],
+            ['label' => 'Remboursé', 'type' => 'money'],
+            ['label' => 'Net', 'type' => 'money'],
+            ['label' => 'Réservation', 'width' => 16],
+            ['label' => 'Client', 'width' => 24],
+            ['label' => 'Établissement', 'width' => 26],
+            ['label' => 'Source', 'width' => 20],
+        ], $listing->query()->with('reservation.property')->lazy(200)->map(fn (Payment $payment): array => [
+            $payment->transaction_id,
+            $payment->paid_at ?? $payment->created_at,
+            $payment->statut,
+            $payment->method,
+            $payment->operator,
+            $payment->operator_reference,
+            $payment->amount,
+            $payment->refunded_amount,
+            $payment->isAccepted() ? $payment->netAmount() : 0,
+            $payment->reservation?->reference,
+            $payment->reservation?->guest_name,
+            $payment->reservation?->property?->name,
+            $payment->isManual() ? 'Saisie manuelle' : 'En ligne ('.$payment->provider.')',
+        ]));
     }
 }

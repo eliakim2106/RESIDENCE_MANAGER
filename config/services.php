@@ -43,6 +43,20 @@ return [
         'environment' => env('FEDAPAY_ENVIRONMENT', 'sandbox'),
     ],
 
+    // Connexion des clients avec Google / Facebook (désactivée tant que l'identifiant et le secret sont vides).
+    // Adresse de retour à déclarer chez le fournisseur : APP_URL/connexion/google/retour (ou /facebook/retour).
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', '/connexion/google/retour'),
+    ],
+
+    'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect' => env('FACEBOOK_REDIRECT_URI', '/connexion/facebook/retour'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

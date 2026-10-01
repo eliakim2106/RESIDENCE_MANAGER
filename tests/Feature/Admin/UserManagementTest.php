@@ -42,7 +42,7 @@ class UserManagementTest extends TestCase
         $this->actingAs($admin)->get(route('admin.utilisateurs.show', $client))->assertOk()->assertSee('Suspendre le compte');
 
         $this->actingAs($owner)->get(route('admin.utilisateurs.index'))->assertForbidden();
-        $this->actingAs($client)->get(route('admin.utilisateurs.show', $owner))->assertForbidden();
+        $this->actingAs($client)->get(route('admin.utilisateurs.show', $owner))->assertRedirect(route('client.dashboard'));
     }
 
     public function test_admin_suspends_and_reactivates_an_account(): void
@@ -109,7 +109,10 @@ class UserManagementTest extends TestCase
     {
         Storage::fake('public');
 
-        foreach ([User::factory()->create(), User::factory()->owner()->create(), User::factory()->admin()->create()] as $user) {
+        // Le client modifie son profil depuis son espace (/mon-compte/profil)
+        $this->actingAs(User::factory()->create())->get(route('admin.profil.edit'))->assertRedirect(route('client.profile.edit'));
+
+        foreach ([User::factory()->owner()->create(), User::factory()->admin()->create()] as $user) {
             $this->actingAs($user)->get(route('admin.profil.edit'))->assertOk()->assertSee('Mon profil');
 
             $this->actingAs($user)->put(route('admin.profil.update'), [

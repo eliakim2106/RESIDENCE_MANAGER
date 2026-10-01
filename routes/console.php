@@ -63,3 +63,16 @@ Artisan::command('reservations:remind-arrivals', function (ReservationWorkflow $
 })->purpose('Prévient chaque propriétaire des arrivées du lendemain');
 
 Schedule::command('reservations:remind-arrivals')->dailyAt('07:00');
+
+/*
+| Toutes les heures : les demandes laissées sans réponse au-delà du délai (BOOKING_REQUEST_TTL_HOURS) expirent ;
+| le client et l'établissement sont prévenus, un paiement déjà effectué est remboursé.
+*/
+
+Artisan::command('reservations:expire', function (ReservationWorkflow $reservations) {
+    $expired = $reservations->expirePending();
+
+    $this->info("{$expired} demande(s) expirée(s).");
+})->purpose('Annule les demandes de réservation restées sans réponse dans le délai');
+
+Schedule::command('reservations:expire')->hourly();

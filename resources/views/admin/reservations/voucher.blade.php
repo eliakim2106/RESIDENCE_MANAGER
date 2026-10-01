@@ -294,7 +294,7 @@
                 <h2>Voyageur</h2>
                 <p><strong>{{ $reservation->guest_name }}</strong></p>
                 <p>{{ $reservation->guest_email }}</p>
-                <p>{{ $reservation->guest_phone }}</p>
+                <p>{{ $reservation->formattedGuestPhone() }}</p>
                 <p class="muted">{{ $reservation->adults }} adulte{{ $reservation->adults > 1 ? 's' : '' }}@if ($reservation->children > 0), {{ $reservation->children }} enfant{{ $reservation->children > 1 ? 's' : '' }}@endif</p>
                 @foreach ($reservation->guests as $guest)
                     <p class="muted">{{ $guest->full_name }}{{ $guest->is_child ? ' (enfant)' : '' }}</p>
@@ -304,7 +304,7 @@
                 <h2>Établissement</h2>
                 <p><strong>{{ $property?->name }}</strong></p>
                 @if ($property?->phone)
-                    <p>{{ $property->phone }}</p>
+                    <p>{{ $property->formattedPhone() }}</p>
                 @endif
                 @if ($property?->email)
                     <p>{{ $property->email }}</p>

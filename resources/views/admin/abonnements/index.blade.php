@@ -21,6 +21,7 @@
         </div>
 
         <div class="admin-page-actions">
+            @include('admin.partials.export-button', ['route' => 'admin.abonnements.export'])
             <a href="{{ route('admin.formules.index') }}" class="btn-secondary">
                 <i class="fa-solid fa-layer-group"></i>
                 Formules

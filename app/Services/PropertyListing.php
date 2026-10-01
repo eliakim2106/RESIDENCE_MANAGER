@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\LazyCollection;
 
 /**
  * Liste des établissements : onglets par statut, recherche, filtres (ville, type, propriétaire), tri,
@@ -85,6 +86,24 @@ class PropertyListing
      */
     public function paginate(int $perPage = 10): LengthAwarePaginator
     {
+        return $this->query()->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Lignes de l'export (mêmes filtres et même tri que la page).
+     *
+     * @return LazyCollection<int, Property>
+     */
+    public function export(): LazyCollection
+    {
+        return $this->query()->lazy(200);
+    }
+
+    /**
+     * @return Builder<Property>
+     */
+    private function query(): Builder
+    {
         $query = $this->filtered();
         $this->applyTab($query, $this->tab);
 
@@ -105,7 +124,7 @@ class PropertyListing
             default => $query->latest('id'),
         };
 
-        return $query->paginate($perPage)->withQueryString();
+        return $query;
     }
 
     /**

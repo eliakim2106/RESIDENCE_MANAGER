@@ -12,6 +12,7 @@
     $descriptions = [
         'a-valider' => 'Établissements soumis par les propriétaires, du plus ancien au plus récent.',
         'publies' => 'Établissements visibles sur le site. Vous pouvez en suspendre un en cas de problème.',
+        'refuses' => 'Demandes renvoyées aux propriétaires, en attente de leurs corrections.',
         'suspendus' => 'Établissements retirés du site par un administrateur.',
     ];
 @endphp
@@ -29,6 +30,38 @@
 
     @include('partials.flash')
 
+    {{-- ========== Synthèse ========== --}}
+    <div class="resa-today">
+        <a href="{{ route('admin.validations.index') }}" class="resa-today-card tone-warning {{ $summary['pending'] > 0 ? 'has-alert' : '' }}">
+            <span class="resa-today-icon"><i class="fa-solid fa-hourglass-half"></i></span>
+            <span class="resa-today-text">
+                <strong>{{ $summary['pending'] }}</strong>
+                <span>{{ $summary['pending'] > 0 ? 'À valider · la plus ancienne depuis '.($summary['oldestDays'] > 0 ? $summary['oldestDays'].' jour'.($summary['oldestDays'] > 1 ? 's' : '') : 'aujourd’hui') : 'Aucune demande en attente' }}</span>
+            </span>
+        </a>
+        <div class="resa-today-card tone-info">
+            <span class="resa-today-icon"><i class="fa-solid fa-gavel"></i></span>
+            <span class="resa-today-text">
+                <strong>{{ $summary['decisionsThisMonth'] }}</strong>
+                <span>Décision{{ $summary['decisionsThisMonth'] > 1 ? 's' : '' }} en {{ now()->translatedFormat('F') }}</span>
+            </span>
+        </div>
+        <a href="{{ route('admin.validations.index', ['statut' => 'publies']) }}" class="resa-today-card tone-good">
+            <span class="resa-today-icon"><i class="fa-solid fa-globe"></i></span>
+            <span class="resa-today-text">
+                <strong>{{ $summary['published'] }}</strong>
+                <span>Publié{{ $summary['published'] > 1 ? 's' : '' }} sur le site</span>
+            </span>
+        </a>
+        <a href="{{ route('admin.validations.index', ['statut' => 'refuses']) }}" class="resa-today-card tone-gold">
+            <span class="resa-today-icon"><i class="fa-solid fa-rotate"></i></span>
+            <span class="resa-today-text">
+                <strong>{{ $counts['refuses'] }}</strong>
+                <span>Refusé{{ $counts['refuses'] > 1 ? 's' : '' }}, en cours de correction</span>
+            </span>
+        </a>
+    </div>
+
     @include('admin.partials.list-toolbar', [
         'tabs' => $tabs,
         'counts' => $counts,
@@ -43,8 +76,23 @@
                 <div class="empty-state">
                     <i class="fa-solid fa-circle-check"></i>
                     <strong>Tout est à jour</strong>
-                    <span>Aucun établissement n’attend de validation.</span>
+                    <span>Aucun établissement n’attend de validation. Vous serez prévenu dès qu’un propriétaire en soumettra un.</span>
                 </div>
+
+                @if ($recentDecisions->isNotEmpty())
+                    <div class="recent-decisions">
+                        <h2>Dernières décisions</h2>
+                        <ul>
+                            @foreach ($recentDecisions as $decision)
+                                <li>
+                                    <span class="status-pill status-{{ $decision->statut->tone() }}">{{ $decision->wasRejected() ? 'Refusé' : $decision->statut->label() }}</span>
+                                    <a href="{{ route('admin.etablissements.show', $decision) }}" class="cell-title-link"><strong>{{ $decision->name }}</strong></a>
+                                    <small>{{ $decision->owner?->name }} · {{ $decision->moderated_at->diffForHumans() }}{{ $decision->moderator ? ' par '.$decision->moderator->name : '' }}</small>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             @else
                 @include('admin.partials.empty-state', ['icon' => 'fa-building', 'search' => $search])
             @endif
@@ -80,7 +128,7 @@
                                     · <i class="fa-solid fa-location-dot"></i> {{ collect([$property->district, $property->city?->name])->filter()->implode(', ') }}
                                 </p>
                             </div>
-                            <span class="status-pill status-{{ $property->statut->tone() }}">{{ $property->statut->label() }}</span>
+                            <span class="status-pill status-{{ $property->statut->tone() }}">{{ $property->wasRejected() ? 'Refusé' : $property->statut->label() }}</span>
                         </header>
 
                         <dl class="moderation-meta">
@@ -98,7 +146,7 @@
                                     <dt>Soumis</dt>
                                     <dd>{{ $property->submitted_at ? $property->submitted_at->diffForHumans() : '—' }}</dd>
                                 @else
-                                    <dt>{{ $property->statut === PropertyStatus::Suspended ? 'Suspendu' : 'Publié' }}</dt>
+                                    <dt>{{ match (true) { $property->statut === PropertyStatus::Suspended => 'Suspendu', $property->wasRejected() => 'Refusé', default => 'Publié' } }}</dt>
                                     <dd>
                                         {{ ($property->moderated_at ?? $property->published_at)?->translatedFormat('d M Y') ?? '—' }}
                                         @if ($property->moderator)
@@ -128,7 +176,7 @@
                         @endif
 
                         <footer class="moderation-actions">
-                            <a href="{{ route('admin.etablissements.edit', $property) }}" class="btn-secondary btn-sm">
+                            <a href="{{ route('admin.etablissements.show', $property) }}" class="btn-secondary btn-sm">
                                 <i class="fa-solid fa-eye"></i>
                                 Voir la fiche
                             </a>
@@ -147,6 +195,8 @@
                                         Approuver et publier
                                     </button>
                                 </form>
+                            @elseif ($property->wasRejected())
+                                <span class="moderation-waiting"><i class="fa-solid fa-hourglass-half"></i> En attente des corrections du propriétaire</span>
                             @elseif ($property->statut === PropertyStatus::Published)
                                 <button type="button" class="btn-outline-danger btn-sm" data-modal-open="suspendModal"
                                     data-form-action="{{ route('admin.validations.suspend', $property) }}" data-name="{{ $property->name }}">

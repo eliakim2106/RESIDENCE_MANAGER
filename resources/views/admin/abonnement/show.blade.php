@@ -25,6 +25,16 @@
 
     @include('partials.flash')
 
+    @if (auth()->user()->isSubscriptionExempt())
+        <div class="moderation-banner tone-info" role="status">
+            <i class="fa-solid fa-user-shield"></i>
+            <div>
+                <strong>Compte exempté d’abonnement</strong>
+                <p>Ce compte de démonstration n’est soumis à aucune limite de formule : pas de facture ni de suspension, et vos établissements restent en ligne.</p>
+            </div>
+        </div>
+    @endif
+
     {{-- ========== État de l'abonnement ========== --}}
     @if ($active)
         <section class="sub-hero tone-{{ $subscription->statut->tone() }}">

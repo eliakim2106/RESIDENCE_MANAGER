@@ -3,6 +3,7 @@ import * as bootstrap from "bootstrap";
 import { initAlerts } from "./alerts";
 import { initDatepickers } from "./datepicker";
 import { initNotifications } from "./notifications";
+import { initPhoneFields } from "./phone-field";
 
 window.bootstrap = bootstrap;
 
@@ -458,3 +459,4 @@ initSettingsForm();
 initAlerts();
 initNotifications();
 initDatepickers();
+initPhoneFields();

@@ -46,10 +46,7 @@
         </div>
 
         <div class="admin-page-actions">
-            <a href="{{ route('admin.paiements.export', request()->except('page')) }}" class="btn-secondary">
-                <i class="fa-solid fa-file-arrow-down"></i>
-                Exporter
-            </a>
+            @include('admin.partials.export-button', ['route' => 'admin.paiements.export'])
         </div>
     </div>
 

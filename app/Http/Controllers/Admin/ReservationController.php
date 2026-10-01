@@ -11,12 +11,13 @@ use App\Http\Requests\Admin\ReservationPaymentRequest;
 use App\Models\Reservation;
 use App\Services\ReservationListing;
 use App\Services\ReservationWorkflow;
+use App\Support\ExcelExport;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Réservations : toutes pour un administrateur, celles de ses établissements pour un propriétaire,
@@ -42,46 +43,47 @@ class ReservationController extends Controller
     /**
      * Export CSV de la liste, avec les filtres affichés (Excel l'ouvre directement : séparateur « ; », encodage UTF-8).
      */
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request): BinaryFileResponse
     {
         $listing = new ReservationListing($request->user(), $request);
-        $filename = 'reservations-'.now()->format('Y-m-d-His').'.csv';
 
-        return response()->streamDownload(function () use ($listing): void {
-            $out = fopen('php://output', 'w');
-            fwrite($out, "\xEF\xBB\xBF");
-
-            fputcsv($out, [
-                'Référence', 'Réservée le', 'Statut', 'Client', 'Email', 'Téléphone', 'Établissement', 'Unités',
-                'Arrivée', 'Départ', 'Nuits', 'Adultes', 'Enfants', 'Total (FCFA)', 'Réglé (FCFA)', 'Reste dû (FCFA)', 'Paiement',
-            ], ';');
-
-            $listing->query()->with(['property', 'items.unit'])->chunk(200, function ($reservations) use ($out): void {
-                foreach ($reservations as $reservation) {
-                    fputcsv($out, [
-                        $reservation->reference,
-                        $reservation->created_at->format('d/m/Y H:i'),
-                        $reservation->statut->label(),
-                        $reservation->guest_name,
-                        $reservation->guest_email,
-                        $reservation->guest_phone,
-                        $reservation->property?->name,
-                        $reservation->items->map(fn ($item) => ($item->quantity > 1 ? $item->quantity.' x ' : '').$item->unit?->name)->filter()->implode(', '),
-                        $reservation->check_in->format('d/m/Y'),
-                        $reservation->check_out->format('d/m/Y'),
-                        $reservation->nights,
-                        $reservation->adults,
-                        $reservation->children,
-                        $reservation->total_amount,
-                        $reservation->amount_paid,
-                        $reservation->balanceDue(),
-                        $reservation->payment_state->label(),
-                    ], ';');
-                }
-            });
-
-            fclose($out);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        return ExcelExport::download('reservations', 'Réservations', [
+            ['label' => 'Référence', 'width' => 16],
+            ['label' => 'Réservée le', 'type' => 'datetime'],
+            ['label' => 'Statut', 'width' => 14],
+            ['label' => 'Client', 'width' => 24],
+            ['label' => 'Email', 'width' => 28],
+            ['label' => 'Téléphone', 'width' => 20],
+            ['label' => 'Établissement', 'width' => 26],
+            ['label' => 'Unités', 'width' => 30],
+            ['label' => 'Arrivée', 'type' => 'date'],
+            ['label' => 'Départ', 'type' => 'date'],
+            ['label' => 'Nuits', 'type' => 'number', 'width' => 8],
+            ['label' => 'Adultes', 'type' => 'number', 'width' => 9],
+            ['label' => 'Enfants', 'type' => 'number', 'width' => 9],
+            ['label' => 'Total', 'type' => 'money'],
+            ['label' => 'Réglé', 'type' => 'money'],
+            ['label' => 'Reste dû', 'type' => 'money'],
+            ['label' => 'Paiement', 'width' => 14],
+        ], $listing->query()->with(['property', 'items.unit'])->lazy(200)->map(fn (Reservation $reservation): array => [
+            $reservation->reference,
+            $reservation->created_at,
+            $reservation->statut,
+            $reservation->guest_name,
+            $reservation->guest_email,
+            $reservation->guest_phone ? $reservation->formattedGuestPhone() : '',
+            $reservation->property?->name,
+            $reservation->items->map(fn ($item) => ($item->quantity > 1 ? $item->quantity.' x ' : '').$item->unit?->name)->filter()->implode(', '),
+            $reservation->check_in,
+            $reservation->check_out,
+            $reservation->nights,
+            $reservation->adults,
+            $reservation->children,
+            $reservation->total_amount,
+            $reservation->amount_paid,
+            $reservation->balanceDue(),
+            $reservation->payment_state,
+        ]));
     }
 
     /**

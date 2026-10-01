@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Notifications\ReservationUpdated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\ReadsExcelExports;
 use Tests\TestCase;
 
 /**
@@ -21,7 +22,7 @@ use Tests\TestCase;
  */
 class ReservationToolsTest extends TestCase
 {
-    use RefreshDatabase;
+    use ReadsExcelExports, RefreshDatabase;
 
     /*
     |--------------------------------------------------------------------------
@@ -70,16 +71,14 @@ class ReservationToolsTest extends TestCase
         $mine = Reservation::factory()->for(Property::factory()->for($owner, 'owner'))->create(['guest_name' => 'Awa Koné']);
         $other = Reservation::factory()->create();
 
-        $response = $this->actingAs($owner)->get(route('admin.reservations.export'));
+        $rows = $this->excelRows($this->actingAs($owner)->get(route('admin.reservations.export')));
 
-        $response->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $csv = $response->streamedContent();
-
-        $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
-        $this->assertStringContainsString('Référence;', $csv);
-        $this->assertStringContainsString($mine->reference.';', $csv);
-        $this->assertStringContainsString('Awa Koné', $csv);
-        $this->assertStringNotContainsString($other->reference, $csv);
+        $this->assertSame('Référence', $rows[0][0]);
+        $this->assertCount(2, $rows);
+        $this->assertSame($mine->reference, $rows[1][0]);
+        $this->assertSame('Awa Koné', $rows[1][3]);
+        $this->assertInstanceOf(\DateTimeInterface::class, $rows[1][8], 'Date d’arrivée au format date Excel');
+        $this->assertStringNotContainsString($other->reference, json_encode($rows));
     }
 
     public function test_voucher_is_printable_by_the_guest_but_not_by_strangers(): void
@@ -119,7 +118,7 @@ class ReservationToolsTest extends TestCase
         $this->assertSame(2, substr_count($response->getContent(), 'occ-cell state-full'));
 
         // Réservé aux gestionnaires
-        $this->actingAs(User::factory()->create())->get(route('admin.reservations.calendar'))->assertForbidden();
+        $this->actingAs(User::factory()->create())->get(route('admin.reservations.calendar'))->assertRedirect(route('client.reservations.index'));
     }
 
     /*

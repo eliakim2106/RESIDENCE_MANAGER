@@ -5,9 +5,9 @@
     $links = [
         ['Accueil', route('home'), request()->routeIs('home'), 'accueil'],
         ['Résidences', route('residences.index'), request()->routeIs('residences.*'), null],
-        ['Services', route('home').'#services', false, 'services'],
-        ['Avis clients', route('home').'#avis', false, 'avis'],
-        ['Contact', route('home').'#contact', false, 'contact'],
+        ['Propriétaires', route('pages.owners'), request()->routeIs('pages.owners'), null],
+        ['Questions fréquentes', route('pages.faq'), request()->routeIs('pages.faq'), null],
+        ['Contact', route('pages.contact'), request()->routeIs('pages.contact'), null],
     ];
 @endphp
 
@@ -34,7 +34,7 @@
 
             <div class="site-nav-actions">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="site-btn site-btn-ghost">
+                    <a href="{{ auth()->user()->homeUrl() }}" class="site-btn site-btn-ghost">
                         <i class="fa-regular fa-circle-user"></i>
                         Mon espace
                     </a>

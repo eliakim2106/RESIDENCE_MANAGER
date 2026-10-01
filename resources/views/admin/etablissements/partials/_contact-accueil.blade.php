@@ -66,19 +66,7 @@
 
                     </label>
 
-                    <div class="input-icon">
-
-                        <span class="prefix">+225</span>
-
-                        <input
-                            id="telephone"
-                            type="text"
-                            name="telephone"
-                            maxlength="10"
-                            placeholder="0701020304"
-                            value="{{ old('telephone', $etablissement->phone ? App\Http\Requests\Admin\PropertyRequest::nationalPhone($etablissement->phone) : '') }}">
-
-                    </div>
+                    @include('partials.phone-field', ['phoneVariant' => 'etab', 'phoneValue' => $etablissement->phone, 'phoneDial' => $etablissement->indicatif_telephone, 'phoneRequired' => true])
 
                     <small
                         id="error-telephone"

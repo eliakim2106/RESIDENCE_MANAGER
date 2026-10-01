@@ -14,12 +14,14 @@ use App\Models\SubscriptionInvoice;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Services\SubscriptionManager;
+use App\Support\ExcelExport;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Suivi des abonnements des propriétaires et encaissement des factures (administrateurs).
@@ -94,6 +96,63 @@ class SubscriptionController extends Controller
             ],
             'required' => SubscriptionManager::required(),
         ]);
+    }
+
+    /**
+     * Export Excel des abonnements (onglet et recherche en cours).
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        $search = trim((string) $request->query('search'));
+        $tab = array_key_exists((string) $request->query('statut'), self::TABS) ? (string) $request->query('statut') : 'tous';
+
+        $rows = Subscription::query()
+            ->whereIn('id', Subscription::query()->selectRaw('MAX(id)')->groupBy('user_id'))
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $like = '%'.addcslashes($search, '%_\\').'%';
+
+                $query->whereHas('user', fn (Builder $query) => $query
+                    ->where('name', 'like', $like)
+                    ->orWhere('email', 'like', $like)
+                    ->orWhere('company_name', 'like', $like));
+            })
+            ->when(self::TABS[$tab][1] !== [], fn (Builder $query) => $query->whereIn('statut', self::TABS[$tab][1]))
+            ->with(['user', 'plan', 'openInvoice'])
+            ->withSum(['invoices as paid_total' => fn ($query) => $query->where('statut', InvoiceStatus::Paid)], 'amount')
+            ->latest('id')
+            ->lazy(200);
+
+        return ExcelExport::download('abonnements', 'Abonnements', [
+            ['label' => 'Propriétaire', 'width' => 26],
+            ['label' => 'Email', 'width' => 28],
+            ['label' => 'Entreprise', 'width' => 22],
+            ['label' => 'Formule', 'width' => 16],
+            ['label' => 'Facturation', 'width' => 12],
+            ['label' => 'Prix', 'type' => 'money'],
+            ['label' => 'Statut', 'width' => 16],
+            ['label' => 'Fin de l’essai', 'type' => 'date', 'width' => 14],
+            ['label' => 'Période du', 'type' => 'date'],
+            ['label' => 'Au', 'type' => 'date'],
+            ['label' => 'Facture en attente', 'type' => 'money', 'width' => 18],
+            ['label' => 'Échéance', 'type' => 'date'],
+            ['label' => 'Total payé', 'type' => 'money'],
+            ['label' => 'Abonné depuis', 'type' => 'date', 'width' => 14],
+        ], $rows->map(fn (Subscription $subscription): array => [
+            $subscription->user?->name,
+            $subscription->user?->email,
+            $subscription->user?->company_name,
+            $subscription->plan?->name,
+            $subscription->billing_cycle,
+            $subscription->plan?->priceFor($subscription->billing_cycle),
+            $subscription->statut,
+            $subscription->trial_ends_at,
+            $subscription->current_period_start,
+            $subscription->current_period_end,
+            $subscription->openInvoice?->amount,
+            $subscription->openInvoice?->due_on,
+            (int) $subscription->paid_total,
+            $subscription->created_at,
+        ]));
     }
 
     public function show(Subscription $abonnement): View

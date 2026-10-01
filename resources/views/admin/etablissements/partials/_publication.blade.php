@@ -199,11 +199,16 @@
                     'link' => $etablissement->exists && $activeUnits === 0 ? [route('admin.etablissements.unites.create', $etablissement), 'Ajouter une unité'] : null,
                 ],
                 [
-                    'ok' => ! $subscriptionRequired || ($subscription && $subscription->statut->isInGoodStanding()),
-                    'warn' => $subscriptionRequired && ! ($subscription && $subscription->statut->isInGoodStanding()),
+                    'ok' => ! $subscriptionRequired || $owner->isSubscriptionExempt() || ($subscription && $subscription->statut->isInGoodStanding()),
+                    'warn' => $subscriptionRequired && ! $owner->isSubscriptionExempt() && ! ($subscription && $subscription->statut->isInGoodStanding()),
                     'icon' => 'fa-id-card',
-                    'title' => $plan ? 'Formule '.$plan->name.' · '.$subscription->statut->label() : 'Sans abonnement',
+                    'title' => match (true) {
+                        $owner->isSubscriptionExempt() => 'Exempté d’abonnement',
+                        $plan !== null => 'Formule '.$plan->name.' · '.$subscription->statut->label(),
+                        default => 'Sans abonnement',
+                    },
                     'text' => match (true) {
+                        $owner->isSubscriptionExempt() => 'Compte de démonstration : aucune limite de formule, l’établissement reste toujours en ligne.',
                         $subscriptionRequired && ! ($subscription && $subscription->statut->isInGoodStanding()) => 'L’abonnement est obligatoire : sans abonnement en règle, l’établissement ne sera pas visible sur le site.',
                         $plan !== null => 'Commission sur les réservations : '.rtrim(rtrim(number_format((float) $plan->commission_rate, 2, ',', ' '), '0'), ',').' %.',
                         default => 'L’abonnement n’est pas encore obligatoire.',

@@ -12,7 +12,7 @@ class LoginTest extends TestCase
 
     public function test_user_can_log_in_and_is_sent_to_the_dashboard(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->owner()->create();
 
         $this->post(route('login'), ['email' => $user->email, 'password' => User::DEFAULT_PASSWORD])
             ->assertRedirect(route('dashboard'));

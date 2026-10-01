@@ -325,8 +325,7 @@
                 <ul class="etab-info-list">
                     <li><i class="fa-solid fa-location-dot"></i> <span>{{ $etablissement->address }}<small>{{ collect([$etablissement->neighborhood, $etablissement->district, $etablissement->city->name])->filter()->implode(', ') }}</small></span></li>
                     @if ($etablissement->phone)
-                        @php($phone = App\Http\Requests\Admin\PropertyRequest::nationalPhone($etablissement->phone))
-                        <li><i class="fa-solid fa-phone"></i> <a href="tel:+225{{ $phone }}">+225 {{ trim(chunk_split($phone, 2, ' ')) }}</a></li>
+                        <li><i class="fa-solid fa-phone"></i> <a href="tel:{{ $etablissement->internationalPhone() }}">{{ $etablissement->formattedPhone() }}</a></li>
                     @endif
                     @if ($etablissement->email)
                         <li><i class="fa-solid fa-envelope"></i> <a href="mailto:{{ $etablissement->email }}">{{ $etablissement->email }}</a></li>
@@ -391,7 +390,9 @@
                     <div>
                         <dt>Formule</dt>
                         <dd>
-                            @if ($subscription)
+                            @if ($owner?->isSubscriptionExempt())
+                                <span class="status-pill status-info">Exempté</span>
+                            @elseif ($subscription)
                                 <span class="status-pill status-{{ $subscription->statut->tone() }}">{{ $subscription->plan->name }} · {{ $subscription->statut->label() }}</span>
                             @else
                                 <span class="cell-muted">Sans abonnement</span>

@@ -19,14 +19,15 @@
             </div>
         </div>
 
-        @can('create', App\Models\Property::class)
-            <div class="admin-page-actions">
+        <div class="admin-page-actions">
+            @include('admin.partials.export-button', ['route' => 'admin.etablissements.export'])
+            @can('create', App\Models\Property::class)
                 <a href="{{ route('admin.etablissements.create') }}" class="btn-primary">
                     <i class="fa-solid fa-plus"></i>
                     Nouvel établissement
                 </a>
-            </div>
-        @endcan
+            @endcan
+        </div>
     </div>
 
     @include('partials.flash')

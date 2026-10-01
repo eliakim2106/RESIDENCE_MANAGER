@@ -206,26 +206,8 @@ function initCounters() {
   counters.forEach((el) => observer.observe(el));
 }
 
-/* -------------------------------------
-   Favoris (affichage uniquement)
-------------------------------------- */
-
-function initFavorites() {
-  document.querySelectorAll("[data-favorite]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const active = button.getAttribute("aria-pressed") !== "true";
-      const icon = button.querySelector("i");
-
-      button.setAttribute("aria-pressed", String(active));
-      icon?.classList.toggle("fa-solid", active);
-      icon?.classList.toggle("fa-regular", !active);
-    });
-  });
-}
-
 export function initHome() {
   initHeroSlider();
   initReveal();
   initCounters();
-  initFavorites();
 }

@@ -177,6 +177,40 @@ class SubscriptionTest extends TestCase
         $this->actingAs($owner)->get(route('admin.etablissements.create'))->assertOk();
     }
 
+    public function test_exempt_accounts_escape_every_subscription_rule(): void
+    {
+        Notification::fake();
+        $this->requireSubscriptions();
+
+        // Propriétaire exempté sans abonnement : ajoute librement, reste en ligne
+        $owner = User::factory()->owner()->create(['subscription_exempt' => true]);
+        $property = Property::factory()->for($owner, 'owner')->create(['statut' => PropertyStatus::Published]);
+
+        $this->actingAs($owner)->get(route('admin.etablissements.create'))->assertOk();
+        $this->assertTrue(Property::query()->onSite()->whereKey($property->id)->exists());
+        $this->actingAs($owner)->get(route('admin.abonnement.show'))->assertSee('Compte exempté d’abonnement');
+
+        // Avec un essai terminé : ni facture, ni suspension
+        $plan = SubscriptionPlan::factory()->create(['trial_days' => 7, 'max_properties' => 1]);
+        $subscription = app(SubscriptionManager::class)->subscribe($owner, $plan, BillingCycle::Monthly);
+        Property::factory()->for($owner, 'owner')->create();
+
+        $result = app(SubscriptionManager::class)->process(CarbonImmutable::today()->addDays(60));
+
+        $this->assertSame(0, $result['invoiced']);
+        $this->assertSame(0, $subscription->invoices()->count());
+        $this->assertSame(SubscriptionStatus::Trial, $subscription->fresh()->statut);
+        $this->assertNull(app(SubscriptionManager::class)->propertyBlocker($owner->fresh()), 'Pas de limite de formule');
+
+        // Un administrateur exempté crée un établissement même sans abonnement
+        $this->actingAs(User::factory()->admin()->create(['subscription_exempt' => true]))
+            ->get(route('admin.etablissements.create'))->assertOk();
+
+        // Un propriétaire non exempté reste soumis aux règles
+        $this->actingAs(User::factory()->owner()->create())->get(route('admin.etablissements.create'))
+            ->assertRedirect(route('admin.abonnement.show'));
+    }
+
     public function test_access_rules(): void
     {
         $owner = User::factory()->owner()->create();
@@ -187,7 +221,7 @@ class SubscriptionTest extends TestCase
 
         $this->actingAs($owner)->get(route('admin.abonnement.invoice', $invoice))->assertForbidden();
         $this->actingAs($owner)->get(route('admin.abonnements.index'))->assertForbidden();
-        $this->actingAs(User::factory()->create())->get(route('admin.abonnement.show'))->assertForbidden();
+        $this->actingAs(User::factory()->create())->get(route('admin.abonnement.show'))->assertRedirect(route('client.dashboard'));
 
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin)->get(route('admin.abonnements.index'))->assertOk()->assertSee($other->name);

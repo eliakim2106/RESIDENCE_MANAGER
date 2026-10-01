@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\PhoneNumberRule;
+use App\Support\PhoneNumber;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,6 +18,15 @@ class ProfileRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['indicatif_telephone' => $this->input('indicatif_telephone') ?: PhoneNumber::defaultDial()]);
+
+        $this->merge([
+            'telephone' => PhoneNumber::normalize((string) $this->input('indicatif_telephone'), (string) $this->input('telephone')) ?: null,
+        ]);
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -24,7 +35,8 @@ class ProfileRequest extends FormRequest
         return [
             'nom' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user())],
-            'telephone' => ['nullable', 'string', 'max:30'],
+            'indicatif_telephone' => ['required', Rule::in(array_keys(config('phone.countries')))],
+            'telephone' => ['nullable', new PhoneNumberRule],
             'ville' => ['nullable', 'string', 'max:100'],
             'pays' => ['nullable', 'string', 'max:100'],
             'entreprise' => ['nullable', 'string', 'max:255'],
@@ -56,6 +68,7 @@ class ProfileRequest extends FormRequest
             'name' => $this->string('nom')->trim()->toString(),
             'email' => $this->string('email')->trim()->toString(),
             'phone' => $this->input('telephone'),
+            'indicatif_telephone' => $this->input('indicatif_telephone'),
             'city' => $this->input('ville'),
             'country' => $this->input('pays'),
         ];

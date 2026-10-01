@@ -207,7 +207,7 @@
                 @endif
                 <p>{{ $owner->email }}</p>
                 @if ($owner->phone)
-                    <p>{{ $owner->phone }}</p>
+                    <p>{{ $owner->formattedPhone() }}</p>
                 @endif
             </div>
         </section>

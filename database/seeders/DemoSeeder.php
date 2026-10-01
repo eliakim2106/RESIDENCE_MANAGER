@@ -34,23 +34,41 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->superAdmin()->create([
-            'name' => 'Super Administrateur',
-            'email' => 'superadmin@dsholding.ci',
-        ]);
+        User::factory()
+            ->superAdmin()
+            ->create([
+                'name' => 'Super Administrateur',
+                'email' => 'superadmin@dsholding.ci',
+                'subscription_exempt' => true,
+            ]);
 
-        User::factory()->admin()->create([
-            'name' => 'Administrateur',
-            'email' => 'admin@dsholding.ci',
-        ]);
+        User::factory()
+            ->admin()
+            ->create([
+                'name' => 'Administrateur',
+                'email' => 'admin@dsholding.ci',
+                'subscription_exempt' => true,
+            ]);
 
         $owners = collect([
-            User::factory()->owner()->create(['name' => 'Propriétaire Démo', 'email' => 'owner@dsholding.ci', 'payout_method' => PayoutMethod::MobileMoney, 'payout_account' => '07 00 00 00 00', 'payout_holder' => 'Propriétaire Démo']),
-        ])->merge(User::factory()->owner()->count(3)->create());
+            User::factory()
+                ->owner()
+                ->create(['name' => 'Propriétaire Démo', 'email' => 'owner@dsholding.ci', 'subscription_exempt' => true, 'payout_method' => PayoutMethod::MobileMoney, 'payout_account' => '07 00 00 00 00', 'payout_holder' => 'Propriétaire Démo']),
+        ])->merge(
+            User::factory()
+                ->owner()
+                ->count(3)
+                ->create()
+        );
 
         $clients = collect([
-            User::factory()->create(['name' => 'Client Démo', 'email' => 'client@dsholding.ci']),
-        ])->merge(User::factory()->count(12)->create());
+            User::factory()
+                ->create(['name' => 'Client Démo', 'email' => 'client@dsholding.ci', 'subscription_exempt' => true]),
+        ])->merge(
+            User::factory()
+                ->count(12)
+                ->create()
+        );
 
         // Formules d'exemple (prix fictifs, à ajuster dans Administration > Formules) ; essai pour chaque propriétaire
         $plans = $this->demoPlans();
@@ -141,6 +159,7 @@ class DemoSeeder extends Seeder
                 'guest_name' => $client->name,
                 'guest_email' => $client->email,
                 'guest_phone' => $client->phone,
+                'indicatif_telephone' => $client->indicatif_telephone,
             ]);
 
             $subtotal = $unit->base_price * $reservation->nights;
@@ -231,7 +250,11 @@ class DemoSeeder extends Seeder
     {
         return [
             [
-                'name' => 'Hôtel Lagune Prestige', 'type' => 'hotel', 'city' => 'abidjan', 'district' => 'Plateau', 'stars' => 5,
+                'name' => 'Hôtel Lagune Prestige',
+                'type' => 'hotel',
+                'city' => 'abidjan',
+                'district' => 'Plateau',
+                'stars' => 5,
                 'policy' => CancellationPolicy::Moderate,
                 'units' => [
                     ['Chambre Deluxe vue lagune', 'chambre-double', 85000, 12, 2],
@@ -240,7 +263,11 @@ class DemoSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Résidence Les Cocotiers', 'type' => 'residence-meublee', 'city' => 'abidjan', 'district' => 'Cocody Riviera 3', 'stars' => null,
+                'name' => 'Résidence Les Cocotiers',
+                'type' => 'residence-meublee',
+                'city' => 'abidjan',
+                'district' => 'Cocody Riviera 3',
+                'stars' => null,
                 'policy' => CancellationPolicy::Flexible,
                 'units' => [
                     ['Studio Confort', 'studio', 25000, 6, 2],
@@ -249,14 +276,22 @@ class DemoSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Villa Océane Assinie', 'type' => 'villa', 'city' => 'assinie-mafia', 'district' => 'Assouindé', 'stars' => null,
+                'name' => 'Villa Océane Assinie',
+                'type' => 'villa',
+                'city' => 'assinie-mafia',
+                'district' => 'Assouindé',
+                'stars' => null,
                 'policy' => CancellationPolicy::Strict,
                 'units' => [
                     ['Villa 4 chambres pieds dans l’eau', 'villa-entiere', 300000, 1, 8],
                 ],
             ],
             [
-                'name' => 'Bassam Beach Hôtel', 'type' => 'complexe-hotelier', 'city' => 'grand-bassam', 'district' => 'Quartier France', 'stars' => 4,
+                'name' => 'Bassam Beach Hôtel',
+                'type' => 'complexe-hotelier',
+                'city' => 'grand-bassam',
+                'district' => 'Quartier France',
+                'stars' => 4,
                 'policy' => CancellationPolicy::Moderate,
                 'units' => [
                     ['Bungalow vue mer', 'chambre-double', 55000, 10, 2],
@@ -264,7 +299,11 @@ class DemoSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Résidence Marcory Zone 4', 'type' => 'residence-meublee', 'city' => 'abidjan', 'district' => 'Zone 4', 'stars' => null,
+                'name' => 'Résidence Marcory Zone 4',
+                'type' => 'residence-meublee',
+                'city' => 'abidjan',
+                'district' => 'Zone 4',
+                'stars' => null,
                 'policy' => CancellationPolicy::Flexible,
                 'units' => [
                     ['Studio Business', 'studio', 30000, 8, 2],
@@ -272,7 +311,11 @@ class DemoSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Hôtel Président Yamoussoukro', 'type' => 'hotel', 'city' => 'yamoussoukro', 'district' => 'Centre', 'stars' => 4,
+                'name' => 'Hôtel Président Yamoussoukro',
+                'type' => 'hotel',
+                'city' => 'yamoussoukro',
+                'district' => 'Centre',
+                'stars' => 4,
                 'policy' => CancellationPolicy::Flexible,
                 'units' => [
                     ['Chambre Classique', 'chambre-simple', 35000, 15, 1],
@@ -280,14 +323,22 @@ class DemoSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Maison d’hôtes La Baie', 'type' => 'maison-dhotes', 'city' => 'san-pedro', 'district' => 'Balmer', 'stars' => null,
+                'name' => 'Maison d’hôtes La Baie',
+                'type' => 'maison-dhotes',
+                'city' => 'san-pedro',
+                'district' => 'Balmer',
+                'stars' => null,
                 'policy' => CancellationPolicy::Flexible,
                 'units' => [
                     ['Chambre Baie', 'chambre-double', 20000, 4, 2],
                 ],
             ],
             [
-                'name' => 'Appartement Riviera Golf', 'type' => 'appartement', 'city' => 'abidjan', 'district' => 'Riviera Golf', 'stars' => null,
+                'name' => 'Appartement Riviera Golf',
+                'type' => 'appartement',
+                'city' => 'abidjan',
+                'district' => 'Riviera Golf',
+                'stars' => null,
                 'policy' => CancellationPolicy::Moderate,
                 'units' => [
                     ['Appartement 3 pièces avec piscine', 'appartement-3-pieces', 70000, 1, 5],

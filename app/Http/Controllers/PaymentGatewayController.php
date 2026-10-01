@@ -79,7 +79,7 @@ class PaymentGatewayController extends Controller
                 default => ['error', 'Le paiement n’a pas abouti. Aucun montant n’a été débité ; vous pouvez réessayer.'],
             };
 
-            return redirect()->route('admin.reservations.show', $payment->reservation)->with($type, $message);
+            return redirect()->route($request->user()->isClient() ? 'client.reservations.show' : 'admin.reservations.show', $payment->reservation)->with($type, $message);
         }
 
         $invoice = SubscriptionInvoice::query()->where('transaction_id', $transaction)->firstOrFail();

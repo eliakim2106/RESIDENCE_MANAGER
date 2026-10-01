@@ -158,7 +158,7 @@ class PayoutTest extends TestCase
     {
         $this->actingAs($this->owner)->get(route('admin.reversements.index'))->assertForbidden();
         $this->actingAs($this->owner)->get(route('admin.reversements.owner', $this->owner))->assertForbidden();
-        $this->actingAs(User::factory()->create())->get(route('admin.mes-reversements.index'))->assertForbidden();
+        $this->actingAs(User::factory()->create())->get(route('admin.mes-reversements.index'))->assertRedirect(route('client.dashboard'));
 
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin)->get(route('admin.reversements.owner', $admin))->assertNotFound();

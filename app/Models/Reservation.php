@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CancellationPolicy;
 use App\Enums\PaymentState;
 use App\Enums\ReservationStatus;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -43,6 +44,7 @@ class Reservation extends Model
         'guest_name',
         'guest_email',
         'guest_phone',
+        'indicatif_telephone',
         'estimated_arrival_time',
         'special_requests',
         'owner_notes',
@@ -143,6 +145,19 @@ class Reservation extends Model
     | MÉTHODES MÉTIER
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Téléphone du voyageur, lisible : « +225 07 01 23 45 67 ».
+     */
+    public function formattedGuestPhone(): string
+    {
+        return PhoneNumber::format($this->indicatif_telephone, $this->guest_phone);
+    }
+
+    public function internationalGuestPhone(): string
+    {
+        return PhoneNumber::e164($this->indicatif_telephone, $this->guest_phone);
+    }
 
     public function balanceDue(): int
     {

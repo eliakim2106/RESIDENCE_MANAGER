@@ -1,0 +1,334 @@
+/* =====================================================================
+   CHAMP TÉLÉPHONE AVEC INDICATIF (partials/phone-field + js/phone-field.js)
+   Un seul composant pour tous les formulaires ; trois apparences :
+   admin (formulaires de l'administration), auth (inscription), etab (formulaire d'établissement).
+===================================================================== */
+
+.phone-field {
+  --pf-height: 46px;
+  --pf-radius: 10px;
+  --pf-border: #e2e8f0;
+  --pf-border-hover: #cbd5e1;
+  --pf-focus: #1565c0;
+  --pf-ring: 0 0 0 4px rgba(21, 101, 192, 0.12);
+  --pf-text: #0f1b33;
+  --pf-muted: #64748b;
+  --pf-soft: #f8fafc;
+  --pf-danger: #dc2626;
+  --pf-success: #16a34a;
+
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: var(--pf-height);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.phone-field:hover {
+  border-color: var(--pf-border-hover);
+}
+
+.phone-field:focus-within {
+  border-color: var(--pf-focus);
+  box-shadow: var(--pf-ring);
+}
+
+.phone-field.is-invalid {
+  border-color: var(--pf-danger);
+}
+
+.phone-field.is-complete:not(:focus-within):not(.is-invalid) {
+  border-color: #a7dcb8;
+}
+
+/* Apparences */
+.phone-field--auth {
+  --pf-height: 52px;
+  --pf-radius: 14px;
+  border-width: 1.5px;
+}
+
+.phone-field--etab {
+  --pf-height: 54px;
+  --pf-radius: 14px;
+}
+
+/* ---------- Indicatif ---------- */
+
+.phone-field-dial {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  border-right: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius) 0 0 var(--pf-radius);
+  background: var(--pf-soft);
+}
+
+/* Sans JavaScript : select natif précédé du drapeau */
+.phone-field-dial > .phone-flag {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+}
+
+.phone-field .phone-field-native {
+  width: auto;
+  min-width: 0;
+  max-width: 190px;
+  height: 100%;
+  min-height: 0;
+  padding: 0 28px 0 40px;
+  border: 0;
+  border-radius: var(--pf-radius) 0 0 var(--pf-radius);
+  background-color: transparent;
+  color: var(--pf-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  box-shadow: none;
+}
+
+.phone-field .phone-field-native:focus {
+  box-shadow: none;
+}
+
+/* Avec JavaScript : le select natif reste le champ envoyé, mais caché */
+.phone-field.is-enhanced .phone-field-native,
+.phone-field.is-enhanced .phone-field-dial > .phone-flag {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.phone-flag {
+  flex-shrink: 0;
+  width: 22px !important;
+  height: 16px;
+  border-radius: 3px;
+  background-size: cover;
+  box-shadow: 0 0 0 1px rgba(15, 27, 51, 0.08);
+}
+
+.phone-picker-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 12px 0 14px;
+  border: 0;
+  border-radius: var(--pf-radius) 0 0 var(--pf-radius);
+  background: transparent;
+  color: var(--pf-text);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.phone-picker-toggle:hover {
+  background: #eef2f7;
+}
+
+.phone-picker-toggle:focus-visible {
+  outline: 2px solid var(--pf-focus);
+  outline-offset: -2px;
+}
+
+.phone-picker-toggle > i {
+  color: var(--pf-muted);
+  font-size: 0.65rem;
+  transition: transform 0.2s;
+}
+
+.phone-field.is-open .phone-picker-toggle > i {
+  transform: rotate(180deg);
+}
+
+.phone-picker-dial {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Numéro ---------- */
+
+.phone-field .phone-field-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0 var(--pf-radius) var(--pf-radius) 0;
+  background: transparent;
+  color: var(--pf-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  box-shadow: none;
+  outline: none;
+}
+
+.phone-field .phone-field-input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.phone-field .phone-field-input::placeholder {
+  color: #a3adbd;
+  letter-spacing: 0.02em;
+}
+
+.phone-field-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.phone-field-hint.is-valid {
+  color: #15803d;
+}
+
+/* ---------- Panneau de choix du pays ---------- */
+
+.phone-picker-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  width: min(340px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid var(--pf-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(10, 31, 68, 0.16);
+}
+
+.phone-picker-panel[hidden] {
+  display: none;
+}
+
+.phone-picker-search {
+  position: relative;
+  padding: 10px;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.phone-picker-search i {
+  position: absolute;
+  top: 50%;
+  left: 22px;
+  color: var(--pf-muted);
+  font-size: 0.8rem;
+  transform: translateY(-50%);
+}
+
+.phone-picker-search input {
+  width: 100%;
+  height: 40px;
+  min-height: 0;
+  padding: 0 12px 0 34px;
+  border: 1px solid var(--pf-border);
+  border-radius: 10px;
+  background: var(--pf-soft);
+  color: var(--pf-text);
+  font-family: inherit;
+  font-size: 0.86rem;
+  outline: none;
+}
+
+.phone-picker-search input:focus {
+  border-color: var(--pf-focus);
+  background: #fff;
+  box-shadow: none;
+}
+
+.phone-picker-list {
+  max-height: 280px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.phone-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  color: var(--pf-text);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.phone-picker-option:hover,
+.phone-picker-option.is-active {
+  background: #eef4fd;
+}
+
+.phone-picker-option.is-selected {
+  font-weight: 600;
+}
+
+.phone-picker-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-picker-code {
+  color: var(--pf-muted);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.phone-picker-option > i {
+  width: 14px;
+  color: var(--pf-focus);
+  font-size: 0.75rem;
+  visibility: hidden;
+}
+
+.phone-picker-option.is-selected > i {
+  visibility: visible;
+}
+
+.phone-picker-separator {
+  margin: 6px 10px 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pf-border);
+  color: var(--pf-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.phone-picker-empty {
+  padding: 18px 10px;
+  color: var(--pf-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 400px) {
+  .phone-picker-toggle {
+    gap: 6px;
+    padding: 0 8px 0 10px;
+  }
+}

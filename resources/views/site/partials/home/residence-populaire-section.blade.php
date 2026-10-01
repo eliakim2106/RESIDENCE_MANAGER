@@ -1,106 +1,95 @@
-@php
-    $residences = [
-        [
-            'image' => 'assets/images/home/residence-1.webp',
-            'badge' => 'Coup de cœur',
-            'name' => 'DS Palace',
-            'location' => 'Cocody, Abidjan',
-            'type' => 'Villa · 4 voyageurs',
-            'rating' => '4,8',
-            'reviews' => 124,
-            'features' => [['fa-wifi', 'Wi-Fi'], ['fa-water-ladder', 'Piscine'], ['fa-snowflake', 'Clim.']],
-            'price' => '35 000',
-        ],
-        [
-            'image' => 'assets/images/home/residence-2.webp',
-            'badge' => 'Populaire',
-            'name' => 'Résidence Les Cocotiers',
-            'location' => 'Riviera 3, Abidjan',
-            'type' => 'Appartement · 3 voyageurs',
-            'rating' => '4,7',
-            'reviews' => 86,
-            'features' => [['fa-wifi', 'Wi-Fi'], ['fa-car', 'Parking'], ['fa-dumbbell', 'Salle de sport']],
-            'price' => '28 000',
-        ],
-        [
-            'image' => 'assets/images/home/residence-3.webp',
-            'badge' => 'Nouveau',
-            'name' => 'Villa Océane',
-            'location' => 'Assinie-Mafia',
-            'type' => 'Villa · 8 voyageurs',
-            'rating' => '4,9',
-            'reviews' => 42,
-            'features' => [['fa-umbrella-beach', 'Plage'], ['fa-water-ladder', 'Piscine'], ['fa-utensils', 'Cuisine']],
-            'price' => '85 000',
-        ],
-    ];
-@endphp
+{{-- Résidences en ligne : coups de cœur puis mieux notées (HomeController) --}}
+@if ($residences->isNotEmpty())
+    @php $favorites = auth()->user()?->isClient() ? auth()->user()->favorites()->pluck('properties.id')->all() : []; @endphp
 
-<section class="home-section" id="residences">
-    <div class="container">
+    <section class="home-section" id="residences">
+        <div class="container">
 
-        <div class="home-section-head home-section-head-split" data-reveal>
-            <div>
-                <span class="home-kicker">Sélection DS HOLDING</span>
-                <h2 class="home-title">Nos résidences <span>les plus demandées</span></h2>
+            <div class="home-section-head home-section-head-split" data-reveal>
+                <div>
+                    <span class="home-kicker">Sélection DS HOLDING</span>
+                    <h2 class="home-title">Nos résidences <span>à la une</span></h2>
+                </div>
+
+                <a href="{{ route('residences.index') }}" class="home-link-arrow">
+                    Toutes les résidences
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
 
-            <a href="{{ route('residences.index') }}" class="home-link-arrow">
-                Toutes les résidences
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-        </div>
+            <div class="home-residences-grid">
+                @foreach ($residences as $index => $residence)
+                    @php
+                        $url = route('residences.show', $residence);
+                        $badge = $residence->is_featured ? 'Coup de cœur' : ($residence->published_at?->gt(now()->subDays(30)) ? 'Nouveau' : null);
+                        $location = collect([$residence->neighborhood ?: $residence->district, $residence->city?->name])->filter()->unique()->implode(', ');
+                        $isFavorite = in_array($residence->id, $favorites, true);
+                    @endphp
+                    <article class="home-residence" data-reveal style="--reveal-delay: {{ ($index % 3) * 120 }}ms">
 
-        <div class="home-residences-grid">
-            @foreach ($residences as $index => $residence)
-                <article class="home-residence" data-reveal style="--reveal-delay: {{ $index * 120 }}ms">
+                        <a href="{{ $url }}" class="home-residence-media" aria-label="Voir {{ $residence->name }}">
+                            <img src="{{ $residence->coverImage?->url ?? asset('assets/images/home/residence-'.(($index % 3) + 1).'.webp') }}" alt="{{ $residence->name }}" loading="lazy">
+                            @if ($badge)
+                                <span class="home-residence-badge">{{ $badge }}</span>
+                            @endif
+                        </a>
 
-                    <a href="{{ route('residences.show') }}" class="home-residence-media" aria-label="Voir {{ $residence['name'] }}">
-                        <img src="{{ asset($residence['image']) }}" alt="{{ $residence['name'] }}" loading="lazy">
-                        <span class="home-residence-badge">{{ $residence['badge'] }}</span>
-                    </a>
+                        @if (auth()->user()?->isClient())
+                            <form method="POST" action="{{ route('client.favorites.toggle', $residence) }}" class="home-residence-fav-form">
+                                @csrf
+                                <button type="submit" class="home-residence-fav {{ $isFavorite ? 'is-active' : '' }}" aria-label="{{ $isFavorite ? 'Retirer' : 'Ajouter' }} {{ $residence->name }} {{ $isFavorite ? 'des' : 'aux' }} favoris" aria-pressed="{{ $isFavorite ? 'true' : 'false' }}">
+                                    <i class="fa-{{ $isFavorite ? 'solid' : 'regular' }} fa-heart"></i>
+                                </button>
+                            </form>
+                        @endif
 
-                    <button type="button" class="home-residence-fav" aria-label="Ajouter {{ $residence['name'] }} aux favoris" aria-pressed="false" data-favorite>
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
+                        <div class="home-residence-body">
+                            <div class="home-residence-meta">
+                                <span><i class="fa-solid fa-location-dot"></i> {{ $location }}</span>
+                                @if ($residence->reviews_count > 0)
+                                    <span class="home-residence-rating">
+                                        <i class="fa-solid fa-star"></i>
+                                        {{ number_format((float) $residence->rating_average, 1, ',', ' ') }}
+                                        <small>({{ $residence->reviews_count }})</small>
+                                    </span>
+                                @endif
+                            </div>
 
-                    <div class="home-residence-body">
-                        <div class="home-residence-meta">
-                            <span><i class="fa-solid fa-location-dot"></i> {{ $residence['location'] }}</span>
-                            <span class="home-residence-rating">
-                                <i class="fa-solid fa-star"></i>
-                                {{ $residence['rating'] }}
-                                <small>({{ $residence['reviews'] }})</small>
-                            </span>
-                        </div>
+                            <h3>
+                                <a href="{{ $url }}">{{ $residence->name }}</a>
+                            </h3>
 
-                        <h3>
-                            <a href="{{ route('residences.show') }}">{{ $residence['name'] }}</a>
-                        </h3>
-
-                        <p class="home-residence-type">{{ $residence['type'] }}</p>
-
-                        <ul class="home-residence-features">
-                            @foreach ($residence['features'] as [$icon, $label])
-                                <li><i class="fa-solid {{ $icon }}"></i> {{ $label }}</li>
-                            @endforeach
-                        </ul>
-
-                        <div class="home-residence-footer">
-                            <p class="home-residence-price">
-                                <strong>{{ $residence['price'] }} FCFA</strong>
-                                <span>/ nuit</span>
+                            <p class="home-residence-type">
+                                {{ $residence->propertyType?->name }}@if ($residence->capacite_max) · jusqu’à {{ $residence->capacite_max }} adultes @endif
                             </p>
 
-                            <a href="{{ route('residences.show') }}" class="home-residence-cta" aria-label="Réserver {{ $residence['name'] }}">
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
+                            @if ($residence->equipments->isNotEmpty())
+                                <ul class="home-residence-features">
+                                    @foreach ($residence->equipments->take(3) as $equipment)
+                                        <li><i class="fa-solid {{ $equipment->fa_icon }}"></i> {{ $equipment->name }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+
+                            <div class="home-residence-footer">
+                                <p class="home-residence-price">
+                                    @if ($residence->prix_min)
+                                        <span>Dès</span>
+                                        <strong>{{ number_format((int) $residence->prix_min, 0, ',', ' ') }} FCFA</strong>
+                                        <span>/ nuit</span>
+                                    @endif
+                                </p>
+
+                                <a href="{{ $url }}" class="home-residence-cta" aria-label="Réserver {{ $residence->name }}">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
 
-                </article>
-            @endforeach
+                    </article>
+                @endforeach
+            </div>
+
         </div>
-
-    </div>
-</section>
+    </section>
+@endif

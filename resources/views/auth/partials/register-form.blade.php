@@ -1,22 +1,6 @@
 {{-- Formulaire d'inscription commun au client et au propriétaire. Paramètres : $action (URL d'envoi) --}}
 @php
-    use App\Http\Requests\Auth\RegisterRequest;
-
-    $phoneFormats = [
-        '+225' => ['🇨🇮', 10, '07 01 23 45 67'],
-        '+221' => ['🇸🇳', 9, '77 123 45 67'],
-        '+223' => ['🇲🇱', 8, '65 12 34 56'],
-        '+226' => ['🇧🇫', 8, '70 12 34 56'],
-        '+228' => ['🇹🇬', 8, '90 12 34 56'],
-        '+229' => ['🇧🇯', 8, '97 12 34 56'],
-        '+233' => ['🇬🇭', 9, '24 123 4567'],
-        '+224' => ['🇬🇳', 9, '620 123 456'],
-        '+33' => ['🇫🇷', 9, '6 12 34 56 78'],
-        '+32' => ['🇧🇪', 9, '470 12 34 56'],
-        '+1' => ['🇨🇦', 10, '(514) 123-4567'],
-    ];
     $countries = ["Côte d'Ivoire", 'Sénégal', 'Mali', 'Burkina Faso', 'Togo', 'Bénin', 'Ghana', 'Guinée', 'France', 'Belgique', 'Canada'];
-    $countryCode = old('country_code', '+225');
     $country = old('pays', "Côte d'Ivoire");
 @endphp
 
@@ -58,21 +42,12 @@
 
     <div class="auth-field">
         <label for="phoneNumber">Téléphone</label>
-        <div class="auth-input auth-input-phone @error('telephone') is-invalid @enderror @error('country_code') is-invalid @enderror">
-            <select name="country_code" id="countryCode" aria-label="Indicatif du pays">
-                @foreach ($phoneFormats as $code => [$flag, $length, $placeholder])
-                    @continue(! in_array($code, RegisterRequest::COUNTRY_CODES, true))
-                    <option value="{{ $code }}" data-length="{{ $length }}" data-placeholder="{{ $placeholder }}" @selected($countryCode === $code)>
-                        {{ $flag }} {{ $code }}
-                    </option>
-                @endforeach
-            </select>
-            <input type="tel" id="phoneNumber" name="telephone" value="{{ old('telephone') }}" autocomplete="tel-national" inputmode="tel" required>
-        </div>
+        @include('partials.phone-field', ['phoneVariant' => 'auth', 'phoneId' => 'phoneNumber', 'phoneRequired' => true])
         @error('telephone')
             <p class="auth-error">{{ $message }}</p>
-        @else
-            <p class="auth-help" id="phoneHelp"></p>
+        @enderror
+        @error('indicatif_telephone')
+            <p class="auth-error">{{ $message }}</p>
         @enderror
     </div>
 

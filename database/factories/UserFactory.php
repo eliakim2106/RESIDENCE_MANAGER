@@ -29,7 +29,10 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'phone' => '+225 07 '.fake()->numerify('## ## ## ##'),
+            'phone' => '07'.fake()->numerify('########'),
+            'indicatif_telephone' => '+225',
+            'city' => 'Abidjan',
+            'country' => 'Côte d’Ivoire',
             'role' => UserRole::Client,
             'statut' => UserStatus::Active,
             'email_verified_at' => now(),

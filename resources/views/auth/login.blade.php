@@ -32,6 +32,8 @@
 
     @include('auth.partials.alerts')
 
+    @include('auth.partials.social', ['verb' => 'Se connecter'])
+
     <form method="POST" action="{{ route('login.store') }}" class="auth-form" novalidate>
         @csrf
 
@@ -47,7 +49,7 @@
         <div class="auth-field">
             <div class="auth-label-row">
                 <label for="password">Mot de passe</label>
-                <a href="{{ route('home') }}#contact" class="auth-link-small">Mot de passe oublié ?</a>
+                <a href="{{ route('password.request') }}" class="auth-link-small">Mot de passe oublié ?</a>
             </div>
             <div class="auth-input @error('email') is-invalid @enderror">
                 <i class="fa-solid fa-lock"></i>

@@ -7,6 +7,7 @@ use App\Enums\PropertyStatus;
 use App\Enums\ReviewStatus;
 use App\Enums\SubscriptionStatus;
 use App\Services\SubscriptionManager;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -44,6 +45,7 @@ class Property extends Model
         'star_rating',
         'manages_units',
         'phone',
+        'indicatif_telephone',
         'email',
         'website',
         'check_in_from',
@@ -209,6 +211,22 @@ class Property extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Téléphone lisible : « +225 07 01 23 45 67 ».
+     */
+    public function formattedPhone(): string
+    {
+        return PhoneNumber::format($this->indicatif_telephone, $this->phone);
+    }
+
+    /**
+     * Téléphone au format international (liens tel:, WhatsApp, services de paiement) : « +2250701234567 ».
+     */
+    public function internationalPhone(): string
+    {
+        return PhoneNumber::e164($this->indicatif_telephone, $this->phone);
+    }
+
     public function isPublished(): bool
     {
         return $this->statut === PropertyStatus::Published;
@@ -263,8 +281,10 @@ class Property extends Model
     {
         $query->where('statut', PropertyStatus::Published)
             ->when(SubscriptionManager::required(), fn (Builder $query) => $query->whereHas(
-                'owner.currentSubscription',
-                fn (Builder $query) => $query->whereIn('statut', SubscriptionStatus::goodStanding()),
+                'owner',
+                fn (Builder $query) => $query
+                    ->where('subscription_exempt', true)
+                    ->orWhereHas('currentSubscription', fn (Builder $query) => $query->whereIn('statut', SubscriptionStatus::goodStanding())),
             ));
     }
 

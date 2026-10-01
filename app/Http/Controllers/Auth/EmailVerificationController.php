@@ -16,7 +16,7 @@ class EmailVerificationController extends Controller
     public function notice(Request $request): View|RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended($request->user()->homeUrl());
         }
 
         return view('auth.verify-email');
@@ -26,14 +26,14 @@ class EmailVerificationController extends Controller
     {
         $request->fulfill();
 
-        return redirect()->intended(route('dashboard'))
+        return redirect()->intended($request->user()->homeUrl())
             ->with('success', 'Votre adresse email est confirmée. Bienvenue sur DS HOLDING !');
     }
 
     public function send(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended($request->user()->homeUrl());
         }
 
         $request->user()->sendEmailVerificationNotification();

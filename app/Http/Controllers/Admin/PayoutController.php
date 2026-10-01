@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payout;
 use App\Models\User;
 use App\Services\PayoutLedger;
+use App\Support\ExcelExport;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +19,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Reversements aux propriétaires (administrateurs) : soldes, enregistrement des virements, historique.
@@ -89,6 +91,53 @@ class PayoutController extends Controller
                 'commissionThisYear' => (int) (clone $paid)->where('paid_at', '>=', now()->startOfYear())->sum('commission_amount'),
             ],
         ]);
+    }
+
+    /**
+     * Export Excel de l'historique des reversements (recherche en cours).
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        $search = trim((string) $request->query('search'));
+        $like = '%'.addcslashes($search, '%_\\').'%';
+
+        $rows = Payout::query()
+            ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                ->where('number', 'like', $like)
+                ->orWhere('reference', 'like', $like)
+                ->orWhereHas('user', fn (Builder $query) => $query->where('name', 'like', $like)->orWhere('email', 'like', $like))))
+            ->with(['user', 'recorder'])
+            ->latest('paid_at')
+            ->latest('id')
+            ->lazy(200);
+
+        return ExcelExport::download('reversements', 'Reversements', [
+            ['label' => 'Numéro', 'width' => 18],
+            ['label' => 'Date du virement', 'type' => 'date', 'width' => 15],
+            ['label' => 'Propriétaire', 'width' => 26],
+            ['label' => 'Email', 'width' => 28],
+            ['label' => 'Moyen', 'width' => 18],
+            ['label' => 'Référence', 'width' => 20],
+            ['label' => 'Compte crédité', 'width' => 34],
+            ['label' => 'Encaissé', 'type' => 'money'],
+            ['label' => 'Commission', 'type' => 'money'],
+            ['label' => 'Reversé', 'type' => 'money'],
+            ['label' => 'Statut', 'width' => 12],
+            ['label' => 'Saisi par', 'width' => 22],
+        ], $rows->map(fn (Payout $payout): array => [
+            $payout->number,
+            $payout->paid_at,
+            $payout->user?->name,
+            $payout->user?->email,
+            $payout->method,
+            $payout->reference,
+            $payout->account,
+            $payout->gross_amount,
+            $payout->commission_amount,
+            $payout->amount,
+            $payout->statut,
+            $payout->recorder?->name,
+        ]));
     }
 
     /**

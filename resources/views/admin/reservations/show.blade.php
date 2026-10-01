@@ -255,7 +255,7 @@
                     <div class="contact-links">
                         <a href="mailto:{{ $reservation->guest_email }}"><i class="fa-regular fa-envelope"></i> {{ $reservation->guest_email }}</a>
                         @if ($reservation->guest_phone)
-                            <a href="tel:{{ preg_replace('/\s+/', '', $reservation->guest_phone) }}"><i class="fa-solid fa-phone"></i> {{ $reservation->guest_phone }}</a>
+                            <a href="tel:{{ $reservation->internationalGuestPhone() }}"><i class="fa-solid fa-phone"></i> {{ $reservation->formattedGuestPhone() }}</a>
                         @endif
                     </div>
 
@@ -293,7 +293,7 @@
                                 <span><i class="fa-solid fa-location-dot"></i> {{ $property->address }}</span>
                             @endif
                             @if ($property->phone)
-                                <a href="tel:{{ preg_replace('/\s+/', '', $property->phone) }}"><i class="fa-solid fa-phone"></i> {{ $property->phone }}</a>
+                                <a href="tel:{{ $property->internationalPhone() }}"><i class="fa-solid fa-phone"></i> {{ $property->formattedPhone() }}</a>
                             @endif
                             @if (auth()->user()->isAdmin() && $property->owner)
                                 <span><i class="fa-solid fa-user-tie"></i> Propriétaire : {{ $property->owner->name }}</span>

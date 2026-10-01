@@ -17,6 +17,7 @@ use App\Notifications\ReservationUpdated;
 use App\Services\Payments\OnlinePayments;
 use App\Services\SubscriptionManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -85,7 +86,7 @@ class OnlinePaymentTest extends TestCase
     public function test_client_is_sent_to_cinetpay_with_an_amount_rounded_to_a_multiple_of_five(): void
     {
         $this->fakeCinetPay();
-        $this->actingAs($this->client)->get(route('admin.reservations.show', $this->reservation))->assertSee('Payer en ligne');
+        $this->actingAs($this->client)->get(route('client.reservations.show', $this->reservation))->assertSee('en ligne');
 
         $payment = $this->startPayment();
 
@@ -134,7 +135,7 @@ class OnlinePaymentTest extends TestCase
         $this->assertSame(PaymentMethod::Card, $payment->fresh()->method);
 
         $this->actingAs($this->client)->get(route('paiements.result', $payment->transaction_id))
-            ->assertRedirect(route('admin.reservations.show', $this->reservation))
+            ->assertRedirect(route('client.reservations.show', $this->reservation))
             ->assertSessionHas('success');
 
         $this->actingAs(User::factory()->create())->get(route('paiements.result', $payment->transaction_id))->assertForbidden();
@@ -221,7 +222,9 @@ class OnlinePaymentTest extends TestCase
         $this->assertSame(['accepted' => 1, 'refused' => 0, 'abandoned' => 0], app(OnlinePayments::class)->syncPending());
         $this->assertSame(TransactionStatus::Accepted, $payment->fresh()->statut);
 
-        // Transaction jamais finalisée depuis plus de 48 h
+        // Transaction jamais finalisée depuis plus de 48 h. Un second Http::fake() s'ajouterait derrière le premier
+        // (la réponse « ACCEPTED » resterait prioritaire) : on repart d'un client HTTP neuf.
+        Http::swap(new HttpFactory);
         $this->fakeCinetPay('WAITING_FOR_CUSTOMER');
         $old = Payment::factory()->for($this->reservation)->create(['provider' => 'cinetpay', 'created_at' => now()->subDays(3)]);
 

@@ -5,6 +5,8 @@ namespace App\Http\Requests\Admin;
 use App\Enums\ActiveStatus;
 use App\Enums\CancellationPolicy;
 use App\Models\Property;
+use App\Rules\PhoneNumberRule;
+use App\Support\PhoneNumber;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,20 +27,12 @@ class PropertyRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->merge(['indicatif_telephone' => $this->input('indicatif_telephone') ?: PhoneNumber::defaultDial()]);
+
         $this->merge([
-            'telephone' => self::nationalPhone((string) $this->input('telephone')),
+            'telephone' => PhoneNumber::normalize((string) $this->input('indicatif_telephone'), (string) $this->input('telephone')),
             'slug' => Str::slug((string) ($this->input('slug') ?: $this->input('nom'))),
         ]);
-    }
-
-    /**
-     * Numéro ivoirien sur 10 chiffres : « +225 07 01 02 03 04 » → « 0701020304 ».
-     */
-    public static function nationalPhone(string $phone): string
-    {
-        $digits = preg_replace('/\D/', '', $phone);
-
-        return strlen($digits) === 13 && str_starts_with($digits, '225') ? substr($digits, 3) : $digits;
     }
 
     /**
@@ -62,7 +56,8 @@ class PropertyRequest extends FormRequest
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
 
             // Contact & accueil
-            'telephone' => ['required', 'digits:10'],
+            'indicatif_telephone' => ['required', Rule::in(array_keys(config('phone.countries')))],
+            'telephone' => ['required', new PhoneNumberRule],
             'email' => ['nullable', 'email', 'max:255'],
             'site_web' => ['nullable', 'url', 'max:255'],
             'check_in' => ['nullable', 'date_format:H:i'],
@@ -132,7 +127,6 @@ class PropertyRequest extends FormRequest
             'commune.required' => 'La commune est obligatoire.',
             'adresse.required' => "L'adresse est obligatoire.",
             'telephone.required' => 'Le téléphone est obligatoire.',
-            'telephone.digits' => 'Le téléphone doit contenir 10 chiffres.',
             'arrivee_jusqua.after' => 'L’heure limite d’arrivée doit être après l’heure d’arrivée.',
             'politique_annulation.required' => 'Choisissez une politique d’annulation.',
             'resume.max' => 'Le résumé ne doit pas dépasser 500 caractères.',
@@ -152,7 +146,7 @@ class PropertyRequest extends FormRequest
     public const FIELD_STEPS = [
         1 => ['type_etablissement_id', 'nom', 'resume', 'description'],
         2 => ['city_id', 'commune', 'quartier', 'adresse', 'latitude', 'longitude'],
-        3 => ['telephone', 'email', 'site_web', 'check_in', 'arrivee_jusqua', 'check_out', 'etoile', 'gestion_unites', 'politique_annulation', 'reglement', 'animaux', 'fumeurs', 'fetes'],
+        3 => ['indicatif_telephone', 'telephone', 'email', 'site_web', 'check_in', 'arrivee_jusqua', 'check_out', 'etoile', 'gestion_unites', 'politique_annulation', 'reglement', 'animaux', 'fumeurs', 'fetes'],
         4 => ['logo', 'deleted_logo', 'gallery', 'deleted_gallery', 'gallery_cover'],
         5 => ['statut'],
         6 => ['meta_title', 'meta_description', 'slug'],
@@ -194,6 +188,7 @@ class PropertyRequest extends FormRequest
             'latitude' => $this->input('latitude'),
             'longitude' => $this->input('longitude'),
             'phone' => $this->input('telephone'),
+            'indicatif_telephone' => $this->input('indicatif_telephone'),
             'email' => $this->input('email'),
             'website' => $this->input('site_web'),
             'check_in_from' => $this->input('check_in') ?: '14:00',

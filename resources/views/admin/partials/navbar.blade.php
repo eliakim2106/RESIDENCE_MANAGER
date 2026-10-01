@@ -28,6 +28,7 @@
         'admin.types-etablissement.' => ["Types d'établissement", 'admin.types-etablissement.index'],
         'admin.types-unite.' => ["Types d'unité", 'admin.types-unite.index'],
         'admin.equipements.' => ['Équipements', 'admin.equipements.index'],
+        'admin.messages.' => ['Messages', 'admin.messages.index'],
     ];
 
     $routeName = (string) request()->route()?->getName();

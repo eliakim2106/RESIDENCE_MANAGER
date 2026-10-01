@@ -24,6 +24,7 @@ class PropertyValidationController extends Controller
     private const TABS = [
         'a-valider' => ['À valider', PropertyStatus::Pending],
         'publies' => ['Publiés', PropertyStatus::Published],
+        'refuses' => ['Refusés', PropertyStatus::Draft],
         'suspendus' => ['Suspendus', PropertyStatus::Suspended],
     ];
 
@@ -45,13 +46,11 @@ class PropertyValidationController extends Controller
                     ->orWhereHas('owner', fn (Builder $query) => $query->where('name', 'like', $like)->orWhere('email', 'like', $like)));
             });
 
-        $byStatus = (clone $query)->selectRaw('statut, COUNT(*) as total')->groupBy('statut')->pluck('total', 'statut');
-        $counts = array_map(fn (array $tab): int => (int) ($byStatus[$tab[1]->value] ?? 0), self::TABS);
+        $counts = collect(self::TABS)->map(fn (array $definition, string $key): int => $this->forTab(clone $query, $key)->count())->all();
 
         $status = self::TABS[$tab][1];
 
-        $properties = $query
-            ->where('statut', $status)
+        $properties = $this->forTab($query, $tab)
             ->with(['owner', 'city', 'propertyType', 'coverImage', 'moderator'])
             ->withCount(['units', 'images'])
             // Les plus anciennes demandes d'abord : premier arrivé, premier servi
@@ -60,13 +59,42 @@ class PropertyValidationController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $oldest = Property::query()->where('statut', PropertyStatus::Pending)->min('submitted_at');
+
         return view('admin.validations.index', [
             'properties' => $properties,
             'tabs' => array_map(fn (array $tab): string => $tab[0], self::TABS),
             'counts' => $counts,
             'tab' => $tab,
             'search' => $search,
+            'summary' => [
+                'pending' => Property::query()->where('statut', PropertyStatus::Pending)->count(),
+                'oldestDays' => $oldest ? (int) now()->diffInDays($oldest, true) : null,
+                'decisionsThisMonth' => Property::query()->where('moderated_at', '>=', now()->startOfMonth())->count(),
+                'published' => Property::query()->where('statut', PropertyStatus::Published)->count(),
+            ],
+            // Dernières décisions, affichées quand rien n'attend
+            'recentDecisions' => Property::query()
+                ->whereNotNull('moderated_at')
+                ->with(['owner', 'moderator'])
+                ->latest('moderated_at')
+                ->limit(5)
+                ->get(),
         ]);
+    }
+
+    /**
+     * Restreint la requête à un onglet (« Refusés » : brouillon avec un motif de refus).
+     *
+     * @param  Builder<Property>  $query
+     * @return Builder<Property>
+     */
+    private function forTab(Builder $query, string $tab): Builder
+    {
+        return match ($tab) {
+            'refuses' => $query->where('statut', PropertyStatus::Draft)->whereNotNull('moderation_note')->where('moderation_note', '!=', ''),
+            default => $query->where('statut', self::TABS[$tab][1]),
+        };
     }
 
     public function approve(Request $request, Property $etablissement): RedirectResponse

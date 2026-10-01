@@ -12,7 +12,8 @@
         <h1>Trouvez la résidence <span>qui vous ressemble</span></h1>
 
         <p>
-            {{ $cities->sum('properties_count') }} établissements sélectionnés dans {{ $cities->count() }} villes de Côte d’Ivoire :
+            {{ $cities->sum('properties_count') }} établissement{{ $cities->sum('properties_count') > 1 ? 's' : '' }} sélectionné{{ $cities->sum('properties_count') > 1 ? 's' : '' }}
+            dans {{ $cities->count() }} ville{{ $cities->count() > 1 ? 's' : '' }} de Côte d’Ivoire :
             résidences meublées, hôtels, villas et appartements.
         </p>
 

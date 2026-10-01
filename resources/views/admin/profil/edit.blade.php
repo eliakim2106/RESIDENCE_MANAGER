@@ -76,8 +76,11 @@
 
                     <div class="form-group">
                         <label for="telephone">Téléphone</label>
-                        <input type="tel" name="telephone" id="telephone" value="{{ old('telephone', $user->phone) }}" maxlength="30" autocomplete="tel" placeholder="+225 07 00 00 00 00">
+                        @include('partials.phone-field', ['phoneValue' => $user->phone, 'phoneDial' => $user->indicatif_telephone])
                         @error('telephone')
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                        @error('indicatif_telephone')
                             <p class="field-error">{{ $message }}</p>
                         @enderror
                     </div>

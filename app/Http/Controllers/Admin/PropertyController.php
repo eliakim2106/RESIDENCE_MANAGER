@@ -16,12 +16,15 @@ use App\Services\PropertyInsights;
 use App\Services\PropertyListing;
 use App\Services\PropertyModeration;
 use App\Services\SubscriptionManager;
+use App\Support\ExcelExport;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Établissements : liste, fiche, formulaire en 6 étapes, publication et suppression.
@@ -50,6 +53,65 @@ class PropertyController extends Controller
             'counts' => $listing->counts(),
             'summary' => $listing->summary(),
         ]);
+    }
+
+    /**
+     * Export Excel des établissements affichés (mêmes filtres que la liste).
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        $listing = new PropertyListing($request->user(), $request);
+        $isAdmin = $request->user()->isAdmin();
+
+        $columns = [
+            ['label' => 'Établissement', 'width' => 30],
+            ['label' => 'Type', 'width' => 18],
+            ['label' => 'Ville', 'width' => 16],
+            ['label' => 'Commune', 'width' => 16],
+            ['label' => 'Adresse', 'width' => 30],
+            ['label' => 'Téléphone', 'width' => 20],
+            ['label' => 'Email', 'width' => 26],
+            ['label' => 'Étoiles', 'type' => 'number', 'width' => 8],
+            ['label' => 'Unités', 'type' => 'number', 'width' => 8],
+            ['label' => 'Réservations à venir', 'type' => 'number', 'width' => 14],
+            ['label' => 'Encaissé ce mois', 'type' => 'money', 'width' => 18],
+            ['label' => 'Note', 'type' => 'decimal', 'width' => 8],
+            ['label' => 'Avis', 'type' => 'number', 'width' => 8],
+            ['label' => 'Annulation', 'width' => 12],
+            ['label' => 'Statut', 'width' => 14],
+            ['label' => 'Publié le', 'type' => 'date'],
+        ];
+
+        if ($isAdmin) {
+            array_splice($columns, 1, 0, [['label' => 'Propriétaire', 'width' => 24]]);
+        }
+
+        return ExcelExport::download('etablissements', 'Établissements', $columns, $listing->export()->map(function (Property $property) use ($isAdmin): array {
+            $row = [
+                $property->name,
+                $property->propertyType?->name,
+                $property->city?->name,
+                $property->district,
+                $property->address,
+                $property->phone ? $property->formattedPhone() : '',
+                $property->email,
+                $property->star_rating,
+                (int) $property->units_count,
+                (int) $property->upcoming_count,
+                (int) $property->month_revenue,
+                $property->reviews_count > 0 ? (float) $property->rating_average : null,
+                (int) $property->reviews_count,
+                $property->cancellation_policy ? Str::before($property->cancellation_policy->label(), ' (') : '',
+                $property->wasRejected() ? 'Refusé' : $property->statut->label(),
+                $property->published_at,
+            ];
+
+            if ($isAdmin) {
+                array_splice($row, 1, 0, [$property->owner?->name]);
+            }
+
+            return $row;
+        }));
     }
 
     /**

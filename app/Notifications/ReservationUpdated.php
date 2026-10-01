@@ -33,6 +33,12 @@ class ReservationUpdated extends Notification
     /** Nouvelle réservation (à valider, ou confirmée d'office) : alerte au propriétaire */
     public const NEW_FOR_OWNER = 'new_for_owner';
 
+    /** Demande restée sans réponse dans le délai : au client */
+    public const EXPIRED = 'expired';
+
+    /** Demande restée sans réponse dans le délai : alerte au propriétaire */
+    public const EXPIRED_FOR_OWNER = 'expired_for_owner';
+
     public function __construct(
         public Reservation $reservation,
         public string $event,
@@ -47,7 +53,7 @@ class ReservationUpdated extends Notification
     public function via(object $notifiable): array
     {
         // Le propriétaire est prévenu dans son espace ; le client, par email aussi
-        if (in_array($this->event, [self::CANCELLED_BY_GUEST, self::PAID_FOR_OWNER], true)) {
+        if (in_array($this->event, [self::CANCELLED_BY_GUEST, self::PAID_FOR_OWNER, self::EXPIRED_FOR_OWNER], true)) {
             return ['database'];
         }
 
@@ -80,6 +86,12 @@ class ReservationUpdated extends Notification
                 ->lineIf(filled($reason), 'Motif : '.$reason)
                 ->line('D’autres résidences sont peut-être disponibles à ces dates.'),
 
+            self::EXPIRED => $mail
+                ->subject('Demande expirée – '.$reservation->reference)
+                ->line('L’établissement **'.$property?->name.'** n’a pas répondu à temps à votre demande '.$stay.' : elle a expiré et les dates ne vous sont plus réservées.')
+                ->lineIf($reservation->amount_paid > 0, 'Le paiement que vous avez effectué vous est remboursé.')
+                ->line('D’autres résidences sont peut-être disponibles à ces dates.'),
+
             self::CANCELLED => $mail
                 ->subject('Réservation annulée – '.$reservation->reference)
                 ->line('Votre réservation **'.$reservation->reference.'** à **'.$property?->name.'** ('.$stay.') a été annulée.')
@@ -106,7 +118,10 @@ class ReservationUpdated extends Notification
             default => $mail->subject('Réservation '.$reservation->reference),
         };
 
-        return $mail->action('Voir ma réservation', route('admin.reservations.show', $reservation));
+        return $mail->action(
+            $this->event === self::NEW_FOR_OWNER ? 'Voir la réservation' : 'Voir ma réservation',
+            $this->url($notifiable),
+        );
     }
 
     /**
@@ -121,6 +136,8 @@ class ReservationUpdated extends Notification
             self::REFUSED => ["Votre réservation {$reference} n’a pas été acceptée.", 'fa-circle-xmark', 'critical'],
             self::CANCELLED => ["Votre réservation {$reference} a été annulée.", 'fa-ban', 'critical'],
             self::CANCELLED_BY_GUEST => ["{$this->reservation->guest_name} a annulé la réservation {$reference}.", 'fa-ban', 'warning'],
+            self::EXPIRED => ["Votre demande {$reference} a expiré sans réponse de l’établissement.", 'fa-hourglass-end', 'critical'],
+            self::EXPIRED_FOR_OWNER => ["La demande de {$this->reservation->guest_name} ({$reference}) a expiré faute de réponse.", 'fa-hourglass-end', 'warning'],
             self::REFUNDED => ["Remboursement de {$this->money((int) $this->amount)} enregistré ({$reference}).", 'fa-rotate-left', 'info'],
             self::PAID => ["Paiement de {$this->money((int) $this->amount)} reçu pour la réservation {$reference}.", 'fa-circle-check', 'good'],
             self::PAID_FOR_OWNER => ["{$this->reservation->guest_name} a payé {$this->money((int) $this->amount)} en ligne ({$reference}).", 'fa-wallet', 'good'],
@@ -134,8 +151,20 @@ class ReservationUpdated extends Notification
             'message' => $message,
             'icon' => $icon,
             'tone' => $tone,
-            'url' => route('admin.reservations.show', $this->reservation),
+            'url' => $this->url($notifiable),
         ];
+    }
+
+    /**
+     * Le client suit sa réservation dans son espace ; l'établissement, dans l'administration.
+     */
+    private function url(object $notifiable): string
+    {
+        $forOwner = in_array($this->event, [self::NEW_FOR_OWNER, self::PAID_FOR_OWNER, self::CANCELLED_BY_GUEST, self::EXPIRED_FOR_OWNER], true);
+
+        return $forOwner || ($notifiable instanceof User && ! $notifiable->isClient())
+            ? route('admin.reservations.show', $this->reservation)
+            : route('client.reservations.show', $this->reservation);
     }
 
     private function money(int $amount): string

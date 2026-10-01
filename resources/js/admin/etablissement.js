@@ -585,9 +585,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const telephone = document.getElementById("telephone");
 
   if (telephone) {
+    // Mise en forme et longueur gérées par le champ téléphone commun (js/phone-field.js)
     telephone.addEventListener("input", function () {
-      this.value = this.value.replace(/\D/g, "");
-
       clearError(this, "error-telephone");
     });
   }
@@ -621,14 +620,21 @@ document.addEventListener("DOMContentLoaded", function () {
       ------------------------------------------------------
       */
 
-    if (telephone && telephone.value.trim() !== "") {
-      if (telephone.value.length !== 10) {
+    if (telephone) {
+      const dial = telephone.closest("[data-phone-field]")?.querySelector("[data-phone-dial]");
+      const option = dial?.options[dial.selectedIndex];
+
+      if (telephone.value.trim() === "") {
+        showError(telephone, "error-telephone", "Le téléphone est obligatoire.");
+
+        valid = false;
+      } else if (telephone.dataset.phoneValid === "0" && option) {
         showError(
           telephone,
 
           "error-telephone",
 
-          "Le numéro doit contenir 10 chiffres.",
+          `Un numéro ${option.dataset.name} compte ${option.dataset.lengths.replace(",", " ou ")} chiffres, par exemple ${option.dataset.example}.`,
         );
 
         valid = false;

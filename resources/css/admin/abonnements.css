@@ -720,7 +720,8 @@
     flex-wrap: wrap;
   }
 
-  .invoice-actions {
+  /* Liste des factures uniquement (les cellules « Action » des tableaux gardent leur mise en page) */
+  .invoice-list .invoice-actions {
     width: 100%;
     justify-content: flex-end;
     padding-left: 56px;

@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Notifications\ReservationUpdated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\ReadsExcelExports;
 use Tests\TestCase;
 
 /**
@@ -19,7 +20,7 @@ use Tests\TestCase;
  */
 class PaymentModuleTest extends TestCase
 {
-    use RefreshDatabase;
+    use ReadsExcelExports, RefreshDatabase;
 
     private function payment(array $attributes = [], ?Reservation $reservation = null): Payment
     {
@@ -54,7 +55,7 @@ class PaymentModuleTest extends TestCase
         $payment = $this->payment(['amount' => 45000], $reservation);
 
         $this->actingAs($owner)->get(route('admin.paiements.show', $payment))->assertOk()->assertSee($payment->transaction_id)->assertSee($reservation->reference);
-        $this->actingAs($client)->get(route('admin.paiements.show', $payment))->assertForbidden();
+        $this->actingAs($client)->get(route('admin.paiements.show', $payment))->assertRedirect(route('client.dashboard'));
 
         $this->actingAs($client)->get(route('admin.paiements.receipt', $payment))->assertOk()->assertSee('Reçu de paiement')->assertSee('45 000 FCFA');
         $this->actingAs(User::factory()->create())->get(route('admin.paiements.receipt', $payment))->assertForbidden();
@@ -67,11 +68,13 @@ class PaymentModuleTest extends TestCase
         $cash = $this->payment(['method' => PaymentMethod::Cash]);
         $card = $this->payment(['method' => PaymentMethod::Card]);
 
-        $csv = $this->actingAs($admin)->get(route('admin.paiements.export', ['moyen' => 'cash']))->assertOk()->streamedContent();
+        $rows = $this->excelRows($this->actingAs($admin)->get(route('admin.paiements.export', ['moyen' => 'cash'])));
 
-        $this->assertStringContainsString('Transaction;Date;Statut', $csv);
-        $this->assertStringContainsString($cash->transaction_id, $csv);
-        $this->assertStringNotContainsString($card->transaction_id, $csv);
+        $this->assertSame(['Transaction', 'Date', 'Statut'], array_slice($rows[0], 0, 3));
+        $this->assertCount(2, $rows, 'En-tête + le seul paiement en espèces');
+        $this->assertSame($cash->transaction_id, $rows[1][0]);
+        $this->assertSame($cash->amount, (int) $rows[1][6]);
+        $this->assertStringNotContainsString($card->transaction_id, json_encode($rows));
     }
 
     public function test_partial_then_full_refund_of_a_payment(): void

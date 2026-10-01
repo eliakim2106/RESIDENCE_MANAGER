@@ -3,6 +3,8 @@
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 
 @import "./datepicker.css";
+@import "flag-icons/css/flag-icons.min.css";
+@import "./phone-field.css";
 
 @import "./alert.css";
 @import "./admin/admin.css";
@@ -14,5 +16,6 @@
 @import "./admin/reversements.css";
 @import "./admin/notifications.css";
 @import "./admin/etablissements.css";
+@import "./admin/listes.css";
 @import "./admin/validations.css";
 @import "./admin/comptes.css";

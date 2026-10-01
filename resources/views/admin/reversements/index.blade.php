@@ -15,6 +15,13 @@
                 <p>La part de chaque propriétaire sur les paiements en ligne encaissés par DS Holding.</p>
             </div>
         </div>
+
+        <div class="admin-page-actions">
+            <a href="{{ route('admin.reversements.export', request()->only('search')) }}" class="btn-secondary btn-export" title="Exporter l’historique des reversements au format Excel">
+                <i class="fa-solid fa-file-excel"></i>
+                Exporter l’historique
+            </a>
+        </div>
     </div>
 
     @include('partials.flash')
