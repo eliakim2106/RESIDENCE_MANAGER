@@ -8,6 +8,7 @@ use App\Enums\TransactionStatus;
 use App\Models\Availability;
 use App\Models\Payment;
 use App\Models\Property;
+use App\Models\PropertyImage;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
@@ -86,6 +87,21 @@ class BookingTest extends TestCase
             ->assertOk()
             ->assertSee('120 000 FCFA')
             ->assertSee('name="unites['.$this->unit->id.']"', false);
+    }
+
+    public function test_a_shared_link_shows_the_name_and_the_cover_photo(): void
+    {
+        PropertyImage::factory()->for($this->residence)->create(['path' => 'properties/1/gallery/piscine.jpg', 'is_cover' => false]);
+        PropertyImage::factory()->for($this->residence)->create(['path' => 'properties/1/gallery/facade.jpg', 'is_cover' => true]);
+        $this->residence->update(['short_description' => 'Résidence calme au bord de la lagune.', 'meta_description' => null]);
+
+        $html = $this->get(route('residences.show', [$this->residence, 'arrivee' => $this->arrival->toDateString()]))->assertOk()->getContent();
+
+        $this->assertStringContainsString('<meta property="og:title" content="Résidence Lagune · '.e($this->residence->city->name).'">', $html);
+        $this->assertStringContainsString('<meta property="og:description" content="Résidence calme au bord de la lagune.">', $html);
+        $this->assertMatchesRegularExpression('#<meta property="og:image" content="https?://[^"]+/storage/properties/1/gallery/facade\.jpg">#', $html);
+        $this->assertStringContainsString('<meta property="og:url" content="'.route('residences.show', $this->residence).'">', $html);
+        $this->assertStringContainsString('<meta name="twitter:card" content="summary_large_image">', $html);
     }
 
     public function test_night_price_follows_calendar_then_weekend_then_base(): void

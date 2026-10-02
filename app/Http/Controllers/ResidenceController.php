@@ -54,7 +54,8 @@ class ResidenceController extends Controller
 
         $residence->load([
             'city', 'propertyType', 'owner',
-            'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('position'),
+            // La relation trie déjà par position : reorder() pour mettre la couverture en premier
+            'images' => fn ($query) => $query->reorder()->orderByDesc('is_cover')->orderBy('position'),
             'equipments' => fn ($query) => $query->where('statut', ActiveStatus::Active)->orderBy('category')->orderBy('name'),
         ]);
 

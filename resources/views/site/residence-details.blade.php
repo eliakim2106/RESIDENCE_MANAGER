@@ -28,6 +28,11 @@
 
 @section('title', $residence->name)
 
+{{-- Lien partagé : nom de l'établissement et sa photo de couverture --}}
+@section('og_title', $residence->name.($residence->city ? ' · '.$residence->city->name : ''))
+@section('description', $residence->meta_description ?: ($residence->short_description ?: Str::limit(strip_tags((string) $residence->description), 160) ?: $residence->name))
+@section('og_image', $images->first()?->url ?? '')
+
 @section('content')
     @include('site.partials.navbar')
 

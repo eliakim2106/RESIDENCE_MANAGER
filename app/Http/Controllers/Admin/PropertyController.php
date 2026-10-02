@@ -125,7 +125,7 @@ class PropertyController extends Controller
     {
         Gate::authorize('view', $etablissement);
 
-        $etablissement->load(['propertyType', 'city', 'owner.currentSubscription.plan', 'moderator', 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('position')]);
+        $etablissement->load(['propertyType', 'city', 'owner.currentSubscription.plan', 'moderator', 'images' => fn ($query) => $query->reorder()->orderByDesc('is_cover')->orderBy('position')]);
         $insights = new PropertyInsights($etablissement);
 
         return view('admin.etablissements.show', [
@@ -192,7 +192,7 @@ class PropertyController extends Controller
     {
         Gate::authorize('update', $etablissement);
 
-        $etablissement->load(['images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('position')]);
+        $etablissement->load(['images' => fn ($query) => $query->reorder()->orderByDesc('is_cover')->orderBy('position')]);
         $step = array_search((string) $request->query('etape'), self::STEPS, true);
 
         return view('admin.etablissements.edit', [

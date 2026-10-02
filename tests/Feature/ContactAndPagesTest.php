@@ -29,7 +29,7 @@ class ContactAndPagesTest extends TestCase
     public function test_home_shows_real_residences_and_reviews(): void
     {
         $residence = Property::factory()->create(['name' => 'Villa Océane', 'is_featured' => true]);
-        Unit::factory()->for($residence)->create();
+        Unit::factory()->for($residence)->create(['base_price' => 40000, 'promo_price' => null]);
         $hidden = Property::factory()->draft()->create(['name' => 'Brouillon Caché']);
         // Publié mais sans unité : rien à réserver, donc absent de l'accueil
         Property::factory()->create(['name' => 'Résidence Sans Logement']);

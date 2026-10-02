@@ -14,6 +14,8 @@ Ce que chaque profil peut faire, avec l’adresse des pages. Quatre rôles : **v
 | Contact | `/contact` | Formulaire (message enregistré, administrateurs prévenus). Aussi en bas de l’accueil. |
 | Conditions, confidentialité | `/conditions-utilisation`, `/confidentialite` | Textes décrivant le fonctionnement réel de la plateforme, à faire valider juridiquement. |
 
+**Partage** : un lien de fiche partagé (WhatsApp, Facebook, Messenger, X…) s’affiche avec le nom de l’établissement, sa ville, sa description et sa photo de couverture (balises Open Graph). Les autres pages utilisent le titre de la page et le visuel du site. L’aperçu exige une adresse publique : `APP_URL` doit être le vrai domaine et les photos accessibles (`php artisan storage:link`).
+
 **J’aime** : un cœur sur la fiche et sur les cartes (accueil, liste), avec le nombre de j’aime. Ouvert à tous, sans compte : un j’aime par navigateur, reconnu par un cookie. Un second clic le retire.
 
 En bas de chaque page : inscription à la newsletter (lien de désinscription personnel `/newsletter/desinscription/{jeton}`).
