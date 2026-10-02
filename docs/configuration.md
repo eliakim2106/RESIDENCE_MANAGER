@@ -6,7 +6,7 @@ Toutes les clés se renseignent dans `.env`. Le modèle commenté est `.env.exam
 
 | Clé | Rôle |
 | --- | --- |
-| `APP_URL` | Adresse publique du site. Elle sert aux liens des emails et aux adresses de retour des paiements. |
+| `APP_URL` | Adresse publique du site, en HTTPS. Elle sert aux liens des emails, aux adresses de retour des paiements et aux aperçus des liens partagés (photo d’une fiche sur WhatsApp ou Facebook). |
 | `APP_DEBUG` | `false` en production : les pages d’erreur du site s’affichent sans détail technique. |
 | `DB_*` | Connexion MySQL |
 
@@ -120,10 +120,11 @@ Chaque commande peut aussi être lancée à la main, par exemple `php artisan re
    composer install --no-dev --optimize-autoloader
    npm ci && npm run build
    php artisan migrate --force
-   php artisan storage:link      # images envoyées depuis Paramètres du site > Contenu des pages
+   php artisan storage:link      # photos des établissements, images du contenu des pages, aperçus de partage
    php artisan config:cache && php artisan route:cache && php artisan view:cache
    ```
 
 4. Tâche cron du planificateur et worker de la file d’attente (`php artisan queue:work`), relancé automatiquement.
 5. Faire relire par un conseil juridique les pages **Conditions d’utilisation** et **Confidentialité**. Vérifier le nom, les coordonnées et les réseaux sociaux dans **Administration > Paramètres du site**.
 6. Remplacer les formules de démonstration (prix fictifs) dans **Administration > Formules**.
+7. Après la mise en ligne, tester le partage d’une fiche (WhatsApp, Facebook) : l’aperçu doit montrer le nom et la photo de l’établissement. L’outil de débogage de partage de Facebook permet de rafraîchir un aperçu gardé en mémoire.

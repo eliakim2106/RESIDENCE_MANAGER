@@ -826,90 +826,7 @@ a.resa-today-card:hover {
   font-size: 0.78rem;
 }
 
-/* ---------- Calendrier d'occupation ---------- */
-
-.occ-card {
-  padding: 20px;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-lg);
-  background: var(--ds-surface);
-  box-shadow: var(--ds-shadow-sm);
-}
-
-.occ-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px 28px;
-  margin-bottom: 18px;
-}
-
-.occ-nav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.occ-nav h2 {
-  min-width: 150px;
-  margin: 0;
-  color: var(--ds-navy);
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.occ-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--ds-border);
-  border-radius: 10px;
-  color: var(--ds-text);
-  text-decoration: none;
-}
-
-.occ-nav-btn:hover {
-  background: var(--ds-navy);
-  color: #fff;
-}
-
-.occ-rate {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.occ-rate-value {
-  color: var(--ds-blue);
-  font-size: 1.6rem;
-  font-weight: 800;
-}
-
-.occ-rate-label {
-  color: var(--ds-muted);
-  font-size: 0.75rem;
-  line-height: 1.2;
-}
-
-.occ-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin: 0 0 0 auto;
-  padding: 0;
-  color: var(--ds-muted);
-  font-size: 0.8rem;
-  list-style: none;
-}
-
-.occ-legend li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
+/* ---------- Calendrier d'occupation : vue planning (cadre et vue mois : calendar.css) ---------- */
 
 .occ-swatch {
   display: inline-block;
@@ -1184,10 +1101,6 @@ a.resa-today-card:hover {
 
   .stay-big-date strong {
     font-size: 2rem;
-  }
-
-  .occ-legend {
-    margin-left: 0;
   }
 
   .occ-unit-head,

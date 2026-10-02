@@ -53,7 +53,7 @@
 
             <section id="cookies">
                 <h2>5. Cookies</h2>
-                <p>Le site utilise uniquement les cookies nécessaires à son fonctionnement : maintien de votre session, protection des formulaires et option « Se souvenir de moi ». Aucun cookie publicitaire n’est déposé.</p>
+                <p>Le site utilise uniquement les cookies nécessaires à son fonctionnement : maintien de votre session, protection des formulaires et option « Se souvenir de moi ». Si vous aimez une résidence sans être connecté, un identifiant anonyme mémorise vos « J’aime » pendant deux ans ; il ne contient aucune donnée personnelle. Aucun cookie publicitaire n’est déposé.</p>
             </section>
 
             <section id="conservation">

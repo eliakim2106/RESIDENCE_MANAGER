@@ -14,9 +14,11 @@ Ce que chaque profil peut faire, avec l’adresse des pages. Quatre rôles : **v
 | Contact | `/contact` | Formulaire (message enregistré, administrateurs prévenus). Aussi en bas de l’accueil. |
 | Conditions, confidentialité | `/conditions-utilisation`, `/confidentialite` | Textes décrivant le fonctionnement réel de la plateforme, à faire valider juridiquement. |
 
+**Visibilité** : un établissement apparaît sur le site (accueil, liste, fiche, résidences similaires, chiffres) s’il est publié, a au moins une unité active et, quand l’abonnement est obligatoire, si son propriétaire est en règle. Le propriétaire et les administrateurs gardent un aperçu de sa fiche.
+
 **Partage** : un lien de fiche partagé (WhatsApp, Facebook, Messenger, X…) s’affiche avec le nom de l’établissement, sa ville, sa description et sa photo de couverture (balises Open Graph). Les autres pages utilisent le titre de la page et le visuel du site. L’aperçu exige une adresse publique : `APP_URL` doit être le vrai domaine et les photos accessibles (`php artisan storage:link`).
 
-**J’aime** : un cœur sur la fiche et sur les cartes (accueil, liste), avec le nombre de j’aime. Ouvert à tous, sans compte : un j’aime par navigateur, reconnu par un cookie. Un second clic le retire.
+**J’aime** : un cœur sur la fiche et sur les cartes (accueil, liste, résidences similaires), avec le nombre de j’aime, sans recharger la page. Ouvert à tous, sans compte : un j’aime par navigateur, reconnu par un cookie anonyme (mentionné dans la page Confidentialité). Un second clic le retire. Pour un client connecté, une résidence aimée rejoint aussi ses favoris. Le nombre de j’aime figure sur la fiche de l’établissement dans l’administration.
 
 En bas de chaque page : inscription à la newsletter (lien de désinscription personnel `/newsletter/desinscription/{jeton}`).
 
@@ -49,7 +51,7 @@ Un client qui ouvre une ancienne adresse de l’administration (`/admin/...`) es
 ### Parcours de réservation
 
 1. Sur la fiche, le client choisit ses dates et ses voyageurs : chaque logement affiche son prix pour le séjour et le nombre encore disponible.
-2. Il choisit le nombre de logements par type ; le total se met à jour en direct.
+2. Il choisit le nombre de logements par type avec les boutons − / + (limités au nombre disponible) ; le total se met à jour en direct.
 3. Le récapitulatif (`/reserver/{slug}`) demande le voyageur principal, le téléphone, l’heure d’arrivée et l’acceptation des conditions.
 4. La demande est créée **en attente** et l’établissement est prévenu. Le client peut déjà payer en ligne.
 5. L’établissement confirme ou refuse.
@@ -62,7 +64,11 @@ Un client qui ouvre une ancienne adresse de l’administration (`/admin/...`) es
   - **Plusieurs unités** (« Gestion des unités » activée) : hôtel, résidence… Les chambres et logements s’ajoutent dans le menu Unités.
   - Un établissement sans unité active n’est ni soumis ni publié (il reste en brouillon, avec un message), et n’apparaît nulle part sur le site.
 - **Unités** : caractéristiques, prix (base, promotion, week-end, ménage), tarifs par période, galerie, équipements ; suppression bloquée si des séjours sont à venir.
-- **Réservations** : liste filtrable, calendrier d’occupation, confirmation, refus, annulation, séjour terminé, client absent, paiements reçus sur place, remboursements, bon de réservation.
+- **Réservations** : liste filtrable, confirmation, refus, annulation, séjour terminé, client absent, paiements reçus sur place, remboursements, bon de réservation.
+- **Calendrier** (`/admin/reservations/calendrier`) : grand calendrier plein écran, par établissement et par mois.
+  - **Mois** : chaque séjour est une barre sur ses nuits, colorée selon son état (en séjour, confirmée, en attente, terminée), avec le nom du client et le logement ; un clic ouvre la réservation. Chaque jour affiche son taux d’occupation, ses arrivées et ses départs ; au-delà de trois séjours par semaine, « + N séjours » ouvre la liste du jour. Sur mobile, un agenda des séjours du mois complète le calendrier.
+  - **Planning** : une ligne par unité, une case par jour (libre, partiellement occupé, complet, maintenance).
+  - En tête : taux d’occupation, nombre de séjours, d’arrivées et de départs du mois.
 - **Paiements** : historique et reçus.
 - **Avis** : avis de ses établissements, avec note, critères et filtres.
   - Il y **répond publiquement** ; sa réponse paraît sous l’avis, sur la fiche de la résidence, et le voyageur est prévenu.
@@ -120,6 +126,11 @@ Confort d’utilisation du module :
 - **Onglet Général** : aperçus en direct du résultat Google, du pied de page et des règles de réservation. Raccourcis vers chaque section, boutons − / + pour les règles.
 - **Onglet Contenu** : blocs repliables avec leur état (personnalisé, contenu d’origine, masqué) et la date de modification. Les éléments de liste se replient en résumé (vignette ou icône, titre) et se déplacent par glisser-déposer ou avec les flèches.
 - **Traçabilité** : chaque réglage garde la date et l’auteur de sa dernière modification, affichés dans l’en-tête et sur chaque bloc.
+
+## Interface de l’administration
+
+- **Modales** : formulaires d’action (annuler une réservation, enregistrer un paiement, rembourser, reverser, refuser un établissement…) et confirmations dans une fenêtre aux couleurs du site. Fermeture par la croix, « Retour », Échap ou un clic à côté ; sur mobile, elles s’ouvrent en panneau depuis le bas de l’écran.
+- **Confirmations** : toute action sensible (supprimer, masquer un avis, mettre hors ligne, résilier…) demande une confirmation qui reprend la question et le libellé de l’action, en rouge si elle est destructrice. La fenêtre native du navigateur n’est pas utilisée.
 
 ## Exports Excel
 

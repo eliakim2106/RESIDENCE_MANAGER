@@ -1,0 +1,713 @@
+/* =====================================================================
+   CALENDRIER D'OCCUPATION (Réservations → Calendrier)
+   Vue « Mois » : grand calendrier plein écran, séjours en barres sur leurs nuits.
+   Vue « Planning » : unités × jours (styles .occ-* dans reservations-page.css).
+===================================================================== */
+
+/* Couleurs des séjours selon leur état */
+.tone-inhouse {
+  --tone-bg: var(--ds-navy);
+  --tone-fg: #fff;
+  --tone-accent: var(--ds-gold);
+}
+
+.tone-confirmed {
+  --tone-bg: var(--ds-blue-soft);
+  --tone-fg: var(--ds-blue-dark);
+  --tone-accent: var(--ds-blue);
+}
+
+.tone-pending {
+  --tone-bg: var(--ds-warning-soft);
+  --tone-fg: #92400e;
+  --tone-accent: var(--ds-warning);
+}
+
+.tone-completed {
+  --tone-bg: #eef1f5;
+  --tone-fg: #475569;
+  --tone-accent: #94a3b8;
+}
+
+/* ---------- Cadre : occupe toute la hauteur disponible ---------- */
+
+.cal-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: calc(100dvh - var(--navbar-height) - 200px);
+  padding: 20px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow);
+}
+
+/* ---------- Barre d'outils ---------- */
+
+.cal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+}
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-nav h2 {
+  min-width: 180px;
+  margin: 0 0 0 8px;
+  color: var(--ds-navy);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cal-nav-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  background: var(--ds-surface);
+  color: var(--ds-navy);
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.cal-nav-btn:hover {
+  border-color: var(--ds-navy);
+  background: var(--ds-navy);
+  color: #fff;
+}
+
+.cal-today-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  color: var(--ds-navy);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.cal-today-btn:hover {
+  background: var(--ds-gold-soft);
+  border-color: var(--ds-gold);
+  color: var(--ds-navy);
+}
+
+/* Onglets Mois / Planning */
+.cal-views {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  background: var(--ds-surface-muted);
+}
+
+.cal-views a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  color: var(--ds-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.cal-views a:hover {
+  color: var(--ds-navy);
+}
+
+.cal-views a.is-active {
+  background: var(--ds-surface);
+  color: var(--ds-navy);
+  box-shadow: 0 1px 3px rgba(15, 27, 51, 0.12);
+}
+
+/* Chiffres du mois */
+.cal-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 0 auto;
+}
+
+.cal-kpis > div {
+  min-width: 92px;
+  padding: 7px 14px;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+}
+
+.cal-kpis dt {
+  color: var(--ds-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cal-kpis dd {
+  margin: 0;
+  color: var(--ds-navy);
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-kpis .is-rate {
+  border-color: transparent;
+  background: var(--ds-blue-soft);
+}
+
+.cal-kpis .is-rate dd {
+  color: var(--ds-blue);
+}
+
+/* Légende */
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  color: var(--ds-muted);
+  font-size: 0.8rem;
+  list-style: none;
+}
+
+.cal-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cal-legend .cal-legend-note {
+  margin-left: auto;
+}
+
+.cal-dot {
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border-radius: 4px;
+  background: var(--tone-accent);
+}
+
+/* ---------- Vue mois ---------- */
+
+.cal-month {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto;
+  grid-auto-rows: minmax(auto, 1fr);
+  min-height: calc(100dvh - var(--navbar-height) - 340px);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-bottom: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius) var(--ds-radius) 0 0;
+  background: var(--ds-surface-muted);
+}
+
+/* Coins arrondis de la dernière semaine (le cadre ne coupe pas son contenu : liste « + N » visible) */
+.cal-week:last-child .cal-day:first-child {
+  border-bottom-left-radius: var(--ds-radius);
+}
+
+.cal-week:last-child .cal-day:nth-child(7) {
+  border-bottom-right-radius: var(--ds-radius);
+}
+
+.cal-weekdays span {
+  padding: 10px 12px;
+  color: var(--ds-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cal-weekdays abbr {
+  display: none;
+  text-decoration: none;
+}
+
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: 38px repeat(var(--lanes), 27px) minmax(32px, 1fr);
+  min-height: max(118px, calc(74px + var(--lanes) * 27px));
+}
+
+.cal-week + .cal-week {
+  border-top: 1px solid var(--ds-border);
+}
+
+.cal-day {
+  position: relative;
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 8px 10px;
+  border-left: 1px solid var(--ds-border);
+}
+
+.cal-day:first-child {
+  border-left: 0;
+}
+
+.cal-day.is-weekend {
+  background: #fafbfd;
+}
+
+.cal-day.is-outside {
+  background: repeating-linear-gradient(135deg, #fbfcfe 0 8px, #f5f7fb 8px 16px);
+}
+
+.cal-day.is-today {
+  background: #fffaeb;
+}
+
+.cal-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cal-day-number {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--ds-navy);
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-day.is-outside .cal-day-number {
+  color: #b6c0ce;
+  font-weight: 500;
+}
+
+.cal-day.is-today .cal-day-number {
+  background: var(--ds-gold);
+  color: var(--ds-navy);
+  box-shadow: 0 4px 10px rgba(212, 167, 44, 0.35);
+}
+
+/* Occupation du jour */
+.cal-day-rate {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-day-rate.is-some {
+  background: var(--ds-blue-soft);
+  color: var(--ds-blue);
+}
+
+.cal-day-rate.is-high {
+  background: var(--ds-warning-soft);
+  color: #b45309;
+}
+
+.cal-day-rate.is-full {
+  background: var(--ds-danger-soft);
+  color: #b91c1c;
+}
+
+.cal-day-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px 8px;
+  min-height: 20px;
+}
+
+.cal-moves {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--ds-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.cal-moves i {
+  font-size: 0.66rem;
+}
+
+/* Barres de séjour */
+.cal-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 23px;
+  margin: 2px 6px;
+  padding: 0 9px;
+  overflow: hidden;
+  border-left: 3px solid var(--tone-accent);
+  border-radius: 7px;
+  background: var(--tone-bg);
+  color: var(--tone-fg);
+  font-size: 0.74rem;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(15, 27, 51, 0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.cal-bar:hover,
+.cal-bar:focus-visible {
+  z-index: 2;
+  color: var(--tone-fg);
+  box-shadow: 0 6px 16px rgba(15, 27, 51, 0.16);
+  transform: translateY(-1px);
+}
+
+.cal-bar strong,
+.cal-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-bar strong {
+  flex-shrink: 0;
+  max-width: 100%;
+  font-weight: 700;
+}
+
+.cal-bar span {
+  opacity: 0.8;
+}
+
+/* Séjour qui déborde sur la semaine précédente ou suivante */
+.cal-bar.continues-before {
+  margin-left: 0;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: 12px;
+}
+
+.cal-bar.continues-after {
+  margin-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* « + N séjours » : liste des séjours masqués du jour, ouverte au-dessus de la pastille */
+.cal-more {
+  position: relative;
+}
+
+.cal-more summary {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-blue);
+  font-size: 0.7rem;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.cal-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.cal-more[open] summary {
+  background: var(--ds-blue);
+  color: #fff;
+}
+
+.cal-more-pop {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 250px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid var(--ds-border);
+  border-radius: 14px;
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  animation: cal-pop 0.18s ease-out;
+}
+
+@keyframes cal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.cal-day:nth-child(n + 6) .cal-more-pop {
+  right: 0;
+  left: auto;
+}
+
+.cal-more-pop > strong {
+  margin: 0 4px 6px;
+  color: var(--ds-navy);
+  font-size: 0.8rem;
+}
+
+.cal-more-pop a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--ds-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cal-more-pop a:hover {
+  background: var(--ds-surface-muted);
+}
+
+.cal-more-pop small {
+  grid-column: 2;
+  color: var(--ds-muted);
+  font-weight: 400;
+}
+
+/* ---------- Agenda (petits écrans) ---------- */
+
+.cal-agenda {
+  display: none;
+}
+
+.cal-agenda h3 {
+  margin: 4px 0 10px;
+  color: var(--ds-navy);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cal-agenda-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--ds-border);
+  border-left: 4px solid var(--tone-accent);
+  border-radius: 12px;
+  color: var(--ds-text);
+  text-decoration: none;
+}
+
+.cal-agenda-item + .cal-agenda-item {
+  margin-top: 8px;
+}
+
+.cal-agenda-date {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  padding: 6px 0;
+  border-radius: 10px;
+  background: var(--tone-bg);
+  color: var(--tone-fg);
+  line-height: 1.1;
+}
+
+.cal-agenda-date b {
+  font-size: 1.1rem;
+}
+
+.cal-agenda-date small {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.cal-agenda-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cal-agenda-body strong {
+  color: var(--ds-navy);
+  font-size: 0.9rem;
+}
+
+.cal-agenda-body small {
+  color: var(--ds-muted);
+  font-size: 0.76rem;
+}
+
+.cal-agenda-status {
+  grid-column: 2;
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--tone-bg);
+  color: var(--tone-fg);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.cal-agenda-empty {
+  margin: 0;
+  color: var(--ds-muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- Vue planning : occupe aussi la hauteur ---------- */
+
+.cal-shell .occ-grid tbody td,
+.cal-shell .occ-grid tbody th {
+  height: clamp(52px, calc((100dvh - var(--navbar-height) - 420px) / var(--rows, 6)), 110px);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1199.98px) {
+  .cal-kpis {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .cal-kpis > div {
+    flex: 1;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .cal-shell {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .cal-nav h2 {
+    min-width: 0;
+    font-size: 1.2rem;
+  }
+
+  .cal-views {
+    width: 100%;
+  }
+
+  .cal-views a {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .cal-kpis > div {
+    min-width: calc(50% - 4px);
+  }
+
+  .cal-legend .cal-legend-note {
+    display: none;
+  }
+
+  /* Calendrier compact : barres sans texte, détail dans l'agenda */
+  .cal-month {
+    min-height: 0;
+  }
+
+  .cal-weekdays span {
+    padding: 8px 0;
+    text-align: center;
+  }
+
+  .cal-weekdays b {
+    display: none;
+  }
+
+  .cal-weekdays abbr {
+    display: inline;
+  }
+
+  .cal-week {
+    grid-template-rows: 30px repeat(var(--lanes), 8px) minmax(8px, 1fr);
+    min-height: 64px;
+  }
+
+  .cal-day {
+    padding: 4px 2px;
+    align-items: center;
+  }
+
+  .cal-day-rate,
+  .cal-day-foot {
+    display: none;
+  }
+
+  .cal-day-number {
+    min-width: 24px;
+    height: 24px;
+    font-size: 0.78rem;
+  }
+
+  .cal-bar {
+    height: 6px;
+    margin: 1px 2px;
+    padding: 0;
+    border-left: 0;
+    border-radius: 3px;
+    background: var(--tone-accent);
+    font-size: 0;
+    box-shadow: none;
+  }
+
+  .cal-bar.continues-before {
+    padding-left: 0;
+  }
+
+  .cal-agenda {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-bar {
+    transition: none;
+  }
+
+  .cal-more-pop {
+    animation: none;
+  }
+}

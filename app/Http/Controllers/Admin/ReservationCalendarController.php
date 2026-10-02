@@ -29,14 +29,32 @@ class ReservationCalendarController extends Controller
 
         $calendar = $property ? new OccupancyCalendar($property, $month) : null;
         $rows = $calendar?->rows() ?? collect();
+        $weeks = $calendar?->weeks($rows) ?? [];
+
+        // Séjours qui occupent au moins une nuit du mois, dans l'ordre des arrivées (agenda mobile, chiffres)
+        $stays = collect($weeks)->flatMap(fn (array $week) => array_column($week['bars'], 'reservation'))
+            ->unique('id')
+            ->filter(fn ($reservation) => $reservation->check_in->lt($month->endOfMonth()) && $reservation->check_out->gt($month->startOfMonth()))
+            ->sortBy('check_in')
+            ->values();
+        $monthDays = collect($weeks)->flatMap(fn (array $week) => $week['days'])->where('inMonth', true);
 
         return view('admin.reservations.calendar', [
             'properties' => $properties,
             'property' => $property,
             'calendar' => $calendar,
             'rows' => $rows,
+            'weeks' => $weeks,
+            'stays' => $stays,
+            'view' => $request->query('vue') === 'planning' ? 'planning' : 'mois',
             'month' => $month,
             'occupancy' => OccupancyCalendar::occupancyRate($rows),
+            'summary' => [
+                'stays' => $stays->count(),
+                'arrivals' => $monthDays->sum('arrivals'),
+                'departures' => $monthDays->sum('departures'),
+                'nights' => $monthDays->sum('booked'),
+            ],
         ]);
     }
 

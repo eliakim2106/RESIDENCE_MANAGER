@@ -2,9 +2,9 @@
 
 Plateforme de réservation de résidences meublées, hôtels, villas et appartements en Côte d’Ivoire :
 
-- un **site public** où les voyageurs cherchent, comparent et réservent ;
+- un **site public** où les voyageurs cherchent, comparent, aiment et réservent ;
 - un **espace client** (`/mon-compte`) pour suivre, payer, annuler et noter ses séjours ;
-- une **administration** (`/admin`) pour les propriétaires (établissements, réservations, paiements, reversements, abonnement) et l’équipe DS Holding (validation, référentiels, utilisateurs, abonnements, messages).
+- une **administration** (`/admin`) pour les propriétaires (établissements ou logements entiers, réservations, calendrier, paiements, avis, reversements, abonnement) et l’équipe DS Holding (validation, modération des avis, référentiels, utilisateurs, abonnements, messages, paramètres du site).
 
 ## Stack
 

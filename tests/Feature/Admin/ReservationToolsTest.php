@@ -12,6 +12,8 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\ReservationUpdated;
+use App\Services\OccupancyCalendar;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\ReadsExcelExports;
@@ -112,13 +114,55 @@ class ReservationToolsTest extends TestCase
         ]);
         ReservationUnit::factory()->for($reservation)->for($unit)->create(['quantity' => 1]);
 
-        $response = $this->actingAs($owner)->get(route('admin.reservations.calendar', ['mois' => $checkIn->format('Y-m')]));
+        // Vue mois (par défaut) : une barre sur les nuits du séjour
+        $this->actingAs($owner)->get(route('admin.reservations.calendar', ['mois' => $checkIn->format('Y-m')]))
+            ->assertOk()
+            ->assertSee('cal-bar tone-confirmed', false)
+            ->assertSee('Yao Kouassi')
+            ->assertSee(route('admin.reservations.show', $reservation));
+
+        // Vue planning : unités × jours
+        $response = $this->actingAs($owner)->get(route('admin.reservations.calendar', ['mois' => $checkIn->format('Y-m'), 'vue' => 'planning']));
 
         $response->assertOk()->assertSee('Suite Lagune')->assertSee('YK')->assertSee(route('admin.reservations.show', $reservation));
         $this->assertSame(2, substr_count($response->getContent(), 'occ-cell state-full'));
 
         // Réservé aux gestionnaires
         $this->actingAs(User::factory()->create())->get(route('admin.reservations.calendar'))->assertRedirect(route('client.reservations.index'));
+    }
+
+    public function test_month_view_spreads_stays_over_weeks_and_groups_the_overflow(): void
+    {
+        $owner = User::factory()->owner()->create();
+        $property = Property::factory()->for($owner, 'owner')->create();
+        $unit = Unit::factory()->for($property)->create(['name' => 'Chambre Lagune', 'quantity' => 10]);
+        $stay = function (string $in, string $out, string $name) use ($property, $unit): Reservation {
+            $reservation = Reservation::factory()->confirmed()->for($property)->create(['guest_name' => $name, 'check_in' => $in, 'check_out' => $out]);
+            ReservationUnit::factory()->for($reservation)->for($unit)->create(['quantity' => 1]);
+
+            return $reservation;
+        };
+
+        // Mars 2027 : le lundi 8 commence une semaine
+        $stay('2027-03-12', '2027-03-17', 'Awa Koné');      // ven 12 → mar 16 : deux semaines
+        foreach (['Ali Traoré', 'Bintou Cissé', 'Jean Kouassi', 'Marie Yao'] as $name) {
+            $stay('2027-03-09', '2027-03-11', $name);       // mar 9 et mer 10 : 4 séjours le même jour
+        }
+
+        $calendar = new OccupancyCalendar($property, CarbonImmutable::create(2027, 3, 1));
+        $weeks = $calendar->weeks($calendar->rows());
+        $second = $weeks[1]; // lundi 8 → dimanche 14
+
+        $awa = collect($second['bars'])->first(fn (array $bar) => $bar['reservation']->guest_name === 'Awa Koné');
+        $this->assertSame([4, 3, true], [$awa['start'], $awa['span'], $awa['continuesAfter']]);
+        $this->assertSame(4, $second['lanes']);
+        $this->assertSame(4, $second['days'][1]['arrivals']);
+
+        $this->actingAs($owner)->get(route('admin.reservations.calendar', ['mois' => '2027-03']))
+            ->assertOk()
+            ->assertSee('+ 1 séjour')
+            ->assertSee('Séjours du mois')
+            ->assertSeeInOrder(['Séjours', '5', 'Arrivées', '5', 'Départs', '5']);
     }
 
     /*

@@ -15,7 +15,7 @@
 | `routes/web.php` | Toutes les routes, regroupées par espace |
 | `routes/console.php` | Commandes et tâches planifiées |
 | `resources/views/site`, `client`, `auth`, `admin`, `errors` | Vues Blade |
-| `resources/css`, `resources/js` | Styles et scripts : `site.css`/`site.js` (site et espace client), `admin.css`/`admin.js` |
+| `resources/css`, `resources/js` | Styles et scripts : `site.css`/`site.js` (site et espace client), `admin.css`/`admin.js`. Modules notables : `js/admin/modals.js` (modales et confirmations), `js/site/likes.js` (j’aime), `js/site/residence-details.js` (galerie, sélecteur de logements, récapitulatif), `css/admin/calendar.css` (calendrier) |
 
 ## Services
 
@@ -26,7 +26,7 @@
 | `ResidenceSearch` | Recherche et filtres de la liste publique |
 | `PropertyListing`, `UnitListing`, `ReservationListing`, `PaymentListing` | Filtres des listes de l’administration, partagés par la page et son export Excel |
 | `PropertyModeration`, `PropertyInsights` | Soumission et validation des établissements, liste de contrôle avant publication |
-| `OccupancyCalendar` | Calendrier d’occupation des unités |
+| `OccupancyCalendar` | Calendrier d’occupation : planning des unités jour par jour (`rows`) et vue mois en semaines, séjours rangés en barres sans chevauchement (`weeks`) |
 | `Payments/OnlinePayments`, `Payments/PaymentGateways` | Paiement en ligne indépendant de l’agrégateur (CinetPay, FedaPay) |
 | `PayoutLedger` | Sommes dues aux propriétaires et reversements |
 | `SubscriptionManager` | Abonnements des propriétaires : essais, factures, rappels, suspensions |
@@ -54,6 +54,13 @@ Une réservation **bloque** si elle est confirmée, terminée, ou en attente et 
 `book()` revérifie tout dans une transaction, avec un verrou sur les unités (`lockForUpdate`) : deux clients ne peuvent pas prendre le dernier logement en même temps. Les prix nuit par nuit sont conservés dans `reservation_units.nightly_prices`.
 
 Limites : 60 nuits au plus, arrivée jusqu’à 365 jours à l’avance, délai de réponse de l’établissement de 48 h, frais de service à 0 %. Elles se règlent dans **Paramètres du site** et sont lues par `SiteSettings::booking()`, qui retombe sur `config/booking.php` si rien n’est réglé.
+
+## Visibilité et publication des établissements
+
+- `Property::onSite()` : établissement publié, avec au moins une unité active et, si l’abonnement est obligatoire, un propriétaire en règle ou exempté. Ce scope sert partout sur le site : accueil, liste, fiche, résidences similaires, chiffres, j’aime.
+- `PropertyController::publicationBlocker()` : pas de soumission ni de publication sans unité active ni photo, depuis la fiche comme depuis le formulaire. Un établissement bloqué reste en brouillon, avec un message.
+- **Logement entier** (`properties.manages_units = false`) : le formulaire décrit le logement (`logement_*`), `WholeUnit` crée ou met à jour son unité unique, et `UnitController` renvoie vers le formulaire au lieu d’ajouter ou de modifier une unité. Un établissement qui a plusieurs unités ne peut pas passer en logement entier.
+- Les photos d’un établissement se chargent avec `reorder()->orderByDesc('is_cover')->orderBy('position')` : la relation `images()` trie déjà par position, il faut la réinitialiser pour mettre la couverture en premier.
 
 ## Paramètres du site
 
@@ -112,12 +119,16 @@ Autres notifications :
 - **Téléphone** : toujours le partiel `partials/phone-field` (drapeau, indicatif, longueur selon le pays), avec une colonne `indicatif_telephone` à côté du numéro. Ses paramètres sont préfixés (`phoneValue`, `phoneDial`, `phoneRequired`, `phoneVariant`, `phoneId`, `phoneName`, `phoneDialName`, `phoneInvalid`), pour qu’une variable `$name` ou `$value` de la vue appelante ne s’y substitue pas. Le numéro est enregistré sans espaces ni indicatif (`PhoneNumber::normalize`) et validé par `PhoneNumberRule`.
 - **Exports** : `ExcelExport::download($fichier, $titre, $colonnes, $lignes)`. Les types de colonne sont `text`, `money`, `number`, `decimal`, `percent`, `date` et `datetime`. Les lignes sont lues avec `lazy()`.
 - **Modèles** : `$fillable` explicite, `#[Override]` sur `casts()`, bannières de sections (RELATIONS, SCOPES…), colonne `statut` castée en enum.
+- **Modales de l’administration** (`js/admin/modals.js`) : `.modal-overlay > .modal-card`, avec `.modal-form` pour une modale à formulaire. Un bouton `[data-modal-open="id"]` ouvre la modale (avec `data-form-action` et `data-name` pour une modale partagée entre plusieurs lignes), `[data-modal-close]` la ferme, `data-open-on-load` la rouvre après une erreur de validation. La croix, le rôle de dialogue et la gestion du focus sont ajoutés automatiquement.
+- **Confirmations** : `form[data-confirm="Question ? Précision."]` (la question devient le titre, la suite le texte ; `data-confirm-label` et `data-confirm-tone="danger"` facultatifs), ou `window.dsConfirm({ title, message, confirmLabel, icon, tone })` qui renvoie une promesse. Ne jamais utiliser `window.confirm`.
+- **Aperçu des liens partagés** : le layout `layouts/site` produit les balises Open Graph et X à partir des sections `og_title`, `description` et `og_image` (adresse de l’image), avec des valeurs par défaut pour les autres pages.
+- **Blade** : ne pas écrire `@php($variable = …)` en ligne dans une vue qui contient aussi des blocs `@php … @endphp` (Blade les confond et la vue ne compile plus) ; déclarer la variable dans le bloc `@php` du haut.
 - Les montants sont des entiers en FCFA (`XOF`).
 - Textes de l’interface en français, avec l’apostrophe typographique ’.
 
 ## Tests
 
-`tests/Feature` couvre chaque module : réservation en ligne, espace client, connexion sociale, mot de passe oublié, paiements en ligne (agrégateur simulé avec `Http::fake`), reversements, abonnements, exports, pages et formulaires du site. Les exports sont relus avec le trait `Tests\Concerns\ReadsExcelExports`.
+`tests/Feature` couvre chaque module : réservation en ligne, espace client, connexion sociale, mot de passe oublié, paiements en ligne (agrégateur simulé avec `Http::fake`), reversements, abonnements, modération des avis, j’aime (`LikeTest`), logement entier (`Admin/WholeHomeTest`), calendrier (vue mois et planning), aperçu des liens partagés, exports, pages et formulaires du site. Les exports sont relus avec le trait `Tests\Concerns\ReadsExcelExports`.
 
 ```bash
 php artisan test

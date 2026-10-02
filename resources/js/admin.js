@@ -147,6 +147,32 @@ function initAvatarField() {
 ===================================== */
 
 function initOccupancyGrid() {
+  // Vue mois : une seule liste « + N séjours » ouverte à la fois, fermée par un clic ailleurs ou Échap
+  const popovers = [...document.querySelectorAll(".cal-more")];
+
+  if (popovers.length > 0) {
+    popovers.forEach((details) => {
+      details.addEventListener("toggle", () => {
+        if (details.open) {
+          popovers.filter((other) => other !== details).forEach((other) => other.removeAttribute("open"));
+        }
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".cal-more")) {
+        popovers.forEach((details) => details.removeAttribute("open"));
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        popovers.forEach((details) => details.removeAttribute("open"));
+      }
+    });
+  }
+
+  // Vue planning : la colonne du jour visible dès l'ouverture
   const scroller = document.querySelector(".occ-scroll");
   const today = scroller?.querySelector("thead th.is-today");
 
