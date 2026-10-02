@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActiveStatus;
 use App\Enums\CancellationPolicy;
 use App\Enums\PropertyStatus;
 use App\Enums\ReviewStatus;
@@ -287,6 +288,8 @@ class Property extends Model
     protected function onSite(Builder $query): void
     {
         $query->where('statut', PropertyStatus::Published)
+            // Réservable : au moins une unité active (sinon ni prix, ni capacité, ni disponibilités)
+            ->whereHas('units', fn (Builder $query) => $query->where('statut', ActiveStatus::Active))
             ->when(SubscriptionManager::required(), fn (Builder $query) => $query->whereHas(
                 'owner',
                 fn (Builder $query) => $query

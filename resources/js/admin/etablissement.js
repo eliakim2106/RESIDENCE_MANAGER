@@ -607,6 +607,65 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /*
     |--------------------------------------------------------------------------
+    | LOGEMENT ENTIER (gestion des unités désactivée)
+    |--------------------------------------------------------------------------
+    */
+
+  const wholeHomeToggle = document.querySelector("[data-whole-home-toggle]");
+  const wholeHome = document.querySelector("[data-whole-home]");
+
+  if (wholeHomeToggle && wholeHome) {
+    wholeHomeToggle.addEventListener("change", function () {
+      wholeHome.hidden = this.checked;
+      clearError(null, "error-gestion_unites");
+    });
+
+    wholeHome.querySelectorAll("input, select").forEach(function (field) {
+      field.addEventListener(field.tagName === "SELECT" ? "change" : "input", function () {
+        clearError(this, `error-${this.id}`);
+      });
+    });
+  }
+
+  const digits = (value) => parseInt(String(value).replace(/\D/g, ""), 10);
+
+  function validateWholeHome() {
+    if (!wholeHomeToggle || !wholeHome || wholeHomeToggle.checked) {
+      return true;
+    }
+
+    let valid = true;
+
+    const check = (id, isValid, message) => {
+      const field = document.getElementById(id);
+
+      if (!field) return;
+
+      if (isValid(field.value.trim())) {
+        clearError(field, `error-${id}`);
+      } else {
+        showError(field, `error-${id}`, message);
+        valid = false;
+      }
+    };
+
+    const atLeast = (min) => (value) => value !== "" && Number(value) >= min;
+
+    check("logement_type_id", (value) => value !== "", "Choisissez le type de logement (studio, appartement, villa…).");
+    check("logement_capacite", atLeast(1), "Indiquez combien de voyageurs le logement peut accueillir.");
+    check("logement_chambres", atLeast(0), "Indiquez le nombre de chambres (0 pour un studio).");
+    check("logement_lits", atLeast(1), "Indiquez le nombre de lits.");
+    check("logement_salles_bain", atLeast(0), "Indiquez le nombre de salles de bain.");
+    check("logement_prix", (value) => digits(value) > 0, "Indiquez le prix d’une nuit.");
+
+    const price = digits(document.getElementById("logement_prix")?.value ?? "");
+    check("logement_prix_promo", (value) => value === "" || (digits(value) > 0 && digits(value) < price), "Le prix promotionnel doit être inférieur au prix d’une nuit.");
+
+    return valid;
+  }
+
+  /*
+    |--------------------------------------------------------------------------
     | VALIDATION ETAPE 3
     |--------------------------------------------------------------------------
     */
@@ -704,6 +763,10 @@ document.addEventListener("DOMContentLoaded", function () {
         policyError.textContent = "Choisissez une politique d’annulation.";
       }
 
+      valid = false;
+    }
+
+    if (!validateWholeHome()) {
       valid = false;
     }
 

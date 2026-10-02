@@ -32,6 +32,9 @@ class PropertyRequest extends FormRequest
         $this->merge([
             'telephone' => PhoneNumber::normalize((string) $this->input('indicatif_telephone'), (string) $this->input('telephone')),
             'slug' => Str::slug((string) ($this->input('slug') ?: $this->input('nom'))),
+            // Les prix peuvent être saisis avec des espaces ou « FCFA » : « 20 000 FCFA » devient 20000.
+            'logement_prix' => $this->digitsOrNull('logement_prix'),
+            'logement_prix_promo' => $this->digitsOrNull('logement_prix_promo'),
         ]);
     }
 
@@ -65,6 +68,18 @@ class PropertyRequest extends FormRequest
             'check_out' => ['nullable', 'date_format:H:i'],
             'etoile' => ['nullable', 'integer', 'between:0,5'],
             'gestion_unites' => ['nullable', 'boolean'],
+
+            // Logement entier (sans gestion des unités) : décrit ici, enregistré comme l'unité unique de l'établissement
+            'logement_type_id' => [Rule::requiredIf($this->isWholeHome()), 'nullable', Rule::exists('unit_types', 'id')->where('statut', ActiveStatus::Active->value)],
+            'logement_capacite' => [Rule::requiredIf($this->isWholeHome()), 'nullable', 'integer', 'between:1,50'],
+            'logement_chambres' => [Rule::requiredIf($this->isWholeHome()), 'nullable', 'integer', 'between:0,99'],
+            'logement_lits' => [Rule::requiredIf($this->isWholeHome()), 'nullable', 'integer', 'between:1,99'],
+            'logement_salles_bain' => [Rule::requiredIf($this->isWholeHome()), 'nullable', 'integer', 'between:0,99'],
+            'logement_superficie' => ['nullable', 'integer', 'between:1,65000'],
+            'logement_prix' => [Rule::requiredIf($this->isWholeHome()), 'nullable', 'integer', 'min:1', 'max:100000000'],
+            'logement_prix_promo' => ['nullable', 'integer', 'min:1', 'lt:logement_prix'],
+            'logement_equipements' => ['nullable', 'array'],
+            'logement_equipements.*' => ['integer', Rule::exists('equipments', 'id')->where('statut', ActiveStatus::Active->value)],
 
             // Conditions de séjour (utilisées par les réservations : délai d'annulation gratuite, remboursements)
             'politique_annulation' => ['required', Rule::enum(CancellationPolicy::class)],
@@ -110,6 +125,13 @@ class PropertyRequest extends FormRequest
                 if ($total > self::MAX_GALLERY_IMAGES) {
                     $validator->errors()->add('gallery', 'La galerie ne peut pas dépasser '.self::MAX_GALLERY_IMAGES.' images.');
                 }
+
+                // Un logement entier n'a qu'une unité : on ne retire pas la gestion des unités à un établissement qui en a plusieurs
+                $units = $this->property()?->units()->count() ?? 0;
+
+                if ($this->isWholeHome() && $units > 1) {
+                    $validator->errors()->add('gestion_unites', "Cet établissement a {$units} unités : gardez la gestion des unités, ou supprimez d’abord les unités en trop dans le menu Unités.");
+                }
             },
         ];
     }
@@ -135,6 +157,30 @@ class PropertyRequest extends FormRequest
             'statut.required' => 'Le statut de publication est obligatoire.',
             'meta_title.required' => 'Le titre méta est obligatoire.',
             'slug.unique' => 'Cette URL est déjà utilisée par un autre établissement.',
+            'logement_type_id.required' => 'Choisissez le type de logement (studio, appartement, villa…).',
+            'logement_capacite.required' => 'Indiquez combien de voyageurs le logement peut accueillir.',
+            'logement_chambres.required' => 'Indiquez le nombre de chambres (0 pour un studio).',
+            'logement_lits.required' => 'Indiquez le nombre de lits.',
+            'logement_salles_bain.required' => 'Indiquez le nombre de salles de bain.',
+            'logement_prix.required' => 'Indiquez le prix d’une nuit.',
+            'logement_prix_promo.lt' => 'Le prix promotionnel doit être inférieur au prix d’une nuit.',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'logement_type_id' => 'type de logement',
+            'logement_capacite' => 'capacité',
+            'logement_chambres' => 'nombre de chambres',
+            'logement_lits' => 'nombre de lits',
+            'logement_salles_bain' => 'nombre de salles de bain',
+            'logement_superficie' => 'superficie',
+            'logement_prix' => 'prix d’une nuit',
+            'logement_prix_promo' => 'prix promotionnel',
         ];
     }
 
@@ -146,7 +192,12 @@ class PropertyRequest extends FormRequest
     public const FIELD_STEPS = [
         1 => ['type_etablissement_id', 'nom', 'resume', 'description'],
         2 => ['city_id', 'commune', 'quartier', 'adresse', 'latitude', 'longitude'],
-        3 => ['indicatif_telephone', 'telephone', 'email', 'site_web', 'check_in', 'arrivee_jusqua', 'check_out', 'etoile', 'gestion_unites', 'politique_annulation', 'reglement', 'animaux', 'fumeurs', 'fetes'],
+        3 => [
+            'indicatif_telephone', 'telephone', 'email', 'site_web', 'check_in', 'arrivee_jusqua', 'check_out', 'etoile', 'gestion_unites',
+            'logement_type_id', 'logement_capacite', 'logement_chambres', 'logement_lits', 'logement_salles_bain', 'logement_superficie',
+            'logement_prix', 'logement_prix_promo', 'logement_equipements',
+            'politique_annulation', 'reglement', 'animaux', 'fumeurs', 'fetes',
+        ],
         4 => ['logo', 'deleted_logo', 'gallery', 'deleted_gallery', 'gallery_cover'],
         5 => ['statut'],
         6 => ['meta_title', 'meta_description', 'slug'],
@@ -207,6 +258,41 @@ class PropertyRequest extends FormRequest
     }
 
     /**
+     * Logement entier : « Gestion des unités » décochée. Le logement est décrit dans ce formulaire.
+     */
+    public function isWholeHome(): bool
+    {
+        return ! $this->boolean('gestion_unites');
+    }
+
+    /**
+     * Colonnes de l'unité unique d'un logement entier (WholeUnit).
+     *
+     * @return array{unit_type_id: int, max_adults: int, bedrooms: int, beds: int, bathrooms: int, size_m2: ?int, base_price: int, promo_price: ?int}
+     */
+    public function wholeUnitAttributes(): array
+    {
+        return [
+            'unit_type_id' => $this->integer('logement_type_id'),
+            'max_adults' => $this->integer('logement_capacite'),
+            'bedrooms' => $this->integer('logement_chambres'),
+            'beds' => $this->integer('logement_lits'),
+            'bathrooms' => $this->integer('logement_salles_bain'),
+            'size_m2' => $this->filled('logement_superficie') ? $this->integer('logement_superficie') : null,
+            'base_price' => $this->integer('logement_prix'),
+            'promo_price' => $this->filled('logement_prix_promo') ? $this->integer('logement_prix_promo') : null,
+        ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function wholeUnitEquipmentIds(): array
+    {
+        return array_values(array_map('intval', (array) $this->input('logement_equipements', [])));
+    }
+
+    /**
      * « En ligne » : publié pour un administrateur, soumis à validation pour un propriétaire (PropertyModeration).
      */
     public function wantsOnline(): bool
@@ -231,5 +317,12 @@ class PropertyRequest extends FormRequest
         $property = $this->route('etablissement');
 
         return $property instanceof Property ? $property : null;
+    }
+
+    private function digitsOrNull(string $key): ?string
+    {
+        $digits = preg_replace('/\D/', '', (string) $this->input($key));
+
+        return $digits === '' ? null : $digits;
     }
 }

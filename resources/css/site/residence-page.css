@@ -816,6 +816,11 @@ html.has-lightbox {
   font-size: 1.08rem;
 }
 
+/* Type identique au nom (ex. « Studio ») : pas de ligne de type, même espacement */
+.rd-unit-body h3 + .rd-unit-facts {
+  margin-top: 12px;
+}
+
 .rd-unit-type {
   margin: 2px 0 10px;
   font-size: 0.85rem;

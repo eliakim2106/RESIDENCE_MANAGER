@@ -9,6 +9,7 @@ use App\Models\NewsletterSubscriber;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\Review;
+use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\NewContactMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +29,10 @@ class ContactAndPagesTest extends TestCase
     public function test_home_shows_real_residences_and_reviews(): void
     {
         $residence = Property::factory()->create(['name' => 'Villa Océane', 'is_featured' => true]);
+        Unit::factory()->for($residence)->create();
         $hidden = Property::factory()->draft()->create(['name' => 'Brouillon Caché']);
+        // Publié mais sans unité : rien à réserver, donc absent de l'accueil
+        Property::factory()->create(['name' => 'Résidence Sans Logement']);
         $client = User::factory()->create(['name' => 'Awa Koné']);
         Review::factory()->for($residence)->for($client)->for(Reservation::factory()->completed()->for($client)->for($residence))
             ->create(['rating' => 9, 'comment' => 'Un séjour parfait au bord de la mer.', 'statut' => ReviewStatus::Approved]);
@@ -38,6 +42,7 @@ class ContactAndPagesTest extends TestCase
             ->assertSee('Villa Océane')
             ->assertSee(route('residences.show', $residence))
             ->assertDontSee('Brouillon Caché')
+            ->assertDontSee('Résidence Sans Logement')
             ->assertSee('Un séjour parfait au bord de la mer.')
             ->assertSee('Awa K.')
             ->assertDontSee('5 000');

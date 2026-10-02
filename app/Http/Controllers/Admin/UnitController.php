@@ -83,6 +83,10 @@ class UnitController extends Controller
     {
         Gate::authorize('update', $etablissement);
 
+        if ($redirect = $this->wholeHomeRedirect($etablissement)) {
+            return $redirect;
+        }
+
         if ($request->user()->isOwner() && ($blocker = $this->subscriptions->unitBlocker($request->user()))) {
             return redirect()->route('admin.abonnement.show')->with('error', $blocker);
         }
@@ -98,6 +102,10 @@ class UnitController extends Controller
     {
         Gate::authorize('update', $etablissement);
 
+        if ($redirect = $this->wholeHomeRedirect($etablissement)) {
+            return $redirect;
+        }
+
         if ($request->user()->isOwner() && ($blocker = $this->subscriptions->unitBlocker($request->user()))) {
             return redirect()->route('admin.abonnement.show')->with('error', $blocker);
         }
@@ -112,9 +120,13 @@ class UnitController extends Controller
             ->with('success', 'Unité créée avec succès.');
     }
 
-    public function edit(Unit $unite): View
+    public function edit(Unit $unite): View|RedirectResponse
     {
         Gate::authorize('update', $unite->property);
+
+        if (! $unite->property->manages_units) {
+            return $this->toWholeHomeForm($unite->property);
+        }
 
         $unite->load(['images' => fn ($query) => $query->orderBy('position'), 'equipments']);
 
@@ -128,6 +140,10 @@ class UnitController extends Controller
     public function update(UnitRequest $request, Unit $unite): RedirectResponse
     {
         Gate::authorize('update', $unite->property);
+
+        if (! $unite->property->manages_units) {
+            return $this->toWholeHomeForm($unite->property);
+        }
 
         DB::transaction(function () use ($request, $unite): void {
             $unite->update($request->unitAttributes());
@@ -158,6 +174,25 @@ class UnitController extends Controller
 
         return redirect()->route('admin.unites.index')
             ->with('success', "« {$unite->name} » a été supprimée.");
+    }
+
+    /**
+     * Logement entier (sans gestion des unités) : une seule unité, réglée dans le formulaire de l'établissement.
+     */
+    private function wholeHomeRedirect(Property $property): ?RedirectResponse
+    {
+        if ($property->manages_units || ! $property->units()->exists()) {
+            return null;
+        }
+
+        return $this->toWholeHomeForm($property, "« {$property->name} » est un logement entier : il n’a qu’une unité. "
+            .'Activez « Gestion des unités » pour proposer plusieurs chambres ou logements.');
+    }
+
+    private function toWholeHomeForm(Property $property, ?string $message = null): RedirectResponse
+    {
+        return redirect()->route('admin.etablissements.edit', ['etablissement' => $property, 'etape' => 'accueil'])
+            ->with('success', $message ?? "« {$property->name} » est un logement entier : son prix, sa capacité et ses équipements se règlent ici, à la rubrique « Votre logement ».");
     }
 
     private function syncRelations(Unit $unit, UnitRequest $request): void

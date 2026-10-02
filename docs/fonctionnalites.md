@@ -56,6 +56,9 @@ Un client qui ouvre une ancienne adresse de l’administration (`/admin/...`) es
 ## Propriétaire — administration `/admin`
 
 - **Établissements** : formulaire par étapes (informations, localisation, contact et accueil, médias, publication, SEO), liste de contrôle avant soumission, soumission à validation, mise hors ligne.
+  - **Logement entier** (« Gestion des unités » désactivée, par défaut) : un studio, un appartement ou une villa loué en entier. Le propriétaire le décrit dans le formulaire, rubrique « Votre logement » (type, voyageurs, chambres, lits, salles de bain, superficie, prix, équipements) ; l’unique unité est créée et tenue à jour automatiquement, avec les photos de l’établissement. Le menu Unités renvoie vers ce formulaire.
+  - **Plusieurs unités** (« Gestion des unités » activée) : hôtel, résidence… Les chambres et logements s’ajoutent dans le menu Unités.
+  - Un établissement sans unité active n’est ni soumis ni publié (il reste en brouillon, avec un message), et n’apparaît nulle part sur le site.
 - **Unités** : caractéristiques, prix (base, promotion, week-end, ménage), tarifs par période, galerie, équipements ; suppression bloquée si des séjours sont à venir.
 - **Réservations** : liste filtrable, calendrier d’occupation, confirmation, refus, annulation, séjour terminé, client absent, paiements reçus sur place, remboursements, bon de réservation.
 - **Paiements** : historique et reçus.

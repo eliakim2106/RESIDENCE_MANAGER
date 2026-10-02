@@ -171,6 +171,7 @@ class SubscriptionTest extends TestCase
     {
         $owner = User::factory()->owner()->create();
         $property = Property::factory()->for($owner, 'owner')->create(['statut' => PropertyStatus::Published]);
+        Unit::factory()->for($property)->create();
 
         $this->assertFalse(SubscriptionManager::required());
         $this->assertTrue(Property::query()->onSite()->whereKey($property->id)->exists());
@@ -185,6 +186,7 @@ class SubscriptionTest extends TestCase
         // Propriétaire exempté sans abonnement : ajoute librement, reste en ligne
         $owner = User::factory()->owner()->create(['subscription_exempt' => true]);
         $property = Property::factory()->for($owner, 'owner')->create(['statut' => PropertyStatus::Published]);
+        Unit::factory()->for($property)->create();
 
         $this->actingAs($owner)->get(route('admin.etablissements.create'))->assertOk();
         $this->assertTrue(Property::query()->onSite()->whereKey($property->id)->exists());

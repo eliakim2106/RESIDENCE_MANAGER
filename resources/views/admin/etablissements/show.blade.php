@@ -199,22 +199,37 @@
                 </section>
             @endif
 
-            {{-- Unités --}}
+            {{-- Unités (ou, pour un logement entier, son unité unique réglée dans le formulaire) --}}
+            @php $wholeHomeForm = route('admin.etablissements.edit', ['etablissement' => $etablissement, 'etape' => 'accueil']); @endphp
             <section class="dash-card">
                 <div class="dash-card-header">
                     <div>
-                        <h2>Unités</h2>
-                        <p>{{ $units->count() }} unité{{ $units->count() > 1 ? 's' : '' }} · {{ $units->where('statut', ActiveStatus::Active)->sum('quantity') }} disponible{{ $units->where('statut', ActiveStatus::Active)->sum('quantity') > 1 ? 's' : '' }} à la réservation</p>
+                        @if ($etablissement->manages_units)
+                            <h2>Unités</h2>
+                            <p>{{ $units->count() }} unité{{ $units->count() > 1 ? 's' : '' }} · {{ $units->where('statut', ActiveStatus::Active)->sum('quantity') }} disponible{{ $units->where('statut', ActiveStatus::Active)->sum('quantity') > 1 ? 's' : '' }} à la réservation</p>
+                        @else
+                            <h2>Logement</h2>
+                            <p>Logement loué en entier : son prix, sa capacité et ses équipements se règlent dans le formulaire de l’établissement.</p>
+                        @endif
                     </div>
-                    <a href="{{ route('admin.etablissements.unites.create', $etablissement) }}" class="btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Ajouter</a>
+                    @if ($etablissement->manages_units)
+                        <a href="{{ route('admin.etablissements.unites.create', $etablissement) }}" class="btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> Ajouter</a>
+                    @else
+                        <a href="{{ $wholeHomeForm }}" class="btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Modifier</a>
+                    @endif
                 </div>
 
                 @if ($units->isEmpty())
                     <div class="etab-empty">
                         <i class="fa-solid fa-door-open"></i>
                         <div>
-                            <strong>Aucune unité pour le moment</strong>
-                            <p>Ajoutez les chambres, appartements ou villas proposés : sans unité, l’établissement ne peut pas recevoir de réservation.</p>
+                            @if ($etablissement->manages_units)
+                                <strong>Aucune unité pour le moment</strong>
+                                <p>Ajoutez les chambres, appartements ou villas proposés : sans unité, l’établissement ne peut pas recevoir de réservation.</p>
+                            @else
+                                <strong>Logement à décrire</strong>
+                                <p>Indiquez le type, la capacité et le prix d’une nuit dans le formulaire (étape Accueil & conditions) : sans cela, l’établissement ne peut pas recevoir de réservation.</p>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -246,7 +261,7 @@
                                     <small>/ nuit</small>
                                 </span>
                                 <span class="status-pill status-{{ $unit->statut->tone() }}">{{ $unit->statut->label() }}</span>
-                                <a href="{{ route('admin.unites.edit', $unit) }}" class="action-btn edit" title="Modifier" aria-label="Modifier {{ $unit->name }}"><i class="fa-solid fa-pen"></i></a>
+                                <a href="{{ $etablissement->manages_units ? route('admin.unites.edit', $unit) : $wholeHomeForm }}" class="action-btn edit" title="Modifier" aria-label="Modifier {{ $unit->name }}"><i class="fa-solid fa-pen"></i></a>
                             </li>
                         @endforeach
                     </ul>

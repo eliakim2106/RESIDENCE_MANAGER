@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Property;
 use App\Models\PropertyImage;
 use App\Models\PropertyType;
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -68,11 +69,19 @@ class PropertyTest extends TestCase
 
         $this->actingAs($owner)->get(route('admin.etablissements.create'))->assertOk()->assertSee('Nouvel établissement');
 
+        // Gestion des unités : l'hôtel n'a pas encore d'unité, il reste en brouillon malgré « en ligne »
         $this->actingAs($owner)->post(route('admin.etablissements.store'), $this->payload())
             ->assertRedirect(route('admin.etablissements.show', 'hotel-palm-club'))
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('error', fn (string $message): bool => str_contains($message, 'brouillon') && str_contains($message, 'unité'));
 
         $property = Property::firstWhere('name', 'Hôtel Palm Club');
+        $this->assertSame(PropertyStatus::Draft, $property->statut);
+
+        // Une fois ses unités ajoutées, le propriétaire l'envoie à la validation depuis la fiche
+        Unit::factory()->for($property)->create();
+        $this->actingAs($owner)->patch(route('admin.etablissements.submit', $property))->assertSessionHas('success');
+        $property->refresh();
 
         $this->assertTrue($property->owner->is($owner));
         $this->assertSame('hotel-palm-club', $property->slug);
@@ -113,7 +122,7 @@ class PropertyTest extends TestCase
     public function test_unit_management_is_off_by_default_on_a_new_property(): void
     {
         $owner = User::factory()->owner()->create();
-        $isChecked = fn (string $html): bool => (bool) preg_match('/name="gestion_unites"\s+value="1"\s+checked/', $html);
+        $isChecked = fn (string $html): bool => (bool) preg_match('/name="gestion_unites"[^>]*\bchecked\b/', $html);
 
         $this->assertFalse($isChecked($this->actingAs($owner)->get(route('admin.etablissements.create'))->getContent()));
 

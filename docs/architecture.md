@@ -32,6 +32,7 @@
 | `SubscriptionManager` | Abonnements des propriétaires : essais, factures, rappels, suspensions |
 | `DashboardStats` | Chiffres des tableaux de bord |
 | `GalleryManager` | Logo et galeries photo sur le disque public |
+| `WholeUnit` | Logement entier (sans gestion des unités) : unité unique (quantité 1) créée et tenue à jour depuis le formulaire de l’établissement |
 | `PropertyLikes` | J’aime des établissements : par compte, ou par navigateur pour un visiteur sans compte (cookie `rm_visiteur`) ; pour un client, synchronisé avec ses favoris ; nombre recopié dans `properties.likes_count` |
 
 ## Prix d’une nuit et disponibilités

@@ -232,7 +232,9 @@
 
                                 <div class="rd-unit-body">
                                     <h3>{{ $unit->name }}</h3>
-                                    <p class="rd-unit-type">{{ $unit->unitType?->name }}</p>
+                                    @if ($unit->unitType && $unit->unitType->name !== $unit->name)
+                                        <p class="rd-unit-type">{{ $unit->unitType->name }}</p>
+                                    @endif
                                     <ul class="rd-unit-facts">
                                         <li><i class="fa-solid fa-user-group"></i> {{ $unit->max_adults + $unit->max_children }} pers.</li>
                                         @if ($unit->bedrooms)

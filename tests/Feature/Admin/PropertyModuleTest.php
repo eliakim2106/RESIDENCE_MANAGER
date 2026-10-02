@@ -161,6 +161,7 @@ class PropertyModuleTest extends TestCase
             'animaux' => '1',
             'fumeurs' => '0',
             'fetes' => '0',
+            'gestion_unites' => '1',
             'statut' => 'actif',
             'meta_title' => 'Titre',
             'slug' => $property->slug,

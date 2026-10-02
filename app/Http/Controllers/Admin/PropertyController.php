@@ -9,13 +9,16 @@ use App\Exceptions\WorkflowException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PropertyRequest;
 use App\Models\City;
+use App\Models\Equipment;
 use App\Models\Property;
 use App\Models\PropertyType;
+use App\Models\UnitType;
 use App\Services\GalleryManager;
 use App\Services\PropertyInsights;
 use App\Services\PropertyListing;
 use App\Services\PropertyModeration;
 use App\Services\SubscriptionManager;
+use App\Services\WholeUnit;
 use App\Support\ExcelExport;
 use Closure;
 use Illuminate\Http\RedirectResponse;
@@ -41,6 +44,7 @@ class PropertyController extends Controller
         private GalleryManager $gallery,
         private PropertyModeration $moderation,
         private SubscriptionManager $subscriptions,
+        private WholeUnit $wholeUnit,
     ) {}
 
     public function index(Request $request): View
@@ -144,6 +148,7 @@ class PropertyController extends Controller
 
         return view('admin.etablissements.create', [
             'etablissement' => new Property,
+            'logement' => null,
             ...$this->formOptions(),
         ]);
     }
@@ -156,7 +161,12 @@ class PropertyController extends Controller
             return redirect()->route('admin.abonnement.show')->with('error', $blocker);
         }
 
-        $property = DB::transaction(function () use ($request): Property {
+        // Un logement entier crée aussi son unité : la formule doit le permettre
+        if ($request->isWholeHome() && ($blocker = $this->wholeUnitBlocker($request))) {
+            return back()->withInput()->with('error', $blocker);
+        }
+
+        [$property, $blocked] = DB::transaction(function () use ($request): array {
             $property = Property::create([
                 ...$request->propertyAttributes(),
                 'owner_id' => $request->user()->id,
@@ -165,15 +175,17 @@ class PropertyController extends Controller
             ]);
 
             $this->syncMedia($property, $request);
-            $this->moderation->applyVisibility($property, $request->user(), $request->wantsOnline());
+            $this->syncWholeUnit($property, $request);
 
-            return $property;
+            return [$property, $this->applyVisibility($property, $request)];
         });
 
         return redirect()->route('admin.etablissements.show', $property)
-            ->with('success', $property->isPending()
-                ? 'Établissement créé et envoyé pour validation. Il sera publié dès qu’un administrateur l’aura approuvé.'
-                : 'Établissement créé avec succès.');
+            ->with(...match (true) {
+                $blocked !== null => ['error', "Établissement enregistré en brouillon. {$blocked}"],
+                $property->isPending() => ['success', 'Établissement créé et envoyé pour validation. Il sera publié dès qu’un administrateur l’aura approuvé.'],
+                default => ['success', 'Établissement créé avec succès.'],
+            });
     }
 
     public function edit(Request $request, Property $etablissement): View
@@ -185,6 +197,7 @@ class PropertyController extends Controller
 
         return view('admin.etablissements.edit', [
             'etablissement' => $etablissement,
+            'logement' => $this->wholeUnit->of($etablissement),
             'startStep' => $step === false ? 1 : $step + 1,
             ...$this->formOptions(),
         ]);
@@ -194,19 +207,27 @@ class PropertyController extends Controller
     {
         Gate::authorize('update', $etablissement);
 
+        if ($request->isWholeHome() && ! $etablissement->units()->exists() && ($blocker = $this->wholeUnitBlocker($request))) {
+            return back()->withInput()->with('error', $blocker);
+        }
+
         $wasPending = $etablissement->isPending();
 
-        DB::transaction(function () use ($request, $etablissement): void {
+        $blocked = DB::transaction(function () use ($request, $etablissement): ?string {
             $etablissement->update($request->propertyAttributes());
 
             $this->syncMedia($etablissement, $request);
-            $this->moderation->applyVisibility($etablissement, $request->user(), $request->wantsOnline());
+            $this->syncWholeUnit($etablissement, $request);
+
+            return $this->applyVisibility($etablissement, $request);
         });
 
         return redirect()->route('admin.etablissements.show', $etablissement)
-            ->with('success', $etablissement->isPending() && ! $wasPending
-                ? 'Établissement envoyé pour validation. Il sera publié dès qu’un administrateur l’aura approuvé.'
-                : 'Établissement modifié avec succès.');
+            ->with(...match (true) {
+                $blocked !== null => ['error', ($etablissement->statut === PropertyStatus::Draft ? 'Établissement enregistré en brouillon. ' : 'Établissement enregistré, mais il n’apparaît pas sur le site. ').$blocked],
+                $etablissement->isPending() && ! $wasPending => ['success', 'Établissement envoyé pour validation. Il sera publié dès qu’un administrateur l’aura approuvé.'],
+                default => ['success', 'Établissement modifié avec succès.'],
+            });
     }
 
     public function destroy(Property $etablissement): RedirectResponse
@@ -287,6 +308,39 @@ class PropertyController extends Controller
         };
     }
 
+    /**
+     * Applique le choix « en ligne / brouillon » du formulaire. Un établissement qui ne peut pas être réservé
+     * (aucune unité active, aucune photo) n'est ni soumis ni publié : renvoie la raison, ou null.
+     */
+    private function applyVisibility(Property $property, PropertyRequest $request): ?string
+    {
+        $blocker = $request->wantsOnline() ? $this->publicationBlocker($property) : null;
+
+        if ($blocker === null) {
+            $this->moderation->applyVisibility($property, $request->user(), $request->wantsOnline());
+        }
+
+        return $blocker;
+    }
+
+    /**
+     * Logement entier : son unité unique est tenue à jour avec le formulaire.
+     */
+    private function syncWholeUnit(Property $property, PropertyRequest $request): void
+    {
+        if ($request->isWholeHome()) {
+            $this->wholeUnit->sync($property, $request->wholeUnitAttributes(), $request->wholeUnitEquipmentIds());
+        }
+    }
+
+    /**
+     * Limite d'unités de la formule du propriétaire, atteinte avant de créer l'unité d'un logement entier.
+     */
+    private function wholeUnitBlocker(PropertyRequest $request): ?string
+    {
+        return $request->user()->isOwner() ? $this->subscriptions->unitBlocker($request->user()) : null;
+    }
+
     private function moderate(Closure $action, string $success): RedirectResponse
     {
         try {
@@ -330,6 +384,9 @@ class PropertyController extends Controller
             'typesEtablissement' => PropertyType::active()->orderBy('name')->get(),
             'villes' => City::active()->orderBy('name')->get(),
             'cancellationPolicies' => CancellationPolicy::cases(),
+            // Logement entier
+            'typesLogement' => UnitType::active()->orderBy('name')->get(),
+            'equipements' => Equipment::active()->orderBy('category')->orderBy('name')->get(),
         ];
     }
 }
