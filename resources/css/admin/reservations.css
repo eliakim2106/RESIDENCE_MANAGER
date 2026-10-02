@@ -547,28 +547,7 @@
   min-height: 110px;
 }
 
-/* ---------- Modales avec formulaire ---------- */
-
-.modal-card.modal-form {
-  max-width: 480px;
-}
-
-.modal-form form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
-  text-align: left;
-}
-
-.modal-form .modal-actions {
-  margin-top: 4px;
-}
-
-.modal-icon.modal-icon-info {
-  background: var(--ds-blue-soft);
-  color: var(--ds-blue);
-}
+/* Modales avec formulaire : styles communs dans admin.css (rubrique MODALES) */
 
 .field-optional {
   color: var(--ds-muted);

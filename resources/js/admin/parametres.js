@@ -333,8 +333,16 @@ function initLists(onChange) {
         row.nextElementSibling.after(row);
       } else if (button.matches("[data-item-remove]")) {
         const title = row.querySelector("[data-summary-title]")?.textContent.trim();
-        if (!window.confirm(`Retirer « ${title} » ? Le retrait sera définitif à l’enregistrement.`)) return;
-        row.remove();
+        const ask = window.dsConfirm ?? (({ title: question, message }) => Promise.resolve(window.confirm(`${question}\n${message}`)));
+
+        // Confirmation dans la modale de l'administration (admin/modals.js)
+        ask({ title: `Retirer « ${title} » ?`, message: "Le retrait sera définitif à l’enregistrement.", confirmLabel: "Retirer", icon: "fa-trash-can", tone: "danger" }).then((accepted) => {
+          if (accepted) {
+            row.remove();
+            refresh();
+          }
+        });
+        return;
       } else {
         return;
       }

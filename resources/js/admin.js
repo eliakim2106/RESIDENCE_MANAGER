@@ -1,5 +1,6 @@
 import * as bootstrap from "bootstrap";
 
+import { initModals } from "./admin/modals";
 import { initAlerts } from "./alerts";
 import { initDatepickers } from "./datepicker";
 import { initNotifications } from "./notifications";
@@ -89,127 +90,12 @@ function initResponsiveTables() {
 }
 
 /* =====================================
-   MODALE DE SUPPRESSION
-   Chaque bouton .delete-btn porte data-url (route DELETE) et data-name.
-===================================== */
-
-function initDeleteModal() {
-  const modal = document.getElementById("deleteModal");
-  const form = document.getElementById("deleteForm");
-  const deleteText = document.getElementById("deleteText");
-  const cancelDelete = document.getElementById("cancelDelete");
-
-  if (!modal || !form || !deleteText || !cancelDelete) {
-    return;
-  }
-
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const name = document.createElement("strong");
-      name.textContent = btn.dataset.name ?? "";
-
-      deleteText.replaceChildren(
-        "Vous êtes sur le point de supprimer ",
-        name,
-        ".",
-        document.createElement("br"),
-        // Précision facultative : ce qui sera retiré en même temps (data-detail)
-        ...(btn.dataset.detail ? [btn.dataset.detail, document.createElement("br")] : []),
-        "Cette action est irréversible.",
-      );
-
-      form.action = btn.dataset.url;
-      modal.classList.add("show");
-    });
-  });
-
-  const close = () => modal.classList.remove("show");
-
-  cancelDelete.addEventListener("click", close);
-
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      close();
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      close();
-    }
-  });
-}
-
-/* =====================================
-   MODALES D'ACTION, CONFIRMATIONS, FILTRES
-   [data-modal-open="id"] ouvre la modale #id, [data-modal-close] la ferme.
-   Une modale partagée entre plusieurs lignes reçoit du bouton data-form-action (adresse du formulaire)
-   et data-name (affiché dans [data-modal-name]).
-   form[data-confirm] demande une confirmation avant l'envoi.
+   FILTRES
    select[data-auto-submit] envoie son formulaire dès qu'on change la valeur.
+   (Modales, suppression et confirmations : admin/modals.js)
 ===================================== */
 
-function initActionModals() {
-  const close = (modal) => modal.classList.remove("show");
-
-  document.querySelectorAll("[data-modal-open]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const modal = document.getElementById(btn.dataset.modalOpen);
-
-      if (!modal) {
-        return;
-      }
-
-      const form = modal.querySelector("form");
-
-      if (btn.dataset.formAction && form) {
-        form.action = btn.dataset.formAction;
-
-        // Conservés pour rouvrir la modale sur la bonne ligne après une erreur de validation
-        form.querySelector("input[name='_form_action']")?.setAttribute("value", btn.dataset.formAction);
-        form.querySelector("input[name='_form_name']")?.setAttribute("value", btn.dataset.name ?? "");
-      }
-
-      if (btn.dataset.name) {
-        modal.querySelectorAll("[data-modal-name]").forEach((el) => {
-          el.textContent = btn.dataset.name;
-        });
-      }
-
-      modal.classList.add("show");
-      modal.querySelector("input:not([type=hidden]), select, textarea")?.focus();
-    });
-  });
-
-  document.querySelectorAll(".modal-overlay[data-action-modal]").forEach((modal) => {
-    modal.querySelectorAll("[data-modal-close]").forEach((btn) => btn.addEventListener("click", () => close(modal)));
-
-    modal.addEventListener("click", (event) => {
-      if (event.target === modal) {
-        close(modal);
-      }
-    });
-
-    // Rouvre la modale après une erreur de validation
-    if (modal.dataset.openOnLoad !== undefined) {
-      modal.classList.add("show");
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      document.querySelectorAll(".modal-overlay[data-action-modal].show").forEach(close);
-    }
-  });
-
-  document.querySelectorAll("form[data-confirm]").forEach((form) => {
-    form.addEventListener("submit", (event) => {
-      if (!window.confirm(form.dataset.confirm)) {
-        event.preventDefault();
-      }
-    });
-  });
-
+function initAutoSubmit() {
   document.querySelectorAll("select[data-auto-submit]").forEach((select) => {
     select.addEventListener("change", () => select.form?.requestSubmit());
   });
@@ -449,8 +335,8 @@ function initLivePreview() {
 initSidebar();
 initResponsiveTables();
 initLivePreview();
-initDeleteModal();
-initActionModals();
+initModals();
+initAutoSubmit();
 initAvatarField();
 initOccupancyGrid();
 initCycleToggle();
